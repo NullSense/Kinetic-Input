@@ -1,0 +1,7 @@
+# Only ignore things we don't need for building
+.git
+*.log
+
+# Documentation (not needed for build)
+*.md
+!README.md

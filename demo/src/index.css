@@ -1,0 +1,141 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Core palette from DESIGN_SYSTEM_V2.4 */
+  --bg: #0A0B0D;
+  --fg: #E7EDF2;
+  --muted: #9DB1BE;
+  --hairline: #15181B;
+
+  /* Brand */
+  --accent: #3EDCFF;
+  --secondary: #8E77B5;
+
+  /* Semantic */
+  --success: #31E889;
+  --danger: #E03E3E;
+  --warning: #FFB84D;
+
+  /* Animation timings */
+  --duration-instant: 100ms;
+  --duration-fast: 200ms;
+  --duration-medium: 300ms;
+  --duration-slow: 500ms;
+
+  --easing-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --easing-enter: cubic-bezier(0, 0, 0.2, 1);
+  --easing-exit: cubic-bezier(0.4, 0, 1, 1);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  color: var(--fg);
+  background: var(--bg);
+  font-family: 'Archivo', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+@layer utilities {
+  /* Cyber-Editorial Brutalism utilities */
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  /* Minimal glassmorphism (when absolutely necessary) */
+  .glass-subtle {
+    background: rgba(10, 11, 13, 0.8);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--hairline);
+  }
+
+  /* Hairline rules */
+  .hairline-divider {
+    height: 1px;
+    background: var(--hairline);
+  }
+
+  /* Interactive states (subtle, not flashy) */
+  .hover-accent {
+    transition: color var(--duration-instant) var(--easing-standard);
+  }
+
+  .hover-accent:hover {
+    color: var(--accent);
+  }
+
+  /* Focus indicators */
+  .focus-accent:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+}
+
+/* Kinetic Input component overrides */
+.picker-item {
+  font-family: 'Geist Mono', monospace;
+  transition: transform var(--duration-instant) var(--easing-standard);
+  color: var(--muted); /* Base color for non-selected items */
+}
+
+.picker-item-selected {
+  transform: scale(1.02);
+  color: var(--accent);
+}
+
+.picker-item-active {
+  transform: scale(1.05);
+  color: var(--accent);
+}
+
+/* Syntax highlighting for code snippets */
+.syntax-keyword {
+  color: #c678dd; /* Purple for keywords */
+  font-weight: 500;
+}
+
+.syntax-string {
+  color: #98c379; /* Green for strings */
+}
+
+.syntax-number {
+  color: #d19a66; /* Orange for numbers */
+}
+
+.syntax-comment {
+  color: #5c6370; /* Gray for comments */
+  font-style: italic;
+}
+
+.syntax-component {
+  color: #e5c07b; /* Yellow for components */
+  font-weight: 500;
+}
+
+.syntax-prop {
+  color: #61afef; /* Blue for props */
+}
+
+.syntax-function {
+  color: #61afef; /* Blue for functions */
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

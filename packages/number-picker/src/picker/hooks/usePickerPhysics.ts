@@ -1,0 +1,644 @@
+import type React from 'react';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+} from 'react';
+import {
+  animate,
+  useMotionValue,
+  useMotionValueEvent,
+  type AnimationPlaybackControls,
+  type MotionValue,
+} from 'framer-motion';
+import type { PickerOption } from '../PickerGroup';
+import type { SnapPhysicsConfig } from '../types/snapPhysics';
+import { DEFAULT_SNAP_PHYSICS } from '../../config/physics';
+import { useSnapPhysics } from './useSnapPhysics';
+import { useVirtualWindow } from './useVirtualWindow';
+import { useSnappedIndexStore } from '../useSnappedIndexStore';
+import { clamp, clampIndex, indexFromY, yFromIndex } from '../utils/math';
+import { animationDebugger, debugSnapLog } from '../../utils/debug';
+import {
+  createGestureEmitter,
+  createVelocityTracker,
+  type PickerGestureHandler,
+} from '../gestures';
+
+const MAX_OVERSCROLL = 80;
+const OPENING_DRAG_THRESHOLD = 6;
+const CLICK_STEP_THRESHOLD_RATIO = 0.3;
+const TOUCH_TAP_THRESHOLD_RATIO = 0.1;
+
+export interface PickerColumnInteractionsConfig {
+  key: string;
+  options: PickerOption[];
+  selectedIndex: number;
+  itemHeight: number;
+  height: number;
+  isPickerOpen: boolean;
+  wheelMode: 'off' | 'natural' | 'inverted';
+  changeValue: (key: string, value: string | number) => boolean;
+  /** Event-driven gesture handler */
+  onGesture?: PickerGestureHandler;
+  snapConfig?: SnapPhysicsConfig;
+  virtualization: {
+    slotCount: number;
+    overscan: number;
+  };
+}
+
+export interface PickerColumnInteractionsResult {
+  columnRef: React.MutableRefObject<HTMLDivElement | null>;
+  ySnap: MotionValue<number>;
+  centerIndex: number;
+  startIndex: number;
+  windowLength: number;
+  virtualOffsetY: number;
+  handlePointerDown: (event: React.PointerEvent<HTMLDivElement>) => void;
+  handlePointerMove: (event: React.PointerEvent<HTMLDivElement>) => void;
+  handlePointerUp: (event: React.PointerEvent<HTMLDivElement>) => void;
+  handlePointerCancel: (event: React.PointerEvent<HTMLDivElement>) => void;
+  handlePointerLeave: (event: React.PointerEvent<HTMLDivElement>) => void;
+}
+
+/**
+ * Encapsulates the picker column motion math, snapping, and virtualization bookkeeping.
+ *
+ * Uses event-driven architecture: all gesture interactions emit events through onGesture.
+ *
+ * @param {PickerColumnInteractionsConfig} config
+ * @returns {PickerColumnInteractionsResult}
+ */
+export function usePickerPhysics({
+  key,
+  options,
+  selectedIndex,
+  itemHeight,
+  height,
+  isPickerOpen,
+  wheelMode,
+  changeValue,
+  onGesture,
+  snapConfig,
+  virtualization,
+}: PickerColumnInteractionsConfig): PickerColumnInteractionsResult {
+  // Create gesture emitter for event-driven API
+  const emitter = useMemo(() => createGestureEmitter(onGesture), [onGesture]);
+
+  // Create velocity tracker for pointer/wheel gestures
+  const velocityTracker = useMemo(() => createVelocityTracker({
+    sampleCount: 5,
+    maxSampleAge: 100,
+  }), []);
+
+  const mergedSnapConfig = useMemo<SnapPhysicsConfig>(
+    () => ({
+      ...DEFAULT_SNAP_PHYSICS,
+      ...(snapConfig ?? {}),
+    }),
+    [snapConfig],
+  );
+  const snapEnabled = mergedSnapConfig.enabled;
+  const snapPhysics = useSnapPhysics(mergedSnapConfig);
+
+  const lastIndex = Math.max(0, options.length - 1);
+  const maxTranslate = useMemo(() => height / 2 - itemHeight / 2, [height, itemHeight]);
+  const minTranslate = useMemo(
+    () => height / 2 - itemHeight * options.length + itemHeight / 2,
+    [height, itemHeight, options.length],
+  );
+
+  const yRaw = useMotionValue(0);
+  const ySnap = useMotionValue(0);
+
+  useMotionValueEvent(yRaw, 'change', (latest) => {
+    const snapped = Math.round(Number(latest));
+    if (ySnap.get() !== snapped) {
+      ySnap.set(snapped);
+    }
+  });
+
+  useEffect(() => {
+    const initialIndex = clampIndex(selectedIndex, lastIndex);
+    const initialTranslate = yFromIndex(initialIndex, itemHeight, maxTranslate, lastIndex);
+    yRaw.set(initialTranslate);
+    ySnap.set(Math.round(initialTranslate));
+  }, [itemHeight, lastIndex, maxTranslate, selectedIndex, yRaw, ySnap]);
+
+  const columnRef = useRef<HTMLDivElement | null>(null);
+  const isMovingRef = useRef(false);
+  const startPointerYRef = useRef(0);
+  const startTranslateRef = useRef(0);
+  const boundaryHitFiredRef = useRef(false);
+  const lastVisualValueRef = useRef<string | number | null>(null);
+  const wasOpenOnPointerDownRef = useRef(false);
+  const openingDragThresholdPassedRef = useRef(false);
+  const skipClickRef = useRef(false);
+  const pointerTypeRef = useRef<'mouse' | 'pen' | 'touch' | ''>('');
+  const activeAnimationRef = useRef<AnimationPlaybackControls | null>(null);
+  const activeAnimationIdRef = useRef<symbol | null>(null);
+  const activeTargetIndexRef = useRef<number | null>(null);
+  const lastIsPickerOpenRef = useRef(isPickerOpen);
+
+  useEffect(() => {
+    lastVisualValueRef.current = options[selectedIndex]?.value ?? null;
+  }, [options, selectedIndex]);
+
+  const centerIndex = useSnappedIndexStore(ySnap, itemHeight, maxTranslate, lastIndex);
+
+  useEffect(() => {
+    const wasClosed = !lastIsPickerOpenRef.current && isPickerOpen;
+    lastIsPickerOpenRef.current = isPickerOpen;
+    if (
+      wasClosed &&
+      isMovingRef.current &&
+      skipClickRef.current &&
+      !openingDragThresholdPassedRef.current
+    ) {
+      startTranslateRef.current = yRaw.get();
+    }
+  }, [isPickerOpen, yRaw]);
+
+  useEffect(() => {
+    const candidate = options[centerIndex]?.value;
+    if (candidate !== undefined && candidate !== lastVisualValueRef.current) {
+      lastVisualValueRef.current = candidate;
+      emitter.visualChange(candidate, centerIndex);
+    }
+  }, [centerIndex, emitter, options]);
+
+  const { startIndex, windowLength, virtualOffsetY } = useVirtualWindow({
+    centerIndex,
+    itemHeight,
+    optionCount: options.length,
+    slotCount: virtualization.slotCount,
+    overscan: virtualization.overscan,
+  });
+
+  const updateScrollerWhileMoving = useCallback(
+    (nextTranslate: number) => {
+      let applied = nextTranslate;
+      if (applied < minTranslate) {
+        const distance = minTranslate - applied;
+        const limitedDistance = Math.min(distance, MAX_OVERSCROLL);
+        const overscroll = Math.pow(limitedDistance, 0.8);
+        applied = minTranslate - overscroll;
+        if (distance > 0 && !boundaryHitFiredRef.current) {
+          const value = options[lastIndex]?.value;
+          emitter.boundaryHit('max', value);
+          boundaryHitFiredRef.current = true;
+        }
+      } else if (applied > maxTranslate) {
+        const distance = applied - maxTranslate;
+        const limitedDistance = Math.min(distance, MAX_OVERSCROLL);
+        const overscroll = Math.pow(limitedDistance, 0.8);
+        applied = maxTranslate + overscroll;
+        if (distance > 0 && !boundaryHitFiredRef.current) {
+          const value = options[0]?.value;
+          emitter.boundaryHit('min', value);
+          boundaryHitFiredRef.current = true;
+        }
+      }
+
+      yRaw.set(applied);
+      return applied;
+    },
+    [emitter, lastIndex, maxTranslate, minTranslate, options, yRaw],
+  );
+
+  const commitValueAtIndex = useCallback(
+    (targetIndex: number) => {
+      const option = options[targetIndex];
+      if (option) {
+        changeValue(key, option.value);
+      }
+    },
+    [changeValue, key, options],
+  );
+
+  const finishAnimationInstantly = useCallback(() => {
+    const targetIndex = activeTargetIndexRef.current;
+    if (targetIndex == null) {
+      return;
+    }
+
+    const targetTranslate = yFromIndex(targetIndex, itemHeight, maxTranslate, lastIndex);
+    yRaw.set(targetTranslate);
+    commitValueAtIndex(targetIndex);
+    activeTargetIndexRef.current = null;
+  }, [commitValueAtIndex, itemHeight, lastIndex, maxTranslate, yRaw]);
+
+  const stopActiveAnimation = useCallback(() => {
+    if (!activeAnimationRef.current) {
+      return;
+    }
+
+    const stoppedAnimationId = activeAnimationIdRef.current;
+    animationDebugger.stop(
+      stoppedAnimationId?.toString() ?? 'unknown',
+      activeTargetIndexRef.current
+    );
+
+    activeAnimationRef.current.stop();
+    activeAnimationRef.current = null;
+    activeAnimationIdRef.current = null;
+    finishAnimationInstantly();
+  }, [finishAnimationInstantly]);
+
+  const settleToIndex = useCallback(
+    (index: number, onComplete?: () => void) => {
+      if (options.length === 0) {
+        onComplete?.();
+        return;
+      }
+      const clampedIndex = clampIndex(index, lastIndex);
+      const target = yFromIndex(clampedIndex, itemHeight, maxTranslate, lastIndex);
+      const currentY = yRaw.get();
+
+      // Optimization: Skip animation if already at target position (prevents no-op animations)
+      const distance = Math.abs(currentY - target);
+      if (distance < 1 && !activeAnimationRef.current) {
+        // Already at target and not animating - commit immediately (no animation delay needed)
+        yRaw.set(target);  // Snap to exact position (prevent sub-pixel drift)
+        commitValueAtIndex(clampedIndex);
+        onComplete?.();
+        return;
+      }
+
+      stopActiveAnimation();
+
+      const animationId = Symbol('picker-settle');
+      const animationIdStr = animationId.toString();
+
+      // CRITICAL: Set refs BEFORE animate() to handle synchronous onComplete
+      // If yRaw is already at target, Framer Motion calls onComplete synchronously
+      // before animate() returns. Setting refs first ensures the guard check works.
+      activeAnimationIdRef.current = animationId;
+      activeTargetIndexRef.current = clampedIndex;
+
+      animationDebugger.start(animationIdStr, clampedIndex, currentY, target);
+
+      const controls = animate(yRaw, target, {
+        type: 'spring',
+        stiffness: 300,
+        damping: 34,
+        restDelta: 0.5,
+        restSpeed: 10,
+        onComplete: () => {
+          // Guard: If this animation was stopped, activeAnimationIdRef will be null/different
+          // This check now works correctly even for synchronous completion
+          if (activeAnimationIdRef.current !== animationId) {
+            animationDebugger.cancel(
+              animationIdStr,
+              activeAnimationIdRef.current?.toString() ?? null
+            );
+            // Animation was stopped/superseded - do nothing
+            return;
+          }
+
+          // This animation completed successfully
+          const finalY = yRaw.get();
+          animationDebugger.complete(animationIdStr, clampedIndex, finalY);
+
+          activeAnimationRef.current = null;
+          activeAnimationIdRef.current = null;
+
+          if (activeTargetIndexRef.current === clampedIndex) {
+            activeTargetIndexRef.current = null;
+            commitValueAtIndex(clampedIndex);
+            yRaw.set(target);  // Only snap if we committed (no race with new animation)
+            onComplete?.();
+          }
+        },
+      });
+
+      // Set controls ref after animate() (controls can't be used in synchronous onComplete anyway)
+      activeAnimationRef.current = controls;
+    },
+    [commitValueAtIndex, itemHeight, lastIndex, maxTranslate, options.length, stopActiveAnimation, yRaw],
+  );
+
+  const settleFromY = useCallback(
+    (currentY: number, onComplete?: () => void) => {
+      const clampedY = clamp(currentY, minTranslate, maxTranslate);
+      const index = clampIndex(indexFromY(clampedY, itemHeight, maxTranslate), lastIndex);
+      settleToIndex(index, onComplete);
+    },
+    [itemHeight, lastIndex, maxTranslate, minTranslate, settleToIndex],
+  );
+
+  const handlePointerDown = useCallback(
+    (event: React.PointerEvent<HTMLDivElement>) => {
+      const element = event.currentTarget as HTMLElement;
+      element.setPointerCapture?.(event.pointerId);
+      pointerTypeRef.current =
+        event.pointerType === 'mouse' || event.pointerType === 'pen' || event.pointerType === 'touch'
+          ? event.pointerType
+          : '';
+      stopActiveAnimation();
+      isMovingRef.current = true;
+      startPointerYRef.current = event.clientY;
+      startTranslateRef.current = yRaw.get();
+      boundaryHitFiredRef.current = false;
+      wasOpenOnPointerDownRef.current = isPickerOpen;
+      openingDragThresholdPassedRef.current = isPickerOpen;
+      skipClickRef.current = !isPickerOpen;
+      snapPhysics.reset();
+
+      // Reset velocity tracker for new gesture
+      velocityTracker.reset();
+      velocityTracker.addSample(event.clientY);
+      emitter.dragStart('pointer');
+    },
+    [emitter, isPickerOpen, snapPhysics, stopActiveAnimation, velocityTracker, yRaw],
+  );
+
+  const handlePointerMove = useCallback(
+    (event: React.PointerEvent<HTMLDivElement>) => {
+      if (!isMovingRef.current) return;
+
+      // Track velocity
+      velocityTracker.addSample(event.clientY);
+
+      const deltaY = event.clientY - startPointerYRef.current;
+      const contentDelta = deltaY;
+      if (!openingDragThresholdPassedRef.current) {
+        if (Math.abs(deltaY) < OPENING_DRAG_THRESHOLD) {
+          return;
+        }
+        openingDragThresholdPassedRef.current = true;
+        skipClickRef.current = false;
+      }
+
+      const rawTranslate = startTranslateRef.current + contentDelta;
+      const nearestIndex = indexFromY(rawTranslate, itemHeight, maxTranslate);
+      const snapTargetTranslate = yFromIndex(nearestIndex, itemHeight, maxTranslate, lastIndex);
+
+      let nextTranslate = rawTranslate;
+      const deltaToTarget = rawTranslate - snapTargetTranslate;
+      if (snapEnabled) {
+        const totalPixelsMoved = Math.abs(event.clientY - startPointerYRef.current);
+        const snapResult = snapPhysics.calculate(
+          { deltaY: deltaToTarget, velocityY: 0, totalPixelsMoved },
+          0,
+          itemHeight,
+        );
+        nextTranslate = snapResult.mappedTranslate + snapTargetTranslate;
+      } else {
+        nextTranslate = rawTranslate;
+      }
+
+      updateScrollerWhileMoving(nextTranslate);
+    },
+    [itemHeight, lastIndex, maxTranslate, snapEnabled, snapPhysics, updateScrollerWhileMoving, velocityTracker],
+  );
+
+  const handlePointerUp = useCallback(
+    (event: React.PointerEvent<HTMLDivElement>) => {
+      try {
+        (event.currentTarget as HTMLElement).releasePointerCapture?.(event.pointerId);
+      } catch (error) {
+        debugSnapLog?.('releasePointerCapture failed', error);
+      }
+
+      const currentTranslate = yRaw.get();
+      const movementDelta = Math.abs(currentTranslate - startTranslateRef.current);
+      const hasMoved = movementDelta > 2;
+
+      const shouldSkipSettle = !openingDragThresholdPassedRef.current && !wasOpenOnPointerDownRef.current;
+
+      isMovingRef.current = false;
+      snapPhysics.reset();
+
+      const pointerType = pointerTypeRef.current;
+      pointerTypeRef.current = '';
+
+      if (shouldSkipSettle) {
+        openingDragThresholdPassedRef.current = false;
+        wasOpenOnPointerDownRef.current = false;
+
+        // Get velocity before emitting event
+        const velocity = velocityTracker.getVelocity();
+        emitter.dragEnd(false, velocity);
+        return;
+      }
+
+      const currentIndex = clampIndex(indexFromY(currentTranslate, itemHeight, maxTranslate), lastIndex);
+
+      if (
+        !hasMoved &&
+        isPickerOpen &&
+        !skipClickRef.current &&
+        (pointerType === 'mouse' || pointerType === 'pen' || pointerType === 'touch') &&
+        columnRef.current
+      ) {
+        const rect = columnRef.current.getBoundingClientRect();
+        const centerY = rect.top + rect.height / 2;
+        const relativeOffset = event.clientY - centerY;
+        const thresholdRatio = pointerType === 'touch' ? TOUCH_TAP_THRESHOLD_RATIO : CLICK_STEP_THRESHOLD_RATIO;
+        const threshold = itemHeight * thresholdRatio;
+        if (Math.abs(relativeOffset) > threshold) {
+          const rawSteps = relativeOffset / itemHeight;
+          const direction = rawSteps > 0 ? 1 : -1;
+          const magnitude = pointerType === 'touch' ? 1 : Math.max(1, Math.round(Math.abs(rawSteps)));
+          const targetIndex = clampIndex(currentIndex + direction * magnitude, lastIndex);
+
+          if (targetIndex !== currentIndex) {
+            // Get velocity before emitting event
+            const velocity = velocityTracker.getVelocity();
+
+            settleToIndex(targetIndex, () => {
+              openingDragThresholdPassedRef.current = false;
+              wasOpenOnPointerDownRef.current = false;
+              skipClickRef.current = false;
+              emitter.dragEnd(true, velocity);
+            });
+            return;
+          }
+        }
+      }
+
+      // Get velocity before settling
+      const velocity = velocityTracker.getVelocity();
+
+      const finalize = (didMove: boolean) => {
+        openingDragThresholdPassedRef.current = false;
+        wasOpenOnPointerDownRef.current = false;
+        skipClickRef.current = false;
+        emitter.dragEnd(didMove, velocity);
+      };
+
+      settleFromY(currentTranslate, () => finalize(hasMoved));
+    },
+    [
+      columnRef,
+      emitter,
+      isPickerOpen,
+      itemHeight,
+      lastIndex,
+      maxTranslate,
+      settleFromY,
+      settleToIndex,
+      snapPhysics,
+      velocityTracker,
+      yRaw,
+    ],
+  );
+
+  const handlePointerCancel = useCallback(
+    (event: React.PointerEvent<HTMLDivElement>) => {
+      handlePointerUp(event);
+    },
+    [handlePointerUp],
+  );
+
+  const handlePointerLeave = useCallback(
+    (event: React.PointerEvent<HTMLDivElement>) => {
+      if (isMovingRef.current) {
+        handlePointerUp(event);
+      }
+    },
+    [handlePointerUp],
+  );
+
+  const wheelingTimer = useRef<number | null>(null);
+  const wheelStartTranslateRef = useRef<number | null>(null);
+
+  const handleWheeling = useCallback(
+    (event: WheelEvent) => {
+      let delta = event.deltaY;
+
+      if (event.deltaMode === 0x01) {
+        delta *= 16;
+      } else if (event.deltaMode === 0x02) {
+        delta *= height;
+      }
+
+      delta *= 0.1;
+
+      if (Math.abs(delta) < itemHeight) {
+        delta = itemHeight * Math.sign(delta);
+      }
+
+      if (wheelMode === 'inverted') {
+        delta = -delta;
+      }
+
+      const currentTranslate = ySnap.get();
+      let nextTranslate = currentTranslate + delta;
+
+      // Track wheel velocity
+      velocityTracker.addSample(nextTranslate);
+
+      if (snapEnabled) {
+        const nearestIndex = indexFromY(nextTranslate, itemHeight, maxTranslate);
+        const snapTargetTranslate = yFromIndex(nearestIndex, itemHeight, maxTranslate, lastIndex);
+        const deltaToTarget = nextTranslate - snapTargetTranslate;
+        const frame = {
+          deltaY: deltaToTarget,
+          velocityY: 0,
+          totalPixelsMoved: 0,
+        };
+        const snapResult = snapPhysics.calculate(frame, 0, itemHeight);
+        nextTranslate = snapResult.mappedTranslate + snapTargetTranslate;
+      } else {
+        nextTranslate = currentTranslate + delta;
+      }
+
+      updateScrollerWhileMoving(nextTranslate);
+    },
+    [height, itemHeight, lastIndex, maxTranslate, snapEnabled, snapPhysics, updateScrollerWhileMoving, velocityTracker, wheelMode, ySnap],
+  );
+
+  const handleWheel = useCallback(
+    (event: WheelEvent) => {
+      event.preventDefault();
+
+      if (wheelStartTranslateRef.current === null) {
+        wheelStartTranslateRef.current = ySnap.get();
+
+        // Reset velocity tracker for new wheel gesture
+        velocityTracker.reset();
+        velocityTracker.addSample(wheelStartTranslateRef.current);
+        emitter.dragStart('wheel');
+
+        snapPhysics.reset();
+        boundaryHitFiredRef.current = false;
+      }
+
+      handleWheeling(event);
+
+      if (wheelingTimer.current !== null) {
+        window.clearTimeout(wheelingTimer.current);
+      }
+
+      wheelingTimer.current = window.setTimeout(() => {
+        const currentTranslate = ySnap.get();
+        const startTranslate = wheelStartTranslateRef.current ?? currentTranslate;
+        const movementDelta = Math.abs(currentTranslate - startTranslate);
+        const hasMoved = movementDelta > 2;
+
+        // Get velocity before settling
+        const velocity = velocityTracker.getVelocity();
+
+        settleFromY(currentTranslate, () => {
+          snapPhysics.reset();
+          emitter.dragEnd(hasMoved, velocity);
+          wheelStartTranslateRef.current = null;
+          wheelingTimer.current = null;
+        });
+      }, 200);
+    },
+    [emitter, handleWheeling, settleFromY, snapPhysics, velocityTracker, ySnap],
+  );
+
+  useEffect(() => {
+    return () => {
+      if (wheelingTimer.current !== null) {
+        window.clearTimeout(wheelingTimer.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    const node = columnRef.current;
+    if (!node) return undefined;
+
+    const wheelListener = (event: WheelEvent) => {
+      handleWheel(event);
+    };
+
+    const wheelListenerOptions: AddEventListenerOptions = { passive: false };
+    node.addEventListener('wheel', wheelListener, wheelListenerOptions);
+    return () => {
+      node.removeEventListener('wheel', wheelListener, wheelListenerOptions);
+    };
+  }, [handleWheel]);
+
+  useEffect(
+    () => () => {
+      stopActiveAnimation();
+    },
+    [stopActiveAnimation],
+  );
+
+  useEffect(() => {
+    boundaryHitFiredRef.current = false;
+  }, [options.length]);
+
+  return {
+    columnRef,
+    ySnap,
+    centerIndex,
+    startIndex,
+    windowLength,
+    virtualOffsetY,
+    handlePointerDown,
+    handlePointerMove,
+    handlePointerUp,
+    handlePointerCancel,
+    handlePointerLeave,
+  };
+}

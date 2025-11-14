@@ -1,0 +1,215 @@
+input[type=number]::-webkit-outer-spin-button,
+input[type=number]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type=number] {
+  -moz-appearance: textfield;
+}
+
+.quick-number-input-root {
+  --qni-item-height: 40px;
+  --qni-picker-height: calc(var(--qni-item-height) * 5);
+  --qni-color-text: #9db1be;
+  --qni-color-text-active: #3edcff;
+  --qni-color-unit: #8e77b5;
+  --qni-color-highlight-border: rgba(62, 220, 255, 0.5);
+  --qni-color-highlight-fill: rgba(62, 220, 255, 0.05);
+  --qni-color-backdrop: rgba(0, 0, 0, 0.3);
+  --qni-color-fade: #0a0b0d;
+  --qni-gap: 0.5rem;
+  --qni-picker-padding: 1rem;
+  --qni-active-scale: 1.18;
+  --qni-deselect-scale: 1.04;
+  --qni-deselect-opacity: 0.82;
+  --qni-deselect-fade: 0.14s;
+  --qni-trail-start-scale: 1.18;
+  --qni-highlight-padding: 0px;
+  --qni-highlight-height: var(--qni-item-height);
+  --qni-color-ease: cubic-bezier(0.32, 0.94, 0.6, 1);
+  --qni-scale-ease: cubic-bezier(0.32, 0.94, 0.6, 1);
+  --qni-transition-color: 0.12s;
+  --qni-transition-transform: 0.16s;
+  --qni-transition-opacity: 0.16s;
+}
+
+:root, .quick-number-input-root {
+  /* Force 1-row highlight height */
+  --qni-highlight-height: var(--qni-item-height);
+}
+
+
+.quick-number-input-root .picker-surface {
+  touch-action: pan-x pinch-zoom;
+  overscroll-behavior-y: contain;
+  user-select: none;
+}
+
+.quick-number-input-root .picker-container {
+  position: relative; /* anchor highlight/fades */
+  height: var(--qni-picker-height);
+  overflow: hidden;
+}
+
+.quick-number-input-root .picker-item {
+  height: var(--qni-item-height);
+  line-height: var(--qni-item-height); /* avoid off-by-1 row alignment */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding-inline: var(--qni-picker-padding, 1rem);
+  gap: var(--qni-gap, 0.5rem);
+  font-family: var(--qni-font-family, 'Geist Mono', monospace);
+  font-size: var(--qni-font-size);
+  color: var(--qni-color-text);
+  transition:
+    color var(--qni-transition-color, 0.12s) var(--qni-color-ease, cubic-bezier(0.32, 0.94, 0.6, 1)),
+    transform var(--qni-transition-transform, 0.16s) var(--qni-scale-ease, cubic-bezier(0.32, 0.94, 0.6, 1)),
+    opacity var(--qni-transition-opacity, 0.16s) var(--qni-color-ease, ease-out);
+  position: relative;
+  z-index: 20;
+}
+
+.quick-number-input-root .picker-item-value {
+  font-variant-numeric: tabular-nums;
+}
+
+.quick-number-input-root .picker-item-unit {
+  margin-left: 0.4rem;
+  font-family: 'Archivo', sans-serif;
+  font-size: 0.75em;
+  color: var(--qni-color-unit);
+}
+.quick-number-input-root .picker-item.picker-item-active {
+  color: var(--qni-color-text-active) !important;
+  text-shadow: 0 0 0.5px currentColor, 0.5px 0 0.5px currentColor;
+  transform: scale(var(--qni-active-scale, 1.18));
+  letter-spacing: 0.02em;
+}
+
+.quick-number-input-root .picker-item.picker-item-selected:not(.picker-item-active) {
+  color: var(--qni-color-text);
+  text-shadow: 0 0 0.4px currentColor;
+  transform: scale(var(--qni-deselect-scale, 1.04));
+  opacity: var(--qni-deselect-opacity, 0.82);
+}
+
+.quick-number-input-root .picker-item[data-padding='true'] {
+  opacity: 0;
+}
+
+.quick-number-input-root .picker-highlight-hitbox {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(var(--qni-item-height) * 2 + var(--qni-highlight-padding));
+  height: var(--qni-highlight-height);
+  border: none;
+  background: transparent;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.quick-number-input-root .picker-highlight-fill {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(var(--qni-item-height) * 2 + var(--qni-highlight-padding));
+  height: var(--qni-highlight-height);
+  background: var(--qni-color-highlight-fill);
+  pointer-events: none;
+  z-index: 6;
+}
+
+/* removed: defensive selector could hide a real child after refactor */
+
+.quick-number-input-root .picker-fade-top {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: calc(var(--qni-item-height) * 2);
+  background: linear-gradient(to bottom, var(--qni-color-fade), transparent);
+  pointer-events: none;
+  z-index: 10;
+}
+
+.quick-number-input-root .picker-fade-bottom {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: calc(var(--qni-item-height) * 2);
+  background: linear-gradient(to top, var(--qni-color-fade), transparent);
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* Closed header autosizing: ghost sample + real content overlaid */
+.qni-closed {
+  display: grid;
+  grid-auto-flow: column;
+  align-items: center;
+  gap: var(--qni-gap, 0.5rem);
+  inline-size: max-content; /* autosize to content width */
+  height: var(--qni-item-height);
+  line-height: var(--qni-item-height); /* match row height */
+  font-size: var(--qni-font-size);
+  font-family: var(--qni-font-family, 'Geist Mono', monospace);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.qni-ghost {
+  grid-area: 1 / 1;
+  visibility: hidden; /* contributes layout, not visible */
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.qni-inner {
+  grid-area: 1 / 1;
+  display: inline-grid;
+  grid-auto-flow: column;
+  align-items: center;
+  gap: var(--qni-gap, 0.5rem);
+}
+
+/* Closed header visual styles (match picker row aesthetics) */
+.qni-closed .qni-value {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+  color: var(--qni-color-text-active);
+  /* mimic active row bold without layout shift */
+  text-shadow: 0 0 0.5px currentColor, 0.5px 0 0.5px currentColor;
+  letter-spacing: 0.02em;
+  transform: none;
+}
+
+.qni-closed .qni-unit {
+  margin-left: 0.4rem;
+  font-family: 'Archivo', sans-serif;
+  font-size: 0.75em;
+  color: var(--qni-color-unit);
+}
+
+.qni-closed .qni-chevron {
+  opacity: 0.9;
+  color: var(--qni-color-unit); /* purple, consistent with previous design */
+  stroke: currentColor; /* lucide uses stroke by default */
+  width: 20px;
+  height: 20px;
+  vertical-align: middle;
+}
+
+.quick-number-input-root .picker-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6); /* Slightly darker to compensate for no blur */
+  z-index: 9;
+  transition: opacity 0.2s ease-out;
+}

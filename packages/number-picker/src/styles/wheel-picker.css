@@ -1,0 +1,32 @@
+.np-wheel-picker {
+  width: 100%;
+}
+
+.np-wheel-picker .np-wheel-container {
+  width: 100%;
+  position: relative;
+}
+
+.np-wheel-picker .np-wheel-item {
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Geist Mono', monospace;
+  font-size: 1.25rem;
+  color: #e7edf2;
+  transition: color 0.2s ease, font-weight 0.2s ease;
+  padding: 0 12px;
+  text-align: center;
+}
+
+.np-wheel-picker .np-wheel-item-selected {
+  font-weight: 600;
+  font-size: 1.35rem;
+}
+
+.np-wheel-picker .np-wheel-unit {
+  margin-left: 0.35rem;
+  font-size: 0.85rem;
+  color: #8e77b5;
+}

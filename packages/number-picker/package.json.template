@@ -1,0 +1,72 @@
+{
+  "name": "@tensil/number-picker",
+  "version": "0.1.0",
+  "private": false,
+  "description": "High-performance React scrubber components with momentum scrolling, smart auto-close timing, and full theming support",
+  "author": "YOUR_NAME <YOUR_EMAIL>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/NullSense/Kinetic-Input",
+    "directory": "packages/number-picker"
+  },
+  "homepage": "https://github.com/NullSense/Kinetic-Input/tree/main/packages/number-picker",
+  "bugs": {
+    "url": "https://github.com/NullSense/Kinetic-Input/issues"
+  },
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    },
+    "./config": {
+      "types": "./dist/config/index.d.ts",
+      "import": "./dist/config/index.mjs",
+      "require": "./dist/config/index.js"
+    },
+    "./utils": {
+      "types": "./dist/utils/debug.d.ts",
+      "import": "./dist/utils/debug.mjs",
+      "require": "./dist/utils/debug.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "sideEffects": [
+    "./dist/*.css",
+    "./dist/**/*.css"
+  ],
+  "peerDependencies": {
+    "@xstate/react": "^6.0.0",
+    "framer-motion": "^11.0.0",
+    "lucide-react": "^0.500.0",
+    "react": "^18.0.0 || ^19.0.0",
+    "react-dom": "^18.0.0 || ^19.0.0",
+    "xstate": "^5.0.0"
+  },
+  "scripts": {
+    "build": "tsup --config tsup.config.ts && tsc -p tsconfig.json --emitDeclarationOnly",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "react",
+    "picker",
+    "number-input",
+    "scrubber",
+    "wheel-picker",
+    "touch",
+    "momentum",
+    "mobile",
+    "xstate",
+    "framer-motion",
+    "accessibility"
+  ]
+}
