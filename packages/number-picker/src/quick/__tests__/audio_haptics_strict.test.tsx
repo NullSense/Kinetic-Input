@@ -89,6 +89,57 @@ describe('CollapsibleNumberPicker audio/haptics strict assertions', () => {
     expect(mockOsc.start).toHaveBeenCalledWith(mockCtx.currentTime)
   })
 
+  it('allows overriding audio envelope via options', async () => {
+    const frequencySet = vi.fn()
+    const gainEnv: number[] = []
+    const mockOsc = {
+      type: 'triangle' as OscillatorType,
+      frequency: { setValueAtTime: frequencySet },
+      connect: vi.fn(),
+      start: vi.fn(),
+      stop: vi.fn(),
+      disconnect: vi.fn(),
+      onended: null as any
+    }
+    const mockGain = {
+      gain: {
+        value: 0,
+        setValueAtTime: vi.fn((value: number) => gainEnv.push(value)),
+        linearRampToValueAtTime: vi.fn(),
+        exponentialRampToValueAtTime: vi.fn(),
+      },
+      connect: vi.fn(),
+      disconnect: vi.fn(),
+    }
+    const mockCtx = {
+      state: 'running',
+      currentTime: 0,
+      destination: {},
+      createOscillator: () => mockOsc,
+      createGain: () => mockGain,
+      resume: vi.fn(),
+      close: vi.fn(),
+    }
+    ;(globalThis as any).AudioContext = function MockAudioContext(this: any) { return mockCtx as any } as any
+
+    const { createAudioAdapter } = await import('../feedback/audio')
+    const adapter = createAudioAdapter({ frequency: 440, waveform: 'sine', attackMs: 30, decayMs: 120, durationMs: 260, peakGain: 0.5 })
+    adapter?.playConfirmation()
+
+    expect(frequencySet).toHaveBeenCalledWith(440, 0)
+    expect(mockOsc.type).toBe('sine')
+    expect(mockOsc.stop).toHaveBeenCalledWith(0.26)
+    expect(mockGain.gain.linearRampToValueAtTime).toHaveBeenCalledWith(0.5, 0.03)
+  })
+
+  it('allows overriding vibration pattern via options', async () => {
+    const vib = navigator.vibrate as unknown as ReturnType<typeof vi.fn>
+    const { createHapticAdapter } = await import('../feedback/haptics')
+    const adapter = createHapticAdapter({ pattern: [9, 1, 9] })
+    adapter?.trigger()
+    expect(vib).toHaveBeenCalledWith([9, 1, 9])
+  })
+
   it('vibrates on commit when haptics enabled (pattern check best-effort)', async () => {
     const vib = navigator.vibrate as unknown as ReturnType<typeof vi.fn>
     const CollapsibleNumberPicker = await importQNI()

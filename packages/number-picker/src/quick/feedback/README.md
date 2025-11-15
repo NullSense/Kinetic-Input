@@ -100,19 +100,44 @@ When you build with `NODE_ENV=production`, bundlers perform:
 - **Tree-shaking** - Remove unused exports
 - **Minification** - Compress remaining code
 
+## Configuration Hooks
+
+### `feedbackConfig` Prop
+
+`CollapsibleNumberPicker` exposes a `feedbackConfig` prop so apps can tune sound & vibration without touching hooks:
+
+```tsx
+<CollapsibleNumberPicker
+  label="Dial"
+  value={5}
+  onChange={setValue}
+  feedbackConfig={{
+    haptics: { pattern: [6, 2, 6] },
+    audio: { waveform: 'sine', frequency: 660 },
+    adapters: { audio: customAudio },
+  }}
+/>
+```
+
+### Adapter Options
+
+- **Haptics** – `pattern` (number or array) passed directly to `navigator.vibrate`
+- **Audio** – `frequency`, `waveform`, `attackMs`, `decayMs`, `durationMs`, `peakGain`
+- **Adapter overrides** – Provide `audio`/`haptics` adapters to skip the built-in modules entirely.
+
 ## Module Details
 
 ### Haptics Module (`haptics.ts`)
 
 - **Size:** ~0.5 KB minified
-- **API:** `navigator.vibrate([3, 2, 1])` (triple-pulse pattern)
+- **API:** `navigator.vibrate(pattern)` where `pattern` defaults to `[3, 2, 1]`
 - **Fallback:** Gracefully degrades if Vibration API unsupported
 - **Platforms:** Mobile browsers, some desktop browsers
 
 ### Audio Module (`audio.ts`)
 
 - **Size:** ~1.5 KB minified
-- **API:** Web Audio API (triangle wave oscillator at 920Hz)
+- **API:** Web Audio API with configurable waveform, frequency, and envelope
 - **Fallback:** Gracefully degrades if Web Audio API unsupported
 - **Autoplay:** Handles browser autoplay restrictions automatically
 

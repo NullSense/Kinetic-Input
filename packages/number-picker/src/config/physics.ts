@@ -18,7 +18,7 @@ export const SNAP_PHYSICS = {
     pullStrength: 1.4,
     velocityReducer: 0.3,
     centerLock: 1,
-    rangeScaleIntensity: 0.1,
+    rangeScaleIntensity: 0.1, // 100ms of momentum projection
     rangeScaleVelocityCap: 3000,
   },
 } as const satisfies { DEFAULT: SnapPhysicsConfig };

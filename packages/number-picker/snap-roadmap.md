@@ -77,3 +77,11 @@ These live in `packages/number-picker/src/constants.ts` so apps can override the
 - Would a lighter "preview snap" mode (visual only) suffice for some contexts?
 
 Keep this doc up to date as you tackle each step. If we add scope (e.g., haptics), start a new section rather than another standalone markdown file.
+
+## Current Physics Gaps (ordered)
+
+1. **Flick momentum never applied (✅ now projected).** Release velocity is now mapped through `rangeScaleIntensity` so a fast flick coasts for `projectionSeconds` before snapping, rather than stopping immediately on pointer up.
+2. **Velocity recorded but never used (✅ now wired).** Pointer and wheel flows now pipe `velocityTracker.getVelocity()` into every snap frame and the settle logic, enabling the `velocityScaling` knobs we already shipped.
+3. **Scroll deltas quantized to full rows (✅ removed).** Wheel events now honor sub-row deltas so high-resolution trackpads feel smooth instead of jumping a full row at a time.
+4. **Wheel gestures consumed snapped values (✅ raw translate now).** Wheel math now uses the raw MotionValue rather than `ySnap`, preventing rounding from corrupting sampled deltas.
+5. **Wheel velocity sampled in mixed coordinate spaces (✅ unified).** We track the actual translate fed to the column before snapping so flick physics see the same units pointer drags use.
