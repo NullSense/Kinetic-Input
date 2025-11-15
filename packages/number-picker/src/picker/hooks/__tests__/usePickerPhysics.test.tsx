@@ -15,7 +15,7 @@ type PendingAnimation = {
 const pendingAnimations: PendingAnimation[] = [];
 
 const animateSpy = vi.spyOn(framerMotion, 'animate').mockImplementation(
-  (motionValue: any, to: any, config: any = {}) => {
+  (motionValue: unknown, to: unknown, config: { onComplete?: () => void } = {}) => {
     const record: PendingAnimation = { motionValue, to, config, stopped: false };
     pendingAnimations.push(record);
     return {
@@ -30,13 +30,12 @@ const animateSpy = vi.spyOn(framerMotion, 'animate').mockImplementation(
       pause: () => {},
       complete: () => {},
       cancel: () => {},
-      then: () => Promise.resolve(),
       time: 0,
       speed: 1,
       startTime: 0,
       duration: 0,
       state: 'idle' as const,
-    } as any;
+    } as ReturnType<typeof framerMotion.animate>;
   },
 );
 

@@ -96,7 +96,7 @@ export function usePickerPhysics({
   const mergedSnapConfig = useMemo<SnapPhysicsConfig>(
     () => ({
       ...DEFAULT_SNAP_PHYSICS,
-      ...(snapConfig ?? {}),
+      ...snapConfig,
     }),
     [snapConfig],
   );

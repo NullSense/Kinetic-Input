@@ -3,19 +3,21 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { useQuickNumberControllers } from '../useQuickNumberControllers';
 import * as keyboardModule from '../useKeyboardControls';
 
+type GestureSource = 'pointer' | 'wheel' | null;
+
 describe('useQuickNumberControllers', () => {
     const handlePickerOpen = vi.fn();
     const handlePickerClose = vi.fn();
     const handleValueChange = vi.fn();
-    const openedViaRef = { current: null } as any;
-    const currentGestureSource = { current: null } as any;
-    const isOpeningInteraction = { current: false } as any;
+    const openedViaRef: React.MutableRefObject<GestureSource> = { current: null };
+    const currentGestureSource: React.MutableRefObject<GestureSource> = { current: null };
+    const isOpeningInteraction: React.MutableRefObject<boolean> = { current: false };
     const stateMachine = {
         handlePointerDown: vi.fn(),
         handlePointerUp: vi.fn(),
         handleMomentumEnd: vi.fn(),
         resetIdleTimer: vi.fn(),
-    } as any;
+    };
 
     beforeEach(() => {
         vi.spyOn(keyboardModule, 'useKeyboardControls').mockReturnValue({

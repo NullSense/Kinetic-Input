@@ -1,4 +1,4 @@
-# @tensil/number-picker
+# @tensil/kinetic-input
 
 High-performance numeric scrubber components for React. The package exposes:
 
@@ -9,12 +9,23 @@ High-performance numeric scrubber components for React. The package exposes:
 
 All component docs now live in this README.
 
+## ⚠️ Beta Release Notice
+
+**This package is in active development (v0.x).** We're publishing early to gather real-world feedback and validate the API design.
+
+**What this means:**
+- ✅ **Production-ready code**: All 40 unit tests passing, comprehensive documentation, no known bugs
+- ⚠️ **API may change**: Breaking changes can occur between minor versions (0.1 → 0.2) until we reach v1.0
+- 🐛 **Report issues**: Found a bug or have feedback? [Open an issue](https://github.com/NullSense/Kinetic-Input/issues)
+
+We'll follow semantic versioning once we hit v1.0.0. Until then, pin to exact versions or use `~0.1.0` in your package.json to avoid unexpected breaking changes.
+
 ## Installation
 
 ```bash
-npm install @tensil/number-picker
+npm install @tensil/kinetic-input
 # or
-yarn add @tensil/number-picker
+yarn add @tensil/kinetic-input
 ```
 
 Peer dependencies you must provide in your host app:
@@ -28,7 +39,7 @@ Peer dependencies you must provide in your host app:
 ### CollapsibleNumberPicker
 
 ```tsx
-import CollapsibleNumberPicker from '@tensil/number-picker'
+import CollapsibleNumberPicker from '@tensil/kinetic-input'
 
 export function WeightField() {
   const [weight, setWeight] = useState(70)
@@ -57,13 +68,13 @@ import {
   DEFAULT_THEME,
   buildTheme,
   BOUNDARY_SETTLE_DELAY,
-} from '@tensil/number-picker'
+} from '@tensil/kinetic-input'
 ```
 
 ### StandaloneWheelPicker example
 
 ```tsx
-import { StandaloneWheelPicker } from '@tensil/number-picker'
+import { StandaloneWheelPicker } from '@tensil/kinetic-input'
 
 const colorOptions = [
   { value: 'rest', label: 'Rest Day', accentColor: '#8E77B5' },
@@ -166,7 +177,7 @@ interface CollapsibleNumberPickerTheme {
 #### Default Theme
 
 ```ts
-import { DEFAULT_THEME } from '@tensil/number-picker'
+import { DEFAULT_THEME } from '@tensil/kinetic-input'
 
 // Default values:
 {
@@ -242,7 +253,7 @@ const theme = {
 Use `buildTheme` for type-safe overrides:
 
 ```tsx
-import { buildTheme } from '@tensil/number-picker'
+import { buildTheme } from '@tensil/kinetic-input'
 
 const myTheme = buildTheme({
   activeTextColor: '#ff0000',
@@ -351,7 +362,7 @@ location.reload();
 
 **Programmatically:**
 ```typescript
-import { enableAllDebugNamespaces } from '@tensil/number-picker/utils';
+import { enableAllDebugNamespaces } from '@tensil/kinetic-input/utils';
 
 if (import.meta.env.DEV) {
   enableAllDebugNamespaces();
@@ -360,7 +371,7 @@ if (import.meta.env.DEV) {
 
 **Disable all:**
 ```typescript
-import { disableAllDebugNamespaces } from '@tensil/number-picker/utils';
+import { disableAllDebugNamespaces } from '@tensil/kinetic-input/utils';
 disableAllDebugNamespaces();
 ```
 
@@ -380,7 +391,7 @@ Control auto-close behavior with presets:
 Auto-detect based on device + user preferences:
 
 ```typescript
-import { getRecommendedTiming } from '@tensil/number-picker/config';
+import { getRecommendedTiming } from '@tensil/kinetic-input/config';
 
 <CollapsibleNumberPicker timingPreset={getRecommendedTiming()} />
 ```

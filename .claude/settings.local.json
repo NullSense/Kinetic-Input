@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git pull:*)",
+      "Bash(git fetch:*)",
+      "Bash(npm run build:*)",
+      "Bash(tsc:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npm pack:*)",
+      "WebSearch",
+      "WebFetch(domain:oxc.rs)",
+      "Bash(npm add:*)",
+      "Bash(npm run lint)",
+      "Bash(npm run lint:fix:*)",
+      "Bash(npm run lint:*)",
+      "Bash(grep:*)",
+      "Bash(tee:*)",
+      "Bash(git add:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

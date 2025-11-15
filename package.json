@@ -1,7 +1,7 @@
 {
   "name": "kinetic-input",
   "version": "0.0.1",
-  "private": true,
+  "private": false,
   "description": "Momentum-driven number picker components for React",
   "type": "module",
   "workspaces": [
@@ -12,7 +12,9 @@
     "build": "npm run build --workspace=packages/number-picker",
     "build:demo": "npm run build --workspace=demo",
     "dev:demo": "npm run dev --workspace=demo",
-    "typecheck": "npm run typecheck --workspaces --if-present"
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "lint": "oxlint .",
+    "lint:fix": "oxlint --fix ."
   },
   "keywords": [
     "react",
@@ -26,5 +28,8 @@
     "url": "https://github.com/NullSense/Kinetic-Input.git"
   },
   "author": "",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "oxlint": "^1.28.0"
+  }
 }

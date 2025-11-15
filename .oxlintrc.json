@@ -1,0 +1,96 @@
+{
+  // Oxlint configuration for Kinetic Input
+  // Lints JavaScript, TypeScript, and React files
+
+  "plugins": [
+    "react",
+    "typescript",
+    "jsx-a11y",
+    "unicorn",
+    "oxc"
+  ],
+
+  "categories": {
+    "correctness": "error",
+    "suspicious": "warn",
+    "pedantic": "off",
+    "perf": "warn",
+    "style": "off",
+    "restriction": "off"
+  },
+
+  "rules": {
+    // React specific rules
+    "react/react-in-jsx-scope": "off", // Not needed for React 17+ with new JSX transform
+    "react/jsx-key": "error",
+    "react/jsx-no-duplicate-props": "error",
+    "react/jsx-no-undef": "error",
+    "react/no-children-prop": "error",
+    "react/no-danger-with-children": "error",
+    "react/no-deprecated": "warn",
+    "react/no-direct-mutation-state": "error",
+    "react/no-find-dom-node": "error",
+    "react/no-is-mounted": "error",
+    "react/no-render-return-value": "error",
+    "react/no-string-refs": "error",
+    "react/no-unescaped-entities": "warn",
+    "react/no-unknown-property": "error",
+    "react/require-render-return": "error",
+    "react/void-dom-elements-no-children": "error",
+
+    // TypeScript specific rules
+    "typescript/no-explicit-any": "error",
+    "typescript/no-unused-vars": "error",
+    "typescript/prefer-as-const": "error",
+
+    // React Hooks rules
+    "react-hooks/exhaustive-deps": "warn",
+
+    // Code quality rules
+    "no-await-in-loop": "error",
+    "unicorn/no-thenable": "error",
+
+    // Accessibility rules
+    "jsx-a11y/alt-text": "warn",
+    "jsx-a11y/anchor-has-content": "warn",
+    "jsx-a11y/anchor-is-valid": "warn",
+    "jsx-a11y/aria-props": "error",
+    "jsx-a11y/aria-proptypes": "error",
+    "jsx-a11y/aria-unsupported-elements": "error",
+    "jsx-a11y/role-has-required-aria-props": "error",
+    "jsx-a11y/role-supports-aria-props": "warn",
+    "jsx-a11y/click-events-have-key-events": "warn",
+
+    // General code quality
+    "no-console": "off",
+    "no-debugger": "warn",
+    "no-alert": "warn"
+  },
+
+  "env": {
+    "browser": true,
+    "es2021": true,
+    "node": true
+  },
+
+  "ignorePatterns": [
+    "node_modules",
+    "dist",
+    "build",
+    "coverage",
+    "*.min.js",
+    "*.d.ts",
+    ".turbo",
+    ".next",
+    "out"
+  ],
+
+  "overrides": [
+    {
+      "files": ["demo/**/*.tsx", "demo/**/*.ts"],
+      "rules": {
+        "no-console": "off"
+      }
+    }
+  ]
+}

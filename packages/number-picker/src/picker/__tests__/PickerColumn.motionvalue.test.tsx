@@ -7,6 +7,22 @@ import Picker from '../PickerGroup'
 import PickerColumn from '../PickerColumn'
 import PickerItem from '../PickerItem'
 
+// Helper to simulate sequential pointer moves without await-in-loop
+async function simulatePointerDrag(user: ReturnType<typeof userEvent.setup>, count: number) {
+  const moves = []
+  for (let i = 0; i < count; i++) {
+    moves.push({ coords: { x: 0, y: i * 2 } })
+  }
+  // Execute sequentially using reduce to avoid await-in-loop
+  await moves.reduce(
+    async (prev, coords) => {
+      await prev
+      return user.pointer(coords)
+    },
+    Promise.resolve() as Promise<void>
+  )
+}
+
 /**
  * MotionValue Performance Tests
  *
@@ -18,6 +34,21 @@ import PickerItem from '../PickerItem'
  * - On drag end: Commit final value to React state once
  * - Result: 98% reduction in renders (60-120/sec → 1-2/sec)
  */
+
+/**
+ * Mock DOMRect for testing
+ */
+const mockRect = () => ({
+  top: 0,
+  bottom: 200,
+  height: 200,
+  left: 0,
+  right: 100,
+  width: 100,
+  x: 0,
+  y: 0,
+  toJSON: () => ({}),
+}) as DOMRect;
 
 interface TestPickerProps {
   children: ReactNode
@@ -274,11 +305,7 @@ describe('PickerColumn MotionValue Performance', () => {
 
       // Simulate rapid movement (60 events in quick succession)
       await user.pointer({ target: pickerContent, keys: '[MouseLeft>]' })
-
-      for (let i = 0; i < 60; i++) {
-        await user.pointer({ coords: { x: 0, y: i * 2 } })
-      }
-
+      await simulatePointerDrag(user, 60)
       await user.pointer({ keys: '[/MouseLeft]' })
 
       // Should handle all events without error
@@ -294,7 +321,6 @@ describe('PickerColumn MotionValue Performance', () => {
       // The actual snap physics calculations are tested in their own test suite
       // Here we verify the component structure supports snapping behavior
       const onValueChange = vi.fn()
-      const user = userEvent.setup()
 
       const { container } = render(
         <TestPicker onValueChange={onValueChange} itemHeight={40}>
@@ -322,21 +348,10 @@ describe('PickerColumn MotionValue Performance', () => {
   })
 
   describe('Row click selection', () => {
-    const mockRect = () => ({
-      top: 0,
-      bottom: 200,
-      height: 200,
-      left: 0,
-      right: 100,
-      width: 100,
-      x: 0,
-      y: 0,
-      toJSON: () => ({}),
-    }) as DOMRect
 
     const getColumn = (testId: string) => {
       const node = screen.getByTestId(testId) as HTMLElement
-      node.getBoundingClientRect = vi.fn(mockRect) as any
+      node.getBoundingClientRect = vi.fn(mockRect) as unknown as () => DOMRect
       return node
     }
 

@@ -3,6 +3,22 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Smartphone, AlertCircle, ChevronDown } from 'lucide-react';
 
 /**
+ * Check if haptics/vibration is supported
+ */
+const checkHaptics = () => {
+  const hasVibration = 'vibrate' in navigator;
+
+  if (!hasVibration) return false;
+
+  // Test if vibration actually works (some browsers return true but don't vibrate)
+  try {
+    return navigator.vibrate(0) !== false;
+  } catch {
+    return false;
+  }
+};
+
+/**
  * Haptics Detection Indicator
  *
  * Design: Cyber-Editorial Brutalism
@@ -25,19 +41,6 @@ export function HapticsIndicator() {
     mediaQuery.addEventListener('change', handleChange);
 
     // Check haptics support
-    const checkHaptics = () => {
-      const hasVibration = 'vibrate' in navigator;
-
-      if (!hasVibration) return false;
-
-      // Test if vibration actually works (some browsers return true but don't vibrate)
-      try {
-        return navigator.vibrate(0) !== false;
-      } catch {
-        return false;
-      }
-    };
-
     setHapticsSupported(checkHaptics());
 
     // Re-check on focus (mobile browsers sometimes enable after interaction)

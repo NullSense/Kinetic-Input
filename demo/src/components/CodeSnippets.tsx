@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Code2, Copy, Check, Play } from 'lucide-react';
-import { CollapsibleNumberPicker } from '@tensil/number-picker';
+import { CollapsibleNumberPicker } from '@tensil/kinetic-input';
 import Editor from 'react-simple-code-editor';
 import { DEMO_PICKERS } from '../config/pickerDefaults';
 
@@ -19,7 +19,7 @@ const snippets: Snippet[] = [
     id: 'quickstart',
     title: 'Quick Start',
     description: 'Minimal setup',
-    code: `import { CollapsibleNumberPicker } from '@tensil/number-picker';
+    code: `import { CollapsibleNumberPicker } from '@tensil/kinetic-input';
 
 function WeightInput() {
   const [weight, setWeight] = useState(70);
@@ -108,6 +108,96 @@ function WeightInput() {
 ];
 
 /**
+ * Lightweight syntax highlighting for TSX code
+ */
+const highlightCode = (code: string) => {
+  const tokens: { type: string; value: string }[] = [];
+  let i = 0;
+
+  while (i < code.length) {
+    // Comments
+    if (code.slice(i, i + 2) === '//') {
+      const end = code.indexOf('\n', i);
+      tokens.push({ type: 'comment', value: code.slice(i, end === -1 ? code.length : end) });
+      i = end === -1 ? code.length : end;
+      continue;
+    }
+
+    // Strings
+    if (['"', "'", '`'].includes(code[i])) {
+      const quote = code[i];
+      let end = i + 1;
+      while (end < code.length && code[end] !== quote) {
+        if (code[end] === '\\') end++; // Skip escaped characters
+        end++;
+      }
+      tokens.push({ type: 'string', value: code.slice(i, end + 1) });
+      i = end + 1;
+      continue;
+    }
+
+    // JSX tags
+    if (code[i] === '<') {
+      const match = code.slice(i).match(/^<\/?([A-Z]\w*)/);
+      if (match) {
+        tokens.push({ type: 'plain', value: '<' + (code[i + 1] === '/' ? '/' : '') });
+        tokens.push({ type: 'component', value: match[1] });
+        i += match[0].length;
+        continue;
+      }
+    }
+
+    // Numbers
+    const numMatch = code.slice(i).match(/^\d+\.?\d*/);
+    if (numMatch && (i === 0 || !/\w/.test(code[i - 1]))) {
+      tokens.push({ type: 'number', value: numMatch[0] });
+      i += numMatch[0].length;
+      continue;
+    }
+
+    // Keywords, functions, identifiers
+    const wordMatch = code.slice(i).match(/^[a-zA-Z_]\w*/);
+    if (wordMatch) {
+      const word = wordMatch[0];
+      const keywords = ['import', 'from', 'function', 'const', 'return', 'interface', 'export', 'default'];
+
+      if (keywords.includes(word)) {
+        tokens.push({ type: 'keyword', value: word });
+      } else if (code[i + word.length] === '(') {
+        tokens.push({ type: 'function', value: word });
+      } else if (code[i + word.length] === '=') {
+        tokens.push({ type: 'prop', value: word });
+      } else {
+        tokens.push({ type: 'plain', value: word });
+      }
+      i += word.length;
+      continue;
+    }
+
+    // Everything else
+    tokens.push({ type: 'plain', value: code[i] });
+    i++;
+  }
+
+  // Convert tokens to HTML
+  return tokens
+    .map((token) => {
+      const escaped = token.value.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      switch (token.type) {
+        case 'keyword': return `<span class="syntax-keyword">${escaped}</span>`;
+        case 'string': return `<span class="syntax-string">${escaped}</span>`;
+        case 'number': return `<span class="syntax-number">${escaped}</span>`;
+        case 'comment': return `<span class="syntax-comment">${escaped}</span>`;
+        case 'component': return `<span class="syntax-component">${escaped}</span>`;
+        case 'prop': return `<span class="syntax-prop">${escaped}</span>`;
+        case 'function': return `<span class="syntax-function">${escaped}</span>`;
+        default: return escaped;
+      }
+    })
+    .join('');
+};
+
+/**
  * Code Snippets Section
  *
  * Design: Cyber-Editorial Brutalism
@@ -179,94 +269,6 @@ export function CodeSnippets() {
         </div>
       </div>
     );
-  };
-
-  // Lightweight syntax highlighting for TSX
-  const highlightCode = (code: string) => {
-    const tokens: { type: string; value: string }[] = [];
-    let i = 0;
-
-    while (i < code.length) {
-      // Comments
-      if (code.slice(i, i + 2) === '//') {
-        const end = code.indexOf('\n', i);
-        tokens.push({ type: 'comment', value: code.slice(i, end === -1 ? code.length : end) });
-        i = end === -1 ? code.length : end;
-        continue;
-      }
-
-      // Strings
-      if (['"', "'", '`'].includes(code[i])) {
-        const quote = code[i];
-        let end = i + 1;
-        while (end < code.length && code[end] !== quote) {
-          if (code[end] === '\\') end++; // Skip escaped characters
-          end++;
-        }
-        tokens.push({ type: 'string', value: code.slice(i, end + 1) });
-        i = end + 1;
-        continue;
-      }
-
-      // JSX tags
-      if (code[i] === '<') {
-        const match = code.slice(i).match(/^<\/?([A-Z]\w*)/);
-        if (match) {
-          tokens.push({ type: 'plain', value: '<' + (code[i + 1] === '/' ? '/' : '') });
-          tokens.push({ type: 'component', value: match[1] });
-          i += match[0].length;
-          continue;
-        }
-      }
-
-      // Numbers
-      const numMatch = code.slice(i).match(/^\d+\.?\d*/);
-      if (numMatch && (i === 0 || !/\w/.test(code[i - 1]))) {
-        tokens.push({ type: 'number', value: numMatch[0] });
-        i += numMatch[0].length;
-        continue;
-      }
-
-      // Keywords, functions, identifiers
-      const wordMatch = code.slice(i).match(/^[a-zA-Z_]\w*/);
-      if (wordMatch) {
-        const word = wordMatch[0];
-        const keywords = ['import', 'from', 'function', 'const', 'return', 'interface', 'export', 'default'];
-
-        if (keywords.includes(word)) {
-          tokens.push({ type: 'keyword', value: word });
-        } else if (code[i + word.length] === '(') {
-          tokens.push({ type: 'function', value: word });
-        } else if (code[i + word.length] === '=') {
-          tokens.push({ type: 'prop', value: word });
-        } else {
-          tokens.push({ type: 'plain', value: word });
-        }
-        i += word.length;
-        continue;
-      }
-
-      // Everything else
-      tokens.push({ type: 'plain', value: code[i] });
-      i++;
-    }
-
-    // Convert tokens to HTML
-    return tokens
-      .map((token) => {
-        const escaped = token.value.replace(/</g, '&lt;').replace(/>/g, '&gt;');
-        switch (token.type) {
-          case 'keyword': return `<span class="syntax-keyword">${escaped}</span>`;
-          case 'string': return `<span class="syntax-string">${escaped}</span>`;
-          case 'number': return `<span class="syntax-number">${escaped}</span>`;
-          case 'comment': return `<span class="syntax-comment">${escaped}</span>`;
-          case 'component': return `<span class="syntax-component">${escaped}</span>`;
-          case 'prop': return `<span class="syntax-prop">${escaped}</span>`;
-          case 'function': return `<span class="syntax-function">${escaped}</span>`;
-          default: return escaped;
-        }
-      })
-      .join('');
   };
 
   return (
@@ -402,9 +404,9 @@ export function CodeSnippets() {
           <p className="text-sm text-muted mb-3x">Installation</p>
           <div className="inline-flex items-center gap-3x px-6x py-3x bg-hairline/50 border border-hairline font-mono text-sm text-fg">
             <span className="text-muted">$</span>
-            <span>npm install @tensil/number-picker</span>
+            <span>npm install @tensil/kinetic-input</span>
             <button
-              onClick={() => copyToClipboard('npm install @tensil/number-picker', 'quickstart')}
+              onClick={() => copyToClipboard('npm install @tensil/kinetic-input', 'quickstart')}
               className="ml-2x p-1x hover:bg-accent/20 transition-colors duration-instant focus-accent"
             >
               {copiedId === 'quickstart' ? (

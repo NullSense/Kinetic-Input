@@ -1,7 +1,6 @@
 import {
   CSSProperties,
   HTMLProps,
-  MutableRefObject,
   ReactNode,
   createContext,
   useCallback,

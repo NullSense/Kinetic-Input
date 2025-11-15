@@ -1,25 +1,45 @@
-import React, { useEffect } from 'react'
+import React from 'react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render } from '@testing-library/react'
+
+// Extend globalThis for test utilities
+declare global {
+  // eslint-disable-next-line no-var
+  var __triggerPickerChange: ((newValue: string) => void) | undefined;
+  // eslint-disable-next-line no-var
+  var AudioContext: typeof MockAudioContext | undefined;
+}
+
+type MockPickerProps = {
+  value: unknown;
+  onChange: (value: { value: string }) => void;
+  height?: number;
+  itemHeight?: number;
+  children?: React.ReactNode;
+};
+
+type MockChildProps = {
+  children?: React.ReactNode | ((state: { selected: boolean; visuallySelected: boolean }) => React.ReactNode);
+};
 
 // Mock Picker to simulate a commit (onChange) when value changes
 // This allows us to test that audio plays on picker close after value change
 vi.mock('../../picker', () => {
   let mockOnChange: ((value: { value: string }) => void) | null = null
 
-  const Default: any = ({ value, onChange, height, itemHeight, children }: any) => {
+  const Default = ({ value: _value, onChange, height, itemHeight, children }: MockPickerProps) => {
     mockOnChange = onChange
     return <div data-testid="mock-picker" data-height={height} data-itemheight={itemHeight}>{children}</div>
   }
-  Default.Column = ({ children }: any) => <div data-testid="mock-column">{children}</div>
-  Default.Item = ({ children }: any) => (
+  Default.Column = ({ children }: MockChildProps) => <div data-testid="mock-column">{children}</div>
+  Default.Item = ({ children }: MockChildProps) => (
     <div data-testid="mock-item">
       {typeof children === 'function' ? children({ selected: false, visuallySelected: false }) : children}
     </div>
   )
 
   // Expose method to trigger value change in tests
-  ;(globalThis as any).__triggerPickerChange = (newValue: string) => {
+  globalThis.__triggerPickerChange = (newValue: string) => {
     mockOnChange?.({ value: newValue })
   }
 
@@ -48,7 +68,7 @@ describe('CollapsibleNumberPicker audio/haptics strict assertions', () => {
       start: vi.fn(),
       stop: vi.fn(),
       disconnect: vi.fn(),
-      onended: null as any
+      onended: null as unknown as (() => void) | null
     }
     const mockGain = {
       gain: {
@@ -73,7 +93,12 @@ describe('CollapsibleNumberPicker audio/haptics strict assertions', () => {
       resume: vi.fn(),
       close: vi.fn()
     }
-    ;(globalThis as any).AudioContext = function MockAudioContext(this: any) { return mockCtx as any } as any
+
+    // Mock AudioContext constructor
+    function MockAudioContext() {
+      return mockCtx;
+    }
+    globalThis.AudioContext = MockAudioContext as unknown as typeof AudioContext
 
     // Import and test audio adapter directly
     const { createAudioAdapter } = await import('../feedback/audio')

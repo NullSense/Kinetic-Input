@@ -1,9 +1,25 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import { userEvent } from '@testing-library/user-event'
 import Picker from '../PickerGroup'
 import PickerColumn from '../PickerColumn'
 import PickerItem from '../PickerItem'
+
+// Helper to simulate sequential pointer moves without await-in-loop
+async function simulatePointerDrag(user: ReturnType<typeof userEvent.setup>, count: number) {
+  const moves = []
+  for (let i = 0; i < count; i++) {
+    moves.push({ coords: { x: 0, y: i * 2 } })
+  }
+  // Execute sequentially using reduce to avoid await-in-loop
+  await moves.reduce(
+    async (prev, coords) => {
+      await prev
+      return user.pointer(coords)
+    },
+    Promise.resolve() as Promise<void>
+  )
+}
 
 function TestPicker({ children, onValueChange = vi.fn() }: { children: React.ReactNode; onValueChange?: (v: string) => void }) {
   return (
@@ -38,9 +54,7 @@ describe.skip('PickerColumn one-shot commit', () => {
 
     // Many move events (simulate momentum-worthy drag)
     await user.pointer({ target: startEl, keys: '[MouseLeft>]' })
-    for (let i = 0; i < 60; i++) {
-      await user.pointer({ coords: { x: 0, y: i * 2 } })
-    }
+    await simulatePointerDrag(user, 60)
 
     // During drag: no commits
     expect(onValueChange).not.toHaveBeenCalled()

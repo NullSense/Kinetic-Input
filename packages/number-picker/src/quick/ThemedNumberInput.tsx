@@ -2,7 +2,7 @@ import React from 'react';
 import CollapsibleNumberPicker from './CollapsibleNumberPicker';
 import type { CollapsibleNumberPickerProps } from './types';
 import { DEFAULT_THEME } from './theme';
-import { getRecommendedTiming, TIMING_PRESETS } from '../config/timing';
+import { getRecommendedTiming } from '../config/timing';
 
 /**
  * Themed CollapsibleNumberPicker with consistent styling

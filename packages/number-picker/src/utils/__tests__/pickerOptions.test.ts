@@ -8,6 +8,9 @@ import {
 } from '../pickerOptions';
 import { DEFAULT_SNAP_PHYSICS } from '../../config/physics';
 
+// Test helpers
+const customFormatter = (val: number) => `$${val.toFixed(2)}`;
+
 // ============ countDecimals Tests ============
 
 describe('countDecimals', () => {
@@ -131,7 +134,6 @@ describe('generateRangeOptions', () => {
   });
 
   it('uses custom formatter when provided', () => {
-    const customFormatter = (val: number) => `$${val.toFixed(2)}`;
     const options = generateRangeOptions({
       min: 0,
       max: 2,

@@ -53,8 +53,8 @@ export const pickerActions = {
       atBoundary: context.atBoundary,
     });
   },
-  notifyExternalClose: ({ context, event }: { context: PickerContext; event: { type: string; reason?: string } }) => {
-    const reason = (event as any).reason || 'external-close';
+  notifyExternalClose: ({ context, event }: { context: PickerContext; event: Extract<PickerEvent, { type: 'EXTERNAL_CLOSE' }> }) => {
+    const reason = event.reason || 'external-close';
     context.config.onRequestClose({
       reason,
       atBoundary: context.atBoundary,

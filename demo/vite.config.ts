@@ -7,8 +7,8 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
-      '@tensil/number-picker': path.resolve(__dirname, '../packages/number-picker/src'),
-      '@tensil/number-picker-css': path.resolve(__dirname, '../packages/number-picker/dist'),
+      '@tensil/kinetic-input': path.resolve(__dirname, '../packages/number-picker/src'),
+      '@tensil/kinetic-input-css': path.resolve(__dirname, '../packages/number-picker/dist'),
     },
   },
   server: {
@@ -20,6 +20,6 @@ export default defineConfig({
   },
   optimizeDeps: {
     // Force Vite to optimize the workspace package to prevent re-render loops
-    include: ['@tensil/number-picker'],
+    include: ['@tensil/kinetic-input'],
   },
 });

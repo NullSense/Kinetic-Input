@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
-import { usePickerStateMachine, PickerContext, CloseContext } from '../usePickerStateMachine.xstate'
+import { usePickerStateMachine } from '../usePickerStateMachine.xstate'
 
 /**
  * XState machine tests - verify migration from manual state machine

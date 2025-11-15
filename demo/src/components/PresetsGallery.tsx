@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CollapsibleNumberPicker } from '@tensil/number-picker';
+import { CollapsibleNumberPicker } from '@tensil/kinetic-input';
 import { Palette, X } from 'lucide-react';
 import { DEMO_PICKERS } from '../config/pickerDefaults';
 
@@ -291,9 +291,9 @@ export function PresetsGallery() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-2x uppercase">
+                  <div className="block text-sm font-medium mb-2x uppercase">
                     Try it out
-                  </label>
+                  </div>
                   <CollapsibleNumberPicker
                     {...DEMO_PICKERS.weight}
                     value={presetValue}

@@ -3,7 +3,6 @@ import { useFormattedValues } from './useFormattedValues';
 import { useResolvedVisualTweaks } from './useResolvedVisualTweaks';
 import { useHighlightMetrics } from './useHighlightMetrics';
 import { useValueDisplay } from './useValueDisplay';
-import { countDecimals } from '../utils';
 import type { CollapsibleNumberPickerVisualTweaks, CollapsibleNumberPickerTheme, RenderValueFn } from '../types';
 import type { CSSVariableStyles } from '../CollapsibleNumberPicker.presenter';
 

@@ -19,7 +19,7 @@ export const pickerStateMachine = setup({
     input: {} as PickerStateMachineConfig,
   },
   guards: pickerGuards,
-  actions: pickerActions as any,
+  actions: pickerActions as unknown as Record<string, unknown>,
   delays: {
     autoCloseDelay: ({ context }: { context: PickerContext }): number => {
       if (context.atBoundary) {

@@ -147,7 +147,7 @@ export const mergeSnapConfig = (
 
   return {
     ...DEFAULT_SNAP_PHYSICS,
-    ...(config ?? {}),
+    ...config,
     enabled: true,
   };
 };

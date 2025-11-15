@@ -104,7 +104,7 @@ export function createPointerCaptureHandlers(callbacks: PointerCaptureCallbacks)
     state = null;
   };
 
-  const handlePointerCancel = (event: React.PointerEvent<HTMLElement>) => {
+  const handlePointerCancel = (_event: React.PointerEvent<HTMLElement>) => {
     if (!state || !state.isActive) return;
 
     callbacks.onCancel?.(state);

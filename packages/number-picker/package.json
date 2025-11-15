@@ -1,8 +1,8 @@
 {
-  "name": "@tensil/number-picker",
-  "version": "0.0.1",
-  "private": true,
-  "description": "Experimental packaging scaffold for the QuickNumberInput scrubber.",
+  "name": "@tensil/kinetic-input",
+  "version": "0.1.0",
+  "private": false,
+  "description": "High-performance React number picker components with momentum scrolling, smart auto-close, and full theming support",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -60,7 +60,7 @@
     "xstate": "^5.0.0"
   },
   "scripts": {
-    "build": "tsup --config tsup.config.ts && tsc -p tsconfig.build.json --emitDeclarationOnly",
+    "build": "tsup --config tsup.config.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "devDependencies": {
@@ -72,7 +72,21 @@
     "picker",
     "react",
     "scrubber",
-    "number-input"
+    "number-input",
+    "wheel-picker",
+    "touch",
+    "momentum",
+    "mobile"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/NullSense/Kinetic-Input.git",
+    "directory": "packages/number-picker"
+  },
+  "homepage": "https://github.com/NullSense/Kinetic-Input/tree/main/packages/number-picker",
+  "bugs": {
+    "url": "https://github.com/NullSense/Kinetic-Input/issues"
+  },
+  "license": "MIT",
   "type": "module"
 }

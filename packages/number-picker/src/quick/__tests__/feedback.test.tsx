@@ -100,10 +100,41 @@ describe('CollapsibleNumberPicker - Haptic Feedback Configuration', () => {
   });
 });
 
+type MockOscillator = {
+  type: OscillatorType;
+  frequency: { setValueAtTime: ReturnType<typeof vi.fn> };
+  connect: ReturnType<typeof vi.fn>;
+  start: ReturnType<typeof vi.fn>;
+  stop: ReturnType<typeof vi.fn>;
+  disconnect: ReturnType<typeof vi.fn>;
+  onended: (() => void) | null;
+};
+
+type MockGainNode = {
+  gain: {
+    value: number;
+    setValueAtTime: ReturnType<typeof vi.fn>;
+    linearRampToValueAtTime: ReturnType<typeof vi.fn>;
+    exponentialRampToValueAtTime: ReturnType<typeof vi.fn>;
+  };
+  connect: ReturnType<typeof vi.fn>;
+  disconnect: ReturnType<typeof vi.fn>;
+};
+
+type MockAudioContext = {
+  state: AudioContextState;
+  currentTime: number;
+  destination: object;
+  createOscillator: () => MockOscillator;
+  createGain: () => MockGainNode;
+  resume: ReturnType<typeof vi.fn>;
+  close: ReturnType<typeof vi.fn>;
+};
+
 describe('CollapsibleNumberPicker - Audio Feedback Configuration', () => {
-  let mockAudioContext: any;
-  let mockOscillator: any;
-  let mockGainNode: any;
+  let mockAudioContext: MockAudioContext;
+  let mockOscillator: MockOscillator;
+  let mockGainNode: MockGainNode;
   let createOscillatorSpy: ReturnType<typeof vi.fn>;
   let createGainSpy: ReturnType<typeof vi.fn>;
 

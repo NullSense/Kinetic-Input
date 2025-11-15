@@ -3,7 +3,7 @@ import { PickerGroup } from '../picker';
 import type { CollapsibleNumberPickerRenderItemState } from './types';
 import type { SnapPhysicsConfig } from '../picker/types/snapPhysics';
 import type { PickerGestureHandler } from '../picker/gestures';
-import { usePickerConfig, usePickerData, type PickerOption } from '../picker';
+import type { PickerOption } from '../picker';
 
 // Shared empty props object to avoid 10,000 allocations for large datasets
 const EMPTY_PROPS = {};

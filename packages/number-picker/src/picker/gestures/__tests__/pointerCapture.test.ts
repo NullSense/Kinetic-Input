@@ -148,7 +148,7 @@ describe('createPointerCaptureHandlers', () => {
       const handlers = createPointerCaptureHandlers({ onCapture });
 
       handlers.handlePointerDown(
-        createMockPointerEvent({ pointerType: 'unknown' as any })
+        createMockPointerEvent({ pointerType: 'unknown' as unknown as React.PointerEvent<HTMLElement>['pointerType'] })
       );
 
       expect(onCapture).toHaveBeenCalledWith(
@@ -186,13 +186,13 @@ describe('createPointerCaptureHandlers', () => {
 
       // If pointer is captured, leave should not cancel
       const eventWithCapture = createMockPointerEvent();
-      (eventWithCapture.currentTarget.hasPointerCapture as any).mockReturnValue(true);
+      (eventWithCapture.currentTarget.hasPointerCapture as unknown as ReturnType<typeof vi.fn>).mockReturnValue(true);
       handlers.handlePointerLeave(eventWithCapture);
       expect(onCancel).not.toHaveBeenCalled();
 
       // If pointer is NOT captured, leave should cancel
       const eventWithoutCapture = createMockPointerEvent();
-      (eventWithoutCapture.currentTarget.hasPointerCapture as any).mockReturnValue(
+      (eventWithoutCapture.currentTarget.hasPointerCapture as unknown as ReturnType<typeof vi.fn>).mockReturnValue(
         false
       );
       handlers.handlePointerLeave(eventWithoutCapture);

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { CollapsibleNumberPicker } from '@tensil/number-picker';
+import { CollapsibleNumberPicker } from '@tensil/kinetic-input';
 import { Layers, Smartphone, Zap, Code2 } from 'lucide-react';
 import { CapabilitiesIndicator } from './CapabilitiesIndicator';
 import { DEMO_PICKERS } from '../config/pickerDefaults';

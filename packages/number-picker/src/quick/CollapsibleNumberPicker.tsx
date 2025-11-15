@@ -81,7 +81,7 @@ const CollapsibleNumberPickerComponent: React.FC<CollapsibleNumberPickerProps> =
         if (!enableSnapPhysics) {
             return undefined;
         }
-        return { ...DEFAULT_SNAP_PHYSICS, ...(snapPhysicsConfig ?? {}), enabled: true };
+        return { ...DEFAULT_SNAP_PHYSICS, ...snapPhysicsConfig, enabled: true };
     }, [enableSnapPhysics, snapPhysicsConfig]);
 
     const {
@@ -143,7 +143,7 @@ const CollapsibleNumberPickerComponent: React.FC<CollapsibleNumberPickerProps> =
         openedViaRef,
         currentGestureSource,
         isOpeningInteraction,
-        deferGestureCloseRef,
+        deferGestureCloseRef: _deferGestureCloseRef,
     } = usePickerCoordinator({
         visibility: {
             showPicker,
@@ -367,7 +367,7 @@ const CollapsibleNumberPicker = React.memo(
 );
 
 // Shallow equality helper for objects
-function shallowEqual(obj1: any, obj2: any): boolean {
+function shallowEqual(obj1: Record<string, unknown>, obj2: Record<string, unknown>): boolean {
     if (obj1 === obj2) return true;
     if (!obj1 || !obj2) return false;
 

@@ -1,4 +1,3 @@
-import type React from 'react';
 import { HTMLProps, useMemo } from 'react';
 import { motion, useMotionTemplate } from 'framer-motion';
 import { usePickerActions, usePickerData, type PickerOption } from './PickerGroup';
@@ -143,7 +142,7 @@ function PickerColumn({
           flex: 1,
           alignItems: 'center',
           justifyContent: 'center',
-          ...(styleFromUser ?? {}),
+          ...styleFromUser,
         }}
         {...restProps}
       >

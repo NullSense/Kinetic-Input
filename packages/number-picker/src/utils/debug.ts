@@ -1,3 +1,21 @@
+// Extend Window interface with debug flags
+interface DebugWindow extends Window {
+  __QNI_DEBUG__?: boolean;
+  __QNI_SNAP_DEBUG__?: boolean;
+  __QNI_STATE_DEBUG__?: boolean;
+  __QNI_WHEEL_DEBUG__?: boolean;
+  __QNI_ANIMATION_DEBUG__?: boolean;
+  __animationDebugger?: unknown;
+  [key: string]: unknown; // Allow indexing by string
+}
+
+// Extend ImportMeta for env check
+interface ImportMetaWithEnv {
+  env?: { PROD?: boolean };
+}
+
+declare const window: DebugWindow;
+
 /**
  * Unified debug logging system for number-picker package
  *
@@ -84,7 +102,7 @@ const isProduction = (): boolean => {
 
   // Check import.meta.env (Vite)
   try {
-    if (typeof import.meta !== 'undefined' && (import.meta as any).env?.PROD) {
+    if (typeof import.meta !== 'undefined' && (import.meta as ImportMetaWithEnv).env?.PROD) {
       return true;
     }
   } catch {
@@ -112,7 +130,7 @@ const resolveDebugFlag = (key: string): boolean => {
   }
 
   // Development/Test: Only enable if explicitly set via window flag
-  if (typeof window !== 'undefined' && (window as any)[key] === true) {
+  if (typeof window !== 'undefined' && window[key] === true) {
     return true;
   }
 
@@ -418,7 +436,7 @@ export const animationDebugger = new AnimationDebugger();
 
 // Expose to window for manual inspection
 if (typeof window !== 'undefined' && !isProduction()) {
-  (window as any).__animationDebugger = animationDebugger;
+  window.__animationDebugger = animationDebugger;
 }
 
 // ============ Advanced API ============
@@ -444,11 +462,11 @@ export { logger as debugLogger };
  */
 export const enableAllDebugNamespaces = () => {
   if (typeof window !== 'undefined' && !isProduction()) {
-    (window as any).__QNI_DEBUG__ = true;
-    (window as any).__QNI_SNAP_DEBUG__ = true;
-    (window as any).__QNI_STATE_DEBUG__ = true;
-    (window as any).__QNI_WHEEL_DEBUG__ = true;
-    (window as any).__QNI_ANIMATION_DEBUG__ = true;
+    window.__QNI_DEBUG__ = true;
+    window.__QNI_SNAP_DEBUG__ = true;
+    window.__QNI_STATE_DEBUG__ = true;
+    window.__QNI_WHEEL_DEBUG__ = true;
+    window.__QNI_ANIMATION_DEBUG__ = true;
     console.log('[Debug] All number-picker namespaces enabled:', logger.getNamespaces());
     console.log('[Debug] Reload page for changes to take effect');
   } else if (isProduction()) {
@@ -468,11 +486,11 @@ export const enableAllDebugNamespaces = () => {
  */
 export const disableAllDebugNamespaces = () => {
   if (typeof window !== 'undefined') {
-    (window as any).__QNI_DEBUG__ = false;
-    (window as any).__QNI_SNAP_DEBUG__ = false;
-    (window as any).__QNI_STATE_DEBUG__ = false;
-    (window as any).__QNI_WHEEL_DEBUG__ = false;
-    (window as any).__QNI_ANIMATION_DEBUG__ = false;
+    window.__QNI_DEBUG__ = false;
+    window.__QNI_SNAP_DEBUG__ = false;
+    window.__QNI_STATE_DEBUG__ = false;
+    window.__QNI_WHEEL_DEBUG__ = false;
+    window.__QNI_ANIMATION_DEBUG__ = false;
     console.log('[Debug] All number-picker namespaces disabled');
     console.log('[Debug] Reload page for changes to take effect');
   }

@@ -6,7 +6,7 @@ import {
   PickerGroup,
   PickerColumn,
   PickerItem,
-} from '@tensil/number-picker';
+} from '@tensil/kinetic-input';
 import { Code2 } from 'lucide-react';
 import { DEMO_PICKERS } from '../config/pickerDefaults';
 
@@ -149,7 +149,7 @@ export function ComponentShowcase() {
               <PickerGroup
                 className="h-48 glass-subtle"
                 value={{ size: customValue }}
-                onChange={(newValue: any) => setCustomValue(newValue.size as string)}
+                onChange={(newValue: { size: string | number }) => setCustomValue(newValue.size as string)}
               >
                 <PickerColumn name="size">
                   {sizeOptions.map((size) => (

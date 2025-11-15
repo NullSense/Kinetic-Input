@@ -1,6 +1,6 @@
 # Kinetic Input Demo
 
-Interactive showcase for `@tensil/number-picker` components.
+Interactive showcase for `@tensil/kinetic-input` components.
 
 ## Features
 
@@ -36,4 +36,4 @@ Output will be in `demo/dist/`
 - Vite
 - TailwindCSS
 - Framer Motion
-- @tensil/number-picker (workspace package)
+- @tensil/kinetic-input (workspace package)
