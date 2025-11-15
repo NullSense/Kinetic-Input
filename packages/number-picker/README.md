@@ -130,6 +130,12 @@ export function SessionPicker({ value, onChange }) {
 | `enableAudioFeedback` | `boolean` | `true` | Audio clicks on selection |
 | `feedbackConfig` | `QuickPickerFeedbackConfig` | - | Override audio/haptic adapters, patterns, or disable features per instance |
 
+#### Wheel & touchpad behavior
+
+- `wheelMode="off"` now removes the wheel listeners entirely so embedded pickers no longer block the page scroll or synthetic scroll containers. Use this when the quick picker sits next to scrollable content.
+- When wheel input is enabled (`'natural'` or `'inverted'`) we still call `preventDefault` to keep focus inside the picker, but pinch-to-zoom gestures (which surface as `ctrlKey` + wheel on macOS trackpads) now pass through untouched so browser zoom shortcuts keep working.
+- The same guard powers both `CollapsibleNumberPicker` and bare `PickerGroup`, so standalone wheel pickers opt into wheel capture explicitly while every other instance remains passive by default.
+
 ### Theming
 
 Every color, font, and spacing can be customized via the `theme` prop. The library ships with sensible defaults (cyan accents on dark backgrounds), but you can override any property to match your design system.

@@ -156,6 +156,7 @@ const CollapsibleNumberPickerComponent: React.FC<CollapsibleNumberPickerProps> =
         selectedValue,
         timing,
         playConfirmationIfChanged,
+        wheelMode,
     });
 
     useEffect(() => {
