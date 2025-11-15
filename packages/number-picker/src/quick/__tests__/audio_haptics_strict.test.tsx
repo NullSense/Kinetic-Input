@@ -124,7 +124,7 @@ describe('CollapsibleNumberPicker audio/haptics strict assertions', () => {
       start: vi.fn(),
       stop: vi.fn(),
       disconnect: vi.fn(),
-      onended: null as any
+      onended: null as unknown as (() => void) | null
     }
     const mockGain = {
       gain: {
@@ -145,7 +145,12 @@ describe('CollapsibleNumberPicker audio/haptics strict assertions', () => {
       resume: vi.fn(),
       close: vi.fn(),
     }
-    ;(globalThis as any).AudioContext = function MockAudioContext(this: any) { return mockCtx as any } as any
+
+    // Mock AudioContext constructor
+    function MockAudioContext() {
+      return mockCtx;
+    }
+    globalThis.AudioContext = MockAudioContext as unknown as typeof AudioContext
 
     const { createAudioAdapter } = await import('../feedback/audio')
     const adapter = createAudioAdapter({ frequency: 440, waveform: 'sine', attackMs: 30, decayMs: 120, durationMs: 260, peakGain: 0.5 })
