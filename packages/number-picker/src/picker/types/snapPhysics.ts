@@ -10,6 +10,7 @@ export interface SnapPhysicsConfig {
   centerLock: number; // 0-1 clamp strength toward the exact center line
   rangeScaleIntensity?: number; // seconds of release projection applied to flicks
   rangeScaleVelocityCap?: number; // px/sec cap when projecting release distance
+  rangeScaleVelocityBoost?: number; // additional projection multiplier after crossing velocity threshold
 }
 
 export interface DragContextFrame {

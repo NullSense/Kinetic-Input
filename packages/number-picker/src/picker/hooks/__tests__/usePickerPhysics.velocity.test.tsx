@@ -2,6 +2,7 @@ import { act, renderHook } from '@testing-library/react';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import type React from 'react';
 import { usePickerPhysics } from '../usePickerPhysics';
+import { DEFAULT_SNAP_PHYSICS } from '../../../config/physics';
 
 const snapSpies = vi.hoisted(() => ({
   calculate: vi.fn(() => ({ mappedTranslate: 0, inSnapZone: false })),
@@ -175,6 +176,63 @@ describe('usePickerPhysics velocity wiring', () => {
 
     const projectionCall = releaseMomentumMock.projectReleaseTranslate.mock.calls.at(-1);
     expect(projectionCall?.[1]).toBe(880);
+  });
+
+  it('threads the configured rangeScale boost/threshold into release projection', () => {
+    const options = makeOptions(5);
+    const boostedConfig = {
+      ...DEFAULT_SNAP_PHYSICS,
+      rangeScaleIntensity: 0.08,
+      rangeScaleVelocityBoost: 2.4,
+      velocityThreshold: 180,
+    } as const;
+
+    const { result } = renderHook(() =>
+      usePickerPhysics({ ...baseConfig, options, selectedIndex: 1, snapConfig: boostedConfig })
+    );
+
+    const columnNode = {
+      setPointerCapture: vi.fn(),
+      releasePointerCapture: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      getBoundingClientRect: () => ({
+        top: 0,
+        bottom: 200,
+        height: 200,
+        width: 100,
+        left: 0,
+        right: 100,
+        x: 0,
+        y: 0,
+        toJSON: () => {},
+      }),
+    } as unknown as HTMLDivElement;
+
+    act(() => {
+      result.current.columnRef.current = columnNode;
+    });
+
+    const pointerEvent = (clientY: number) =>
+      ({
+        pointerId: 7,
+        pointerType: 'touch',
+        clientY,
+        currentTarget: columnNode,
+        target: columnNode,
+      }) as React.PointerEvent<HTMLDivElement>;
+
+    velocityState.value = 540;
+    act(() => {
+      result.current.handlePointerDown(pointerEvent(150));
+      result.current.handlePointerMove(pointerEvent(110));
+      result.current.handlePointerUp(pointerEvent(110));
+    });
+
+    const projectionCall = releaseMomentumMock.projectReleaseTranslate.mock.calls.at(-1);
+    expect(projectionCall?.[2].velocityBoost).toBeCloseTo(2.4, 5);
+    expect(projectionCall?.[2].velocityThreshold).toBe(180);
+    expect(projectionCall?.[2].projectionSeconds).toBeCloseTo(0.08, 5);
   });
 
   it('keeps wheel micro-scroll deltas intact instead of snapping to full rows', () => {

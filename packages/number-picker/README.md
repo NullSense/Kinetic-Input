@@ -506,9 +506,19 @@ Enable magnetic snapping for slow drags:
     snapRange: 0.3,          // 30% of item height
     pullStrength: 0.6,       // Magnetic strength (0-1)
     velocityThreshold: 120,  // px/s to override snap
+    rangeScaleIntensity: 0.12,       // Base flick projection window (seconds)
+    rangeScaleVelocityBoost: 1.25,   // Multiply projection once velocity crosses the threshold
+    rangeScaleVelocityCap: 3200,     // Clamp release velocity (px/s)
   }}
 />
 ```
+
+The release scaler works in two stages:
+
+1. **Base projection (`rangeScaleIntensity`)** gives every flick ~120 ms of extra coast, so a 500 px/s scrub glides ~60 px after you let go.
+2. **Velocity boost (`rangeScaleVelocityBoost`)** measures how far the release speed exceeds `velocityThreshold` and multiplies the projection window up to `(1 + boost)x`. Faster flicks now reliably skip more values instead of instantly snapping back.
+
+Pair the boost with `rangeScaleVelocityCap` if you want to keep runaway scroll wheels from skipping the entire dataset.
 
 ## Local Development
 
