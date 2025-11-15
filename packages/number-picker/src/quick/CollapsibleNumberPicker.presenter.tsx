@@ -186,7 +186,7 @@ export function CollapsibleNumberPickerPresenter({ viewModel }: CollapsibleNumbe
                 )}
             </div>
 
-            <div className="relative min-h-[3rem] md:min-h-[3.5rem]" ref={wrapperRef}>
+            <div className="relative min-h-[3rem] md:min-h-[3.5rem]" ref={wrapperRef} data-testid="qni-wrapper">
                 <div
                     data-testid="qni-closed"
                     aria-hidden={showPicker}

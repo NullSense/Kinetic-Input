@@ -114,6 +114,8 @@ export function usePickerPhysics({
   const yRaw = useMotionValue(0);
   const ySnap = useMotionValue(0);
 
+  const wheelEnabled = wheelMode !== 'off';
+
   useMotionValueEvent(yRaw, 'change', (latest) => {
     const snapped = Math.round(Number(latest));
     if (ySnap.get() !== snapped) {
@@ -532,6 +534,9 @@ export function usePickerPhysics({
 
   const handleWheeling = useCallback(
     (event: WheelEvent) => {
+      if (!wheelEnabled) {
+        return;
+      }
       let delta = event.deltaY;
 
       if (event.deltaMode === 0x01) {
@@ -569,11 +574,26 @@ export function usePickerPhysics({
 
       updateScrollerWhileMoving(nextTranslate);
     },
-    [height, itemHeight, lastIndex, maxTranslate, snapEnabled, snapPhysics, updateScrollerWhileMoving, velocityTracker, wheelMode, yRaw],
+    [
+      height,
+      itemHeight,
+      lastIndex,
+      maxTranslate,
+      snapEnabled,
+      snapPhysics,
+      updateScrollerWhileMoving,
+      velocityTracker,
+      wheelEnabled,
+      wheelMode,
+      yRaw,
+    ],
   );
 
   const handleWheel = useCallback(
     (event: WheelEvent) => {
+      if (!wheelEnabled || event.ctrlKey) {
+        return;
+      }
       event.preventDefault();
 
       if (wheelStartTranslateRef.current === null) {
@@ -612,7 +632,7 @@ export function usePickerPhysics({
         });
       }, 200);
     },
-    [emitter, handleWheeling, settleFromY, snapPhysics, velocityTracker, yRaw],
+    [emitter, handleWheeling, settleFromY, snapPhysics, velocityTracker, wheelEnabled, yRaw],
   );
 
   useEffect(() => {
@@ -625,7 +645,7 @@ export function usePickerPhysics({
 
   useEffect(() => {
     const node = columnRef.current;
-    if (!node) return undefined;
+    if (!node || !wheelEnabled) return undefined;
 
     const wheelListener = (event: WheelEvent) => {
       handleWheel(event);
@@ -636,7 +656,7 @@ export function usePickerPhysics({
     return () => {
       node.removeEventListener('wheel', wheelListener, wheelListenerOptions);
     };
-  }, [handleWheel]);
+  }, [handleWheel, wheelEnabled]);
 
   useEffect(
     () => () => {

@@ -10,6 +10,8 @@ type GestureSource = 'pointer' | 'wheel' | 'keyboard' | null;
 
 type PickerValue = { value: string };
 
+type WheelMode = 'off' | 'natural' | 'inverted';
+
 interface UsePickerGesturesArgs {
     showPicker: boolean;
     wrapperRef: React.RefObject<HTMLDivElement | null>;
@@ -17,6 +19,7 @@ interface UsePickerGesturesArgs {
     stateMachine: PickerMachineApi;
     selectedValue: PickerValue;
     wheelIdleTimeout?: number;
+    wheelMode?: WheelMode;
     openedViaRef: React.MutableRefObject<GestureSource>;
     currentGestureSource: React.MutableRefObject<GestureSource>;
     isOpeningInteraction: React.MutableRefObject<boolean>;
@@ -43,11 +46,13 @@ export const useGestureCoordination = ({
     stateMachine,
     selectedValue,
     wheelIdleTimeout,
+    wheelMode = 'inverted',
     openedViaRef,
     currentGestureSource,
     isOpeningInteraction,
     deferGestureCloseRef,
 }: UsePickerGesturesArgs): UsePickerGesturesResult => {
+    const wheelEnabled = wheelMode !== 'off';
     const showPickerRef = useRef(showPicker);
     useEffect(() => {
         showPickerRef.current = showPicker;
@@ -105,6 +110,9 @@ export const useGestureCoordination = ({
     }, [clearWheelIdleTimer, handleWheelIdleTimeout, wheelIdleTimeout]);
 
     const handleWheel = useCallback(() => {
+        if (!wheelEnabled) {
+            return;
+        }
         clearBoundaryCloseTimer();
         clearWheelIdleTimer();
 
@@ -121,13 +129,23 @@ export const useGestureCoordination = ({
         }
 
         scheduleWheelIdle();
-    }, [clearBoundaryCloseTimer, clearWheelIdleTimer, handlePickerOpen, scheduleWheelIdle, stateMachine]);
+    }, [
+        clearBoundaryCloseTimer,
+        clearWheelIdleTimer,
+        handlePickerOpen,
+        scheduleWheelIdle,
+        stateMachine,
+        wheelEnabled,
+    ]);
 
     useEffect(() => {
         const node = wrapperRef.current;
-        if (!node) return undefined;
+        if (!node || !wheelEnabled) return undefined;
 
         const nativeWheelHandler = (event: WheelEvent) => {
+            if (event.ctrlKey) {
+                return;
+            }
             event.preventDefault();
             handleWheel();
         };
@@ -138,7 +156,7 @@ export const useGestureCoordination = ({
         return () => {
             node.removeEventListener('wheel', nativeWheelHandler, wheelListenerOptions.capture ?? false);
         };
-    }, [handleWheel, wrapperRef]);
+    }, [handleWheel, wheelEnabled, wrapperRef]);
 
     const handlePointerDown = useCallback(
         (event: React.PointerEvent) => {
