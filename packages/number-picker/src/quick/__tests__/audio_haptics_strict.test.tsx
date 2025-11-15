@@ -43,7 +43,10 @@ vi.mock('../../picker', () => {
     mockOnChange?.({ value: newValue })
   }
 
-  return { default: Default }
+  return {
+    default: Default,
+    PickerGroup: Default  // Export as both default and named export
+  }
 })
 
 const importQNI = async () => (await import('../CollapsibleNumberPicker')).default

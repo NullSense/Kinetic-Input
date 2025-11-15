@@ -1,7 +1,6 @@
 import type React from 'react';
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
-import * as framerMotion from 'framer-motion';
 import type { MotionValue } from 'framer-motion';
 import { usePickerPhysics } from '../usePickerPhysics';
 
@@ -14,30 +13,37 @@ type PendingAnimation = {
 
 const pendingAnimations: PendingAnimation[] = [];
 
-const animateSpy = vi.spyOn(framerMotion, 'animate').mockImplementation(
-  (motionValue: unknown, to: unknown, config: { onComplete?: () => void } = {}) => {
-    const record: PendingAnimation = { motionValue, to, config, stopped: false };
-    pendingAnimations.push(record);
-    return {
-      stop: () => {
-        record.stopped = true;
-        const idx = pendingAnimations.indexOf(record);
-        if (idx >= 0) {
-          pendingAnimations.splice(idx, 1);
-        }
-      },
-      play: () => {},
-      pause: () => {},
-      complete: () => {},
-      cancel: () => {},
-      time: 0,
-      speed: 1,
-      startTime: 0,
-      duration: 0,
-      state: 'idle' as const,
-    } as ReturnType<typeof framerMotion.animate>;
-  },
-);
+const animateMock = vi.fn((motionValue: unknown, to: unknown, config: { onComplete?: () => void } = {}) => {
+  const record: PendingAnimation = { motionValue: motionValue as MotionValue<number>, to: to as number, config, stopped: false };
+  pendingAnimations.push(record);
+  return {
+    stop: () => {
+      record.stopped = true;
+      const idx = pendingAnimations.indexOf(record);
+      if (idx >= 0) {
+        pendingAnimations.splice(idx, 1);
+      }
+    },
+    play: () => {},
+    pause: () => {},
+    complete: () => {},
+    cancel: () => {},
+    time: 0,
+    speed: 1,
+    startTime: 0,
+    duration: 0,
+    state: 'idle' as const,
+  };
+});
+
+// Mock framer-motion's animate function
+vi.mock('framer-motion', async () => {
+  const actual = await vi.importActual<typeof import('framer-motion')>('framer-motion');
+  return {
+    ...actual,
+    animate: animateMock,
+  };
+});
 
 const flushNextAnimation = () => {
   const nextRecordIndex = pendingAnimations.findIndex((animation) => !animation.stopped);
@@ -65,7 +71,7 @@ const makeOptions = (count: number): Option[] =>
 describe('usePickerPhysics', () => {
   beforeEach(() => {
     pendingAnimations.splice(0, pendingAnimations.length);
-    animateSpy.mockClear();
+    animateMock.mockClear();
   });
 
   const baseConfig = {

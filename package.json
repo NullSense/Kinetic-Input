@@ -14,7 +14,10 @@
     "dev:demo": "npm run dev --workspace=demo",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "lint": "oxlint .",
-    "lint:fix": "oxlint --fix ."
+    "lint:fix": "oxlint --fix .",
+    "test": "npm run test --workspace=packages/number-picker",
+    "test:ui": "npm run test:ui --workspace=packages/number-picker",
+    "test:coverage": "npm run test:coverage --workspace=packages/number-picker"
   },
   "keywords": [
     "react",
@@ -30,6 +33,14 @@
   "author": "",
   "license": "MIT",
   "devDependencies": {
-    "oxlint": "^1.28.0"
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
+    "@vitejs/plugin-react": "^5.1.1",
+    "@vitest/ui": "^4.0.9",
+    "happy-dom": "^20.0.10",
+    "jsdom": "^27.2.0",
+    "oxlint": "^1.28.0",
+    "vitest": "^4.0.9"
   }
 }
