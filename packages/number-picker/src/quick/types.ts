@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import type { SnapPhysicsConfig } from '../picker/types/snapPhysics';
 import type { TimingPreset, TimingConfig } from '../config/timing';
+import type { AudioAdapterOptions, FeedbackAdapters, HapticAdapterOptions } from './feedback';
 
 export interface CollapsibleNumberPickerTheme {
     textColor: string;
@@ -73,10 +74,19 @@ export interface CollapsibleNumberPickerProps {
     snapPhysicsConfig?: Partial<SnapPhysicsConfig>;
     enableHaptics?: boolean;
     enableAudioFeedback?: boolean;
+    feedbackConfig?: QuickPickerFeedbackConfig;
     wheelMode?: 'off' | 'natural' | 'inverted';
     timingPreset?: TimingPreset;
     timingConfig?: Readonly<TimingConfig>;
     visualTweaks?: CollapsibleNumberPickerVisualTweaks;
+}
+
+export interface QuickPickerFeedbackConfig {
+    enableHaptics?: boolean;
+    enableAudioFeedback?: boolean;
+    haptics?: HapticAdapterOptions;
+    audio?: AudioAdapterOptions;
+    adapters?: Partial<FeedbackAdapters>;
 }
 
 export interface CollapsibleNumberPickerVisualTweaks {

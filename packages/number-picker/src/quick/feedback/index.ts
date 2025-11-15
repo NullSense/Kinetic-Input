@@ -8,20 +8,36 @@
  * @module feedback
  */
 
-import { createHapticAdapter, type HapticAdapter } from './haptics';
-import { createAudioAdapter, type AudioAdapter } from './audio';
+import {
+  createHapticAdapter,
+  type HapticAdapter,
+  type HapticAdapterOptions,
+} from './haptics';
+import {
+  createAudioAdapter,
+  type AudioAdapter,
+  type AudioAdapterOptions,
+} from './audio';
 
-export { createHapticAdapter, type HapticAdapter } from './haptics';
-export { createAudioAdapter, type AudioAdapter } from './audio';
-
-export interface FeedbackConfig {
-  enableHaptics: boolean;
-  enableAudioFeedback: boolean;
-}
+export { createHapticAdapter, type HapticAdapter, type HapticAdapterOptions } from './haptics';
+export { createAudioAdapter, type AudioAdapter, type AudioAdapterOptions } from './audio';
 
 export interface FeedbackAdapters {
   haptics: ReturnType<typeof createHapticAdapter>;
   audio: ReturnType<typeof createAudioAdapter>;
+}
+
+export interface FeedbackAdapterOverrides {
+  haptics?: HapticAdapter | null;
+  audio?: AudioAdapter | null;
+}
+
+export interface FeedbackConfig {
+  enableHaptics: boolean;
+  enableAudioFeedback: boolean;
+  hapticsOptions?: HapticAdapterOptions;
+  audioOptions?: AudioAdapterOptions;
+  adapters?: FeedbackAdapterOverrides;
 }
 
 /**
@@ -52,12 +68,22 @@ export interface FeedbackAdapters {
 export function createFeedbackAdapters(config: FeedbackConfig): FeedbackAdapters {
   // Tree-shaking: These imports are statically analyzable
   // The bundler can remove unused modules in production
+  const resolvedHaptics =
+    config.adapters?.haptics !== undefined
+      ? config.adapters.haptics
+      : config.enableHaptics
+        ? createHapticAdapter(config.hapticsOptions)
+        : null;
+
+  const resolvedAudio =
+    config.adapters?.audio !== undefined
+      ? config.adapters.audio
+      : config.enableAudioFeedback
+        ? createAudioAdapter(config.audioOptions)
+        : null;
+
   return {
-    haptics: config.enableHaptics
-      ? createHapticAdapter()
-      : null,
-    audio: config.enableAudioFeedback
-      ? createAudioAdapter()
-      : null,
+    haptics: resolvedHaptics,
+    audio: resolvedAudio,
   };
 }

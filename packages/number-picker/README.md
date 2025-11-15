@@ -116,7 +116,8 @@ export function SessionPicker({ value, onChange }) {
 | `snapPhysicsConfig` | `Partial<SnapPhysicsConfig>` | defaults | Override snap parameters |
 | `wheelMode` | `'natural' \| 'inverted' \| 'off'` | `'inverted'` | Mouse wheel scroll direction (inverted: down=increment) |
 | `enableHaptics` | `boolean` | `true` | Vibration feedback on selection (mobile) |
-| `enableAudioFeedback` | `boolean` | `false` | Audio clicks on selection |
+| `enableAudioFeedback` | `boolean` | `true` | Audio clicks on selection |
+| `feedbackConfig` | `QuickPickerFeedbackConfig` | - | Override audio/haptic adapters, patterns, or disable features per instance |
 
 ### Theming
 
@@ -523,3 +524,48 @@ Changes in `packages/number-picker/src` hot-reload in the dev app via Vite path 
 ## License
 
 See [LICENSE](./LICENSE) for details.
+### Audio & Haptic Configuration
+
+`feedbackConfig` exposes a single object for tuning sound/vibration without reaching into internal hooks:
+
+```tsx
+<CollapsibleNumberPicker
+  label="Speed"
+  value={72}
+  onChange={setSpeed}
+  unit="mph"
+  feedbackConfig={{
+    enableAudioFeedback: false,           // disable audio globally for this picker
+    haptics: { pattern: [8, 4, 8] },       // custom vibrate pattern per tick
+    audio: { frequency: 660, waveform: 'sine' },
+    adapters: {                           // inject bespoke adapters if you already own a feedback system
+      audio: customAudioAdapter,
+    },
+  }}
+/>
+```
+
+`QuickPickerFeedbackConfig` mirrors the exported adapter options:
+
+```ts
+type QuickPickerFeedbackConfig = {
+  enableHaptics?: boolean;          // override legacy props per instance
+  enableAudioFeedback?: boolean;
+  haptics?: { pattern?: number | number[] };
+  audio?: {
+    frequency?: number;
+    waveform?: OscillatorType;
+    attackMs?: number;
+    decayMs?: number;
+    durationMs?: number;
+    peakGain?: number;
+  };
+  adapters?: {
+    haptics?: HapticAdapter | null;
+    audio?: AudioAdapter | null;
+  };
+};
+```
+
+When you provide adapters the built-in modules are never instantiated, so host apps can plug into shared audio/haptic controllers or stub them entirely for tests.
+
