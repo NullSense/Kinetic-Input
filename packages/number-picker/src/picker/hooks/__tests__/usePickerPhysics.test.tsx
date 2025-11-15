@@ -75,6 +75,7 @@ describe('usePickerPhysics', () => {
     height: 200,
     isPickerOpen: true,
     wheelMode: 'off' as const,
+    wheelSensitivity: 1,
     changeValue: vi.fn(),
     virtualization: { slotCount: 11, overscan: 5 },
   };

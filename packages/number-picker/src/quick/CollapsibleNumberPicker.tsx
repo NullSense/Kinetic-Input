@@ -49,6 +49,7 @@ const CollapsibleNumberPickerComponent: React.FC<CollapsibleNumberPickerProps> =
     enableAudioFeedback = true,
     feedbackConfig,
     wheelMode = 'inverted',
+    wheelSensitivity = 1,
     visualTweaks,
     timingPreset,
     timingConfig,
@@ -233,6 +234,7 @@ const CollapsibleNumberPickerComponent: React.FC<CollapsibleNumberPickerProps> =
             showPicker,
             snapConfig: pickerSnapConfig,
             wheelMode,
+            wheelSensitivity,
         }),
         [
             values,
@@ -247,6 +249,7 @@ const CollapsibleNumberPickerComponent: React.FC<CollapsibleNumberPickerProps> =
             showPicker,
             pickerSnapConfig,
             wheelMode,
+            wheelSensitivity,
         ]
     );
 

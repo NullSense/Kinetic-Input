@@ -15,6 +15,7 @@ import {
 const DEFAULT_HEIGHT = 216;
 const DEFAULT_ITEM_HEIGHT = 36;
 const DEFAULT_WHEEL_MODE = 'off';
+const DEFAULT_WHEEL_SENSITIVITY = 1;
 
 interface Option {
   value: string | number;
@@ -35,6 +36,7 @@ export interface PickerGroupRootProps<TType extends PickerValue>
   height?: number;
   itemHeight?: number;
   wheelMode?: 'off' | 'natural' | 'inverted';
+  wheelSensitivity?: number;
   showHighlightLines?: boolean;
 }
 
@@ -42,6 +44,7 @@ const PickerGroupDataContext = createContext<{
   height: number;
   itemHeight: number;
   wheelMode: 'off' | 'natural' | 'inverted';
+  wheelSensitivity: number;
   value: PickerValue;
   optionGroups: { [key: string]: Option[] };
 } | null>(null);
@@ -116,6 +119,7 @@ function PickerGroupRoot<TType extends PickerValue>(props: PickerGroupRootProps<
     height = DEFAULT_HEIGHT,
     itemHeight = DEFAULT_ITEM_HEIGHT,
     wheelMode = DEFAULT_WHEEL_MODE,
+    wheelSensitivity = DEFAULT_WHEEL_SENSITIVITY,
     showHighlightLines = true,
     ...restProps
   } = props;
@@ -148,8 +152,8 @@ function PickerGroupRoot<TType extends PickerValue>(props: PickerGroupRootProps<
   const [optionGroups, dispatch] = useReducer(pickerGroupReducer, {});
 
   const pickerGroupData = useMemo(
-    () => ({ height, itemHeight, wheelMode, value, optionGroups }),
-    [height, itemHeight, value, optionGroups, wheelMode],
+    () => ({ height, itemHeight, wheelMode, wheelSensitivity, value, optionGroups }),
+    [height, itemHeight, optionGroups, value, wheelMode, wheelSensitivity],
   );
 
   const valueRef = useRef(value);

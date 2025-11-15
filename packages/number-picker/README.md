@@ -114,7 +114,8 @@ export function SessionPicker({ value, onChange }) {
 | `helperText` | `ReactNode` | - | Optional caption below the input |
 | `enableSnapPhysics` | `boolean` | `false` | Experimental magnetic snap for slow drags |
 | `snapPhysicsConfig` | `Partial<SnapPhysicsConfig>` | defaults | Override snap parameters |
-| `wheelMode` | `'natural' \| 'inverted' \| 'off'` | `'inverted'` | Mouse wheel scroll direction (inverted: down=increment) |
+| `wheelMode` | `'natural' \| 'inverted' \| 'off'` | `'inverted'` | Mouse wheel/touchpad mode. `'natural'` respects OS direction, `'inverted'` mimics iOS pickers, and `'off'` removes the wheel listeners entirely so the host page keeps scrolling. |
+| `wheelSensitivity` | `number` | `1` | Multiplier for wheel/touchpad deltas. Raise it (>1) to make slow trackpads move further per gesture, lower it (<1) to tame hypersensitive hardware. |
 | `enableHaptics` | `boolean` | `true` | Vibration feedback on selection (mobile) |
 | `enableAudioFeedback` | `boolean` | `true` | Audio clicks on selection |
 | `feedbackConfig` | `QuickPickerFeedbackConfig` | - | Override audio/haptic adapters, patterns, or disable features per instance |
@@ -123,6 +124,8 @@ export function SessionPicker({ value, onChange }) {
 
 - `wheelMode="off"` now removes the wheel listeners entirely so embedded pickers no longer block the page scroll or synthetic scroll containers. Use this when the quick picker sits next to scrollable content.
 - When wheel input is enabled (`'natural'` or `'inverted'`) we still call `preventDefault` to keep focus inside the picker, but pinch-to-zoom gestures (which surface as `ctrlKey` + wheel on macOS trackpads) now pass through untouched so browser zoom shortcuts keep working.
+- Pick `wheelMode="natural"` when you want OS-style scrolling (positive delta = scroll down) and `wheelMode="inverted"` to mimic the native iOS picker where scrolling down increments the value. Both modes will automatically open the picker on first wheel input.
+- Tune `wheelSensitivity` on `CollapsibleNumberPicker` or `PickerGroup` to match your hardware. The default `1` keeps deltas 1:1 with incoming pixels/lines, >1 amplifies tiny trackpad deltas, and <1 slows aggressive desktop wheels without touching the physics stack.
 - The same guard powers both `CollapsibleNumberPicker` and bare `PickerGroup`, so standalone wheel pickers opt into wheel capture explicitly while every other instance remains passive by default.
 
 ### Theming
