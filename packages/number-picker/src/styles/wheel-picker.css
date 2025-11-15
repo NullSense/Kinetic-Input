@@ -1,32 +1,40 @@
+/* Standalone wheel picker styling */
 .np-wheel-picker {
+  --np-wheel-item-height: 48px;
+  --np-wheel-font-family: 'Geist Mono', monospace;
+  --np-wheel-font-size: 1.25rem;
+  --np-wheel-color: #e7edf2;
+  --np-wheel-accent-color: #3edcff;
+  --np-wheel-unit-color: #8e77b5;
   width: 100%;
 }
 
 .np-wheel-picker .np-wheel-container {
-  width: 100%;
   position: relative;
+  width: 100%;
 }
 
 .np-wheel-picker .np-wheel-item {
-  min-height: 48px;
+  min-height: var(--np-wheel-item-height, 48px);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'Geist Mono', monospace;
-  font-size: 1.25rem;
-  color: #e7edf2;
-  transition: color 0.2s ease, font-weight 0.2s ease;
+  gap: 0.35rem;
   padding: 0 12px;
   text-align: center;
+  font-family: var(--np-wheel-font-family, 'Geist Mono', monospace);
+  font-size: var(--np-wheel-font-size, 1.25rem);
+  color: var(--np-wheel-color, #e7edf2);
+  transition: color 0.2s ease, transform 0.2s ease;
 }
 
 .np-wheel-picker .np-wheel-item-selected {
   font-weight: 600;
-  font-size: 1.35rem;
+  color: var(--np-wheel-accent-color, currentColor);
+  transform: scale(1.04);
 }
 
 .np-wheel-picker .np-wheel-unit {
-  margin-left: 0.35rem;
   font-size: 0.85rem;
-  color: #8e77b5;
+  color: var(--np-wheel-unit-color, #8e77b5);
 }

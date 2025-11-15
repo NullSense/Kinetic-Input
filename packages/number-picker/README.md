@@ -199,6 +199,46 @@ import { DEFAULT_THEME } from '@tensil/number-picker'
 />
 ```
 
+### CSS surface area
+
+The package ships two small style sheets:
+
+- `quick-number-input.css` – used by `CollapsibleNumberPicker`
+- `wheel-picker.css` – used by `StandaloneWheelPicker`
+
+Each file scopes every selector to its own root class, so you can safely override
+styles inside your app without touching global elements.
+
+#### Quick number input tokens
+
+All structural pieces inherit from the custom properties defined on
+`.quick-number-input-root`. You can override any of them via inline styles, your
+own CSS module, or a design-system wrapper.
+
+| Token | Purpose |
+|-------|---------|
+| `--qni-item-height` | Row height and highlight calculations |
+| `--qni-picker-height` | Visible picker window height |
+| `--qni-font-family` / `--qni-font-size` | Typography for rows and the closed value |
+| `--qni-color-text` / `--qni-color-text-active` | Default vs. selected row color |
+| `--qni-color-unit` | Unit label color in both open/closed states |
+| `--qni-color-highlight-fill` / `--qni-color-backdrop` / `--qni-color-fade` | Highlight fill, modal backdrop, and fade gradients |
+| `--qni-highlight-height` / `--qni-highlight-padding` | Controls the selection band position and thickness |
+
+Helpful selectors:
+
+- `.picker-item`, `.picker-item-active`, `.picker-item-selected` – individual rows
+- `.picker-highlight-fill` / `.picker-highlight-hitbox` – highlight overlay
+- `.picker-fade-top` / `.picker-fade-bottom` – ambient fades above/below the list
+- `.picker-backdrop` – optional modal scrim (uses `--qni-color-backdrop`)
+
+#### Standalone wheel tokens
+
+`StandaloneWheelPicker` exposes a matching set of CSS variables on
+`.np-wheel-picker` (`--np-wheel-item-height`, `--np-wheel-font-family`,
+`--np-wheel-color`, etc.). Override those tokens to customize spacing, fonts, and
+accent colors without rewriting the component styles.
+
 **Complete custom theme:**
 ```tsx
 // iOS-inspired light theme
