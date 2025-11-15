@@ -3,33 +3,24 @@
  * `.quick-number-input-root` element so consumers can safely scope overrides.
  */
 .quick-number-input-root {
-  --qni-item-height: 40px;
-  --qni-picker-height: calc(var(--qni-item-height) * 5);
+  --qni-row-height: 40px;
+  --qni-visible-rows: 5;
   --qni-font-family: 'Geist Mono', monospace;
   --qni-font-size: 1rem;
   --qni-gap: 0.5rem;
-  --qni-picker-padding: 1rem;
-  --qni-color-text: #9db1be;
-  --qni-color-text-active: #3edcff;
+  --qni-padding-inline: 1rem;
+  --qni-color-muted: #9db1be;
+  --qni-color-active: #3edcff;
   --qni-color-unit: #8e77b5;
-  --qni-color-highlight-fill: rgba(62, 220, 255, 0.05);
-  --qni-color-fade: #0a0b0d;
-  --qni-color-backdrop: rgba(0, 0, 0, 0.6);
-  --qni-highlight-padding: 0px;
-  --qni-highlight-height: var(--qni-item-height);
-  --qni-active-scale: 1.18;
-  --qni-deselect-scale: 1.04;
-  --qni-deselect-opacity: 0.82;
-  --qni-transition-color: 0.12s;
-  --qni-transition-transform: 0.16s;
-  --qni-transition-opacity: 0.16s;
-  --qni-color-ease: cubic-bezier(0.32, 0.94, 0.6, 1);
-  --qni-scale-ease: cubic-bezier(0.32, 0.94, 0.6, 1);
+  --qni-highlight-fill: rgba(62, 220, 255, 0.05);
+  --qni-fade-color: #0a0b0d;
+  --qni-backdrop-color: rgba(0, 0, 0, 0.6);
+  --qni-ease: cubic-bezier(0.32, 0.94, 0.6, 1);
 }
 
-.quick-number-input-root :is(.picker-item, .qni-closed) {
-  font-family: var(--qni-font-family, 'Geist Mono', monospace);
-  font-size: var(--qni-font-size, 1rem);
+.quick-number-input-root :where(.picker-item, .qni-closed) {
+  font-family: var(--qni-font-family);
+  font-size: var(--qni-font-size);
   font-variant-numeric: tabular-nums;
   font-feature-settings: 'tnum' 1;
 }
@@ -42,24 +33,24 @@
 
 .quick-number-input-root .picker-container {
   position: relative;
-  height: var(--qni-picker-height);
+  height: calc(var(--qni-row-height) * var(--qni-visible-rows, 5));
   overflow: hidden;
 }
 
 .quick-number-input-root .picker-item {
-  height: var(--qni-item-height);
-  line-height: var(--qni-item-height);
+  height: var(--qni-row-height);
+  line-height: var(--qni-row-height);
   display: flex;
   align-items: center;
   justify-content: center;
   width: 100%;
-  padding-inline: var(--qni-picker-padding, 1rem);
+  padding-inline: var(--qni-padding-inline, 1rem);
   gap: var(--qni-gap, 0.5rem);
-  color: var(--qni-color-text);
+  color: var(--qni-color-muted);
   transition:
-    color var(--qni-transition-color, 0.12s) var(--qni-color-ease, cubic-bezier(0.32, 0.94, 0.6, 1)),
-    transform var(--qni-transition-transform, 0.16s) var(--qni-scale-ease, cubic-bezier(0.32, 0.94, 0.6, 1)),
-    opacity var(--qni-transition-opacity, 0.16s) var(--qni-color-ease, ease-out);
+    color 0.12s var(--qni-ease),
+    transform 0.16s var(--qni-ease),
+    opacity 0.16s var(--qni-ease);
   position: relative;
   z-index: 20;
 }
@@ -76,24 +67,25 @@
 }
 
 .quick-number-input-root .picker-item.picker-item-active {
-  color: var(--qni-color-text-active);
+  color: var(--qni-color-active);
   text-shadow: 0 0 0.5px currentColor, 0.5px 0 0.5px currentColor;
-  transform: scale(var(--qni-active-scale, 1.18));
+  transform: scale(1.14);
   letter-spacing: 0.02em;
 }
 
 .quick-number-input-root .picker-item.picker-item-selected:not(.picker-item-active) {
-  color: var(--qni-color-text);
+  color: var(--qni-color-muted);
   text-shadow: 0 0 0.4px currentColor;
-  transform: scale(var(--qni-deselect-scale, 1.04));
-  opacity: var(--qni-deselect-opacity, 0.82);
+  transform: scale(1.04);
+  opacity: 0.82;
 }
 
 .quick-number-input-root .picker-item[data-padding='true'] {
   opacity: 0;
 }
 
-.quick-number-input-root :is(
+.quick-number-input-root
+  :where(
     .picker-highlight-hitbox,
     .picker-highlight-fill,
     .picker-fade-top,
@@ -104,9 +96,11 @@
   pointer-events: none;
 }
 
-.quick-number-input-root :is(.picker-highlight-hitbox, .picker-highlight-fill) {
-  top: calc(var(--qni-item-height) * 2 + var(--qni-highlight-padding));
-  height: var(--qni-highlight-height);
+.quick-number-input-root :where(.picker-highlight-hitbox, .picker-highlight-fill) {
+  top: calc(
+    ((var(--qni-visible-rows, 5) - 1) / 2) * var(--qni-row-height)
+  );
+  height: var(--qni-row-height);
 }
 
 .quick-number-input-root .picker-highlight-hitbox {
@@ -116,23 +110,23 @@
 }
 
 .quick-number-input-root .picker-highlight-fill {
-  background: var(--qni-color-highlight-fill);
+  background: var(--qni-highlight-fill);
   z-index: 6;
 }
 
-.quick-number-input-root :is(.picker-fade-top, .picker-fade-bottom) {
-  height: calc(var(--qni-item-height) * 2);
+.quick-number-input-root :where(.picker-fade-top, .picker-fade-bottom) {
+  height: calc(((var(--qni-visible-rows, 5) - 1) / 2) * var(--qni-row-height));
   z-index: 10;
 }
 
 .quick-number-input-root .picker-fade-top {
   top: 0;
-  background: linear-gradient(to bottom, var(--qni-color-fade), transparent);
+  background: linear-gradient(to bottom, var(--qni-fade-color), transparent);
 }
 
 .quick-number-input-root .picker-fade-bottom {
   bottom: 0;
-  background: linear-gradient(to top, var(--qni-color-fade), transparent);
+  background: linear-gradient(to top, var(--qni-fade-color), transparent);
 }
 
 .qni-closed {
@@ -141,8 +135,8 @@
   align-items: center;
   gap: var(--qni-gap, 0.5rem);
   inline-size: max-content;
-  height: var(--qni-item-height);
-  line-height: var(--qni-item-height);
+  height: var(--qni-row-height);
+  line-height: var(--qni-row-height);
   user-select: none;
 }
 
@@ -162,7 +156,7 @@
 }
 
 .qni-closed .qni-value {
-  color: var(--qni-color-text-active);
+  color: var(--qni-color-active);
   text-shadow: 0 0 0.5px currentColor, 0.5px 0 0.5px currentColor;
   letter-spacing: 0.02em;
 }
@@ -179,7 +173,7 @@
 .quick-number-input-root .picker-backdrop {
   position: fixed;
   inset: 0;
-  background: var(--qni-color-backdrop, rgba(0, 0, 0, 0.6));
+  background: var(--qni-backdrop-color);
   z-index: 9;
   transition: opacity 0.2s ease-out;
 }

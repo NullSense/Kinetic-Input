@@ -201,43 +201,82 @@ import { DEFAULT_THEME } from '@tensil/number-picker'
 
 ### CSS surface area
 
-The package ships two small style sheets:
+The package ships two scoped style sheets:
 
 - `quick-number-input.css` – used by `CollapsibleNumberPicker`
 - `wheel-picker.css` – used by `StandaloneWheelPicker`
 
-Each file scopes every selector to its own root class, so you can safely override
-styles inside your app without touching global elements.
+Both root selectors (`.quick-number-input-root` and `.np-wheel-picker`) define a
+small set of CSS custom properties. Everything else is expressed relative to
+those tokens, so theming the component means touching a handful of values instead
+of copy/pasting large swaths of CSS.
 
 #### Quick number input tokens
 
-All structural pieces inherit from the custom properties defined on
-`.quick-number-input-root`. You can override any of them via inline styles, your
-own CSS module, or a design-system wrapper.
-
 | Token | Purpose |
 |-------|---------|
-| `--qni-item-height` | Row height and highlight calculations |
-| `--qni-picker-height` | Visible picker window height |
+| `--qni-row-height` | Controls each row’s height and the highlight band thickness |
+| `--qni-visible-rows` | Sets the viewport height (defaults to 5 rows) |
 | `--qni-font-family` / `--qni-font-size` | Typography for rows and the closed value |
-| `--qni-color-text` / `--qni-color-text-active` | Default vs. selected row color |
-| `--qni-color-unit` | Unit label color in both open/closed states |
-| `--qni-color-highlight-fill` / `--qni-color-backdrop` / `--qni-color-fade` | Highlight fill, modal backdrop, and fade gradients |
-| `--qni-highlight-height` / `--qni-highlight-padding` | Controls the selection band position and thickness |
+| `--qni-gap` / `--qni-padding-inline` | Spacing between value + unit and the row padding |
+| `--qni-color-muted` / `--qni-color-active` | Non-selected vs. selected text color |
+| `--qni-color-unit` | Unit label color in both open and closed states |
+| `--qni-highlight-fill` | Semi-transparent fill that sits behind the center row |
+| `--qni-fade-color` | Top/bottom gradient color for the ambient fades |
+| `--qni-backdrop-color` | Full-screen scrim color when the picker is modal |
 
-Helpful selectors:
+Geometry is derived from those tokens. For example, the highlight band is placed
+with `calc(((visibleRows - 1) / 2) * rowHeight)` so the math stays correct even
+when you change the number of visible rows.
 
+Structural selectors:
+
+- `.picker-surface` and `.picker-container` – wrap the scrollable column
 - `.picker-item`, `.picker-item-active`, `.picker-item-selected` – individual rows
-- `.picker-highlight-fill` / `.picker-highlight-hitbox` – highlight overlay
-- `.picker-fade-top` / `.picker-fade-bottom` – ambient fades above/below the list
-- `.picker-backdrop` – optional modal scrim (uses `--qni-color-backdrop`)
+- `.picker-item-unit` and `.qni-unit` – unit text in both states
+
+Overlay selectors:
+
+- `.picker-highlight-fill` / `.picker-highlight-hitbox` – selection band & click
+  target
+- `.picker-fade-top` / `.picker-fade-bottom` – ambient fades above/below the
+  list, tinted by `--qni-fade-color`
+- `.picker-backdrop` – optional modal scrim (`--qni-backdrop-color`)
+
+The closed state reuses the same font tokens so typography stays in sync without
+duplicate declarations.
 
 #### Standalone wheel tokens
 
-`StandaloneWheelPicker` exposes a matching set of CSS variables on
-`.np-wheel-picker` (`--np-wheel-item-height`, `--np-wheel-font-family`,
-`--np-wheel-color`, etc.). Override those tokens to customize spacing, fonts, and
-accent colors without rewriting the component styles.
+`StandaloneWheelPicker` exposes matching variables on `.np-wheel-picker`. The
+component only reads:
+
+- `--np-wheel-item-height`
+- `--np-wheel-font-family`
+- `--np-wheel-font-size`
+- `--np-wheel-color`
+- `--np-wheel-accent-color`
+- `--np-wheel-unit-color`
+
+Override those to customize spacing, fonts, and accent colors without touching
+the internal selectors.
+
+### Performance
+
+- **Scoped selectors only.** Both style sheets hang entirely off their root
+  class, so they never trigger restyles elsewhere in the host app.
+- **Minimal custom properties.** Only geometry, typography, and color tokens are
+  exposed; animation timing and scaling stay constant to avoid recalculating
+  transitions on every render.
+- **Shared typography.** The open and closed states reference the same font
+  tokens, cutting duplicate declarations and ensuring text is only painted once
+  per change.
+- **Reduced stacking contexts.** Overlay/fade elements share absolute-positioning
+  rules via `:where(...)`, which trims selector cost and keeps the layer tree
+  shallow.
+- **Automatic layout math.** The highlight position and fade heights are derived
+  from `--qni-row-height`/`--qni-visible-rows`, so changing row counts doesn’t
+  require extra DOM reads or manual CSS overrides.
 
 **Complete custom theme:**
 ```tsx
