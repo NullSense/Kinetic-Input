@@ -7,6 +7,8 @@
   --qni-visible-rows: 5;
   --qni-font-family: 'Geist Mono', monospace;
   --qni-font-size: 1rem;
+  --qni-unit-font-family: 'Archivo', sans-serif;
+  --qni-unit-font-size: 0.75em;
   --qni-gap: 0.5rem;
   --qni-padding-inline: 1rem;
   --qni-color-muted: #9db1be;
@@ -16,6 +18,9 @@
   --qni-fade-color: #0a0b0d;
   --qni-backdrop-color: rgba(0, 0, 0, 0.6);
   --qni-ease: cubic-bezier(0.32, 0.94, 0.6, 1);
+  --qni-viewport-offset: calc(
+    ((var(--qni-visible-rows) - 1) / 2) * var(--qni-row-height)
+  );
 }
 
 .quick-number-input-root :where(.picker-item, .qni-closed) {
@@ -37,6 +42,10 @@
   overflow: hidden;
 }
 
+.quick-number-input-root :where(.picker-item, .qni-closed, .qni-inner) {
+  gap: var(--qni-gap, 0.5rem);
+}
+
 .quick-number-input-root .picker-item {
   height: var(--qni-row-height);
   line-height: var(--qni-row-height);
@@ -45,7 +54,6 @@
   justify-content: center;
   width: 100%;
   padding-inline: var(--qni-padding-inline, 1rem);
-  gap: var(--qni-gap, 0.5rem);
   color: var(--qni-color-muted);
   transition:
     color 0.12s var(--qni-ease),
@@ -61,8 +69,8 @@
 
 .quick-number-input-root :is(.picker-item-unit, .qni-unit) {
   margin-left: 0.4rem;
-  font-family: 'Archivo', sans-serif;
-  font-size: 0.75em;
+  font-family: var(--qni-unit-font-family);
+  font-size: var(--qni-unit-font-size);
   color: var(--qni-color-unit);
 }
 
@@ -97,9 +105,7 @@
 }
 
 .quick-number-input-root :where(.picker-highlight-hitbox, .picker-highlight-fill) {
-  top: calc(
-    ((var(--qni-visible-rows, 5) - 1) / 2) * var(--qni-row-height)
-  );
+  top: var(--qni-viewport-offset);
   height: var(--qni-row-height);
 }
 
@@ -115,7 +121,7 @@
 }
 
 .quick-number-input-root :where(.picker-fade-top, .picker-fade-bottom) {
-  height: calc(((var(--qni-visible-rows, 5) - 1) / 2) * var(--qni-row-height));
+  height: var(--qni-viewport-offset);
   z-index: 10;
 }
 
@@ -129,39 +135,37 @@
   background: linear-gradient(to top, var(--qni-fade-color), transparent);
 }
 
-.qni-closed {
+.quick-number-input-root .qni-closed {
   display: grid;
   grid-auto-flow: column;
   align-items: center;
-  gap: var(--qni-gap, 0.5rem);
   inline-size: max-content;
   height: var(--qni-row-height);
   line-height: var(--qni-row-height);
   user-select: none;
 }
 
-.qni-ghost {
+.quick-number-input-root .qni-ghost {
   grid-area: 1 / 1;
   visibility: hidden;
   white-space: nowrap;
   pointer-events: none;
 }
 
-.qni-inner {
+.quick-number-input-root .qni-inner {
   grid-area: 1 / 1;
   display: inline-grid;
   grid-auto-flow: column;
   align-items: center;
-  gap: var(--qni-gap, 0.5rem);
 }
 
-.qni-closed .qni-value {
+.quick-number-input-root .qni-closed .qni-value {
   color: var(--qni-color-active);
   text-shadow: 0 0 0.5px currentColor, 0.5px 0 0.5px currentColor;
   letter-spacing: 0.02em;
 }
 
-.qni-closed .qni-chevron {
+.quick-number-input-root .qni-closed .qni-chevron {
   opacity: 0.9;
   color: var(--qni-color-unit);
   stroke: currentColor;

@@ -6,6 +6,12 @@
   --np-wheel-color: #e7edf2;
   --np-wheel-accent-color: #3edcff;
   --np-wheel-unit-color: #8e77b5;
+  --np-wheel-gap: 0.35rem;
+  --np-wheel-padding-inline: 12px;
+  --np-wheel-ease: cubic-bezier(0.32, 0.94, 0.6, 1);
+  --np-wheel-active-scale: 1.04;
+  --np-wheel-active-weight: 600;
+  --np-wheel-transition: 0.2s;
   width: 100%;
 }
 
@@ -19,19 +25,21 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.35rem;
-  padding: 0 12px;
+  gap: var(--np-wheel-gap);
+  padding-inline: var(--np-wheel-padding-inline);
   text-align: center;
   font-family: var(--np-wheel-font-family);
   font-size: var(--np-wheel-font-size);
   color: var(--np-wheel-color);
-  transition: color 0.2s ease, transform 0.2s ease;
+  transition:
+    color var(--np-wheel-transition) var(--np-wheel-ease),
+    transform var(--np-wheel-transition) var(--np-wheel-ease);
 }
 
 .np-wheel-picker .np-wheel-item-selected {
-  font-weight: 600;
+  font-weight: var(--np-wheel-active-weight);
   color: var(--np-wheel-accent-color);
-  transform: scale(1.04);
+  transform: scale(var(--np-wheel-active-scale));
 }
 
 .np-wheel-picker .np-wheel-unit {

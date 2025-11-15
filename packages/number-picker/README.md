@@ -218,12 +218,14 @@ of copy/pasting large swaths of CSS.
 | `--qni-row-height` | Controls each row’s height and the highlight band thickness |
 | `--qni-visible-rows` | Sets the viewport height (defaults to 5 rows) |
 | `--qni-font-family` / `--qni-font-size` | Typography for rows and the closed value |
+| `--qni-unit-font-family` / `--qni-unit-font-size` | Typography for the value suffix ("kg", "lbs") |
 | `--qni-gap` / `--qni-padding-inline` | Spacing between value + unit and the row padding |
 | `--qni-color-muted` / `--qni-color-active` | Non-selected vs. selected text color |
 | `--qni-color-unit` | Unit label color in both open and closed states |
 | `--qni-highlight-fill` | Semi-transparent fill that sits behind the center row |
 | `--qni-fade-color` | Top/bottom gradient color for the ambient fades |
 | `--qni-backdrop-color` | Full-screen scrim color when the picker is modal |
+| `--qni-viewport-offset` | Derived placement for fades + highlight (auto-calculated) |
 
 Geometry is derived from those tokens. For example, the highlight band is placed
 with `calc(((visibleRows - 1) / 2) * rowHeight)` so the math stays correct even
@@ -243,8 +245,8 @@ Overlay selectors:
   list, tinted by `--qni-fade-color`
 - `.picker-backdrop` – optional modal scrim (`--qni-backdrop-color`)
 
-The closed state reuses the same font tokens so typography stays in sync without
-duplicate declarations.
+The closed state is scoped under `.quick-number-input-root`, so it reuses the
+same font + unit tokens and never leaks global selectors.
 
 #### Standalone wheel tokens
 
@@ -257,6 +259,12 @@ component only reads:
 - `--np-wheel-color`
 - `--np-wheel-accent-color`
 - `--np-wheel-unit-color`
+- `--np-wheel-gap`
+- `--np-wheel-padding-inline`
+- `--np-wheel-ease`
+- `--np-wheel-active-scale`
+- `--np-wheel-active-weight`
+- `--np-wheel-transition`
 
 Override those to customize spacing, fonts, and accent colors without touching
 the internal selectors.
