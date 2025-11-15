@@ -30,4 +30,18 @@ describe('projectReleaseTranslate', () => {
     const projected = projectReleaseTranslate(100, -1200, baseConfig);
     expect(projected).toBe(-80);
   });
+
+  it('extends projection window once the release velocity crosses the threshold', () => {
+    const config = {
+      ...baseConfig,
+      velocityThreshold: 400,
+      velocityBoost: 1,
+    } as const;
+
+    const slow = projectReleaseTranslate(0, 200, config);
+    const fast = projectReleaseTranslate(0, 900, config);
+
+    expect(slow).toBe(30); // 0.15s * 200px/s
+    expect(fast).toBeGreaterThan(200); // boost doubles projection window → > 200px
+  });
 });

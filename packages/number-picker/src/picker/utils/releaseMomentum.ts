@@ -5,6 +5,8 @@ export interface ReleaseMomentumConfig {
   velocityCap?: number;
   minTranslate: number;
   maxTranslate: number;
+  velocityThreshold?: number;
+  velocityBoost?: number;
 }
 
 /**
@@ -24,6 +26,14 @@ export function projectReleaseTranslate(
 
   const cap = config.velocityCap ?? Math.abs(velocity);
   const limitedVelocity = clamp(velocity, -cap, cap);
-  const projected = currentTranslate + limitedVelocity * config.projectionSeconds;
+
+  let projectionSeconds = config.projectionSeconds;
+  if (config.velocityBoost && config.velocityBoost > 0 && config.velocityThreshold && config.velocityThreshold > 0) {
+    const overspeed = Math.max(0, Math.abs(limitedVelocity) - config.velocityThreshold);
+    const normalized = Math.min(overspeed / config.velocityThreshold, 1);
+    projectionSeconds *= 1 + normalized * config.velocityBoost;
+  }
+
+  const projected = currentTranslate + limitedVelocity * projectionSeconds;
   return clamp(projected, config.minTranslate, config.maxTranslate);
 }

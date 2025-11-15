@@ -325,10 +325,19 @@ export function usePickerPhysics({
     () => ({
       projectionSeconds: mergedSnapConfig.rangeScaleIntensity ?? 0,
       velocityCap: mergedSnapConfig.rangeScaleVelocityCap,
+      velocityThreshold: mergedSnapConfig.velocityThreshold,
+      velocityBoost: mergedSnapConfig.rangeScaleVelocityBoost,
       minTranslate,
       maxTranslate,
     }),
-    [maxTranslate, mergedSnapConfig.rangeScaleIntensity, mergedSnapConfig.rangeScaleVelocityCap, minTranslate],
+    [
+      maxTranslate,
+      mergedSnapConfig.rangeScaleIntensity,
+      mergedSnapConfig.rangeScaleVelocityCap,
+      mergedSnapConfig.rangeScaleVelocityBoost,
+      mergedSnapConfig.velocityThreshold,
+      minTranslate,
+    ],
   );
 
   const settleFromY = useCallback(
