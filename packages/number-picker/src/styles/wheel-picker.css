@@ -6,6 +6,7 @@
   --np-wheel-color: #e7edf2;
   --np-wheel-accent-color: #3edcff;
   --np-wheel-unit-color: #8e77b5;
+  --np-wheel-unit-font-size: 0.85rem;
   --np-wheel-gap: 0.35rem;
   --np-wheel-padding-inline: 12px;
   --np-wheel-ease: cubic-bezier(0.32, 0.94, 0.6, 1);
@@ -30,6 +31,8 @@
   text-align: center;
   font-family: var(--np-wheel-font-family);
   font-size: var(--np-wheel-font-size);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
   color: var(--np-wheel-color);
   transition:
     color var(--np-wheel-transition) var(--np-wheel-ease),
@@ -43,6 +46,16 @@
 }
 
 .np-wheel-picker .np-wheel-unit {
-  font-size: 0.85rem;
+  font-size: var(--np-wheel-unit-font-size);
   color: var(--np-wheel-unit-color);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .np-wheel-picker :where(.np-wheel-item) {
+    transition: none;
+  }
+
+  .np-wheel-picker .np-wheel-item-selected {
+    transform: none;
+  }
 }

@@ -53,7 +53,9 @@ describe('useQuickNumberPresentation', () => {
 
         expect(result.current.values).toEqual(['0', '10', '20']);
         expect(result.current.maxSampleString).toBe('-20');
-        expect(result.current.cssVariables['--qni-highlight-height']).toBe('28px');
+        expect(result.current.cssVariables['--picker-highlight-height']).toBe('28px');
+        expect(result.current.cssVariables['--qni-row-height']).toBe('40px');
+        expect(result.current.cssVariables['--qni-visible-rows']).toBe('5');
         expect(result.current.selectedIndex).toBe(1);
         expect(result.current.ariaValueText).toBe('10 kg');
     });

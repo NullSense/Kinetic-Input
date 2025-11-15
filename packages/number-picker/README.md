@@ -225,8 +225,14 @@ of copy/pasting large swaths of CSS.
 | `--qni-highlight-fill` | Semi-transparent fill that sits behind the center row |
 | `--qni-fade-color` | Top/bottom gradient color for the ambient fades |
 | `--qni-backdrop-color` | Full-screen scrim color when the picker is modal |
+| `--qni-active-scale` / `--qni-selected-scale` | Scale factor for the focused row vs. the surrounding trail |
+| `--qni-selected-opacity` | Dimmed opacity for the previously selected row |
+| `--qni-accent-letter-spacing` / `--qni-accent-shadow` | Shared accent text cosmetics for both states |
+| `--qni-chevron-size` | Closed-state chevron icon size |
 | `--qni-viewport-offset` | Derived placement for fades + highlight (auto-calculated) |
 
+The presenter sets `--qni-row-height`/`--qni-visible-rows` at runtime so
+highlight math automatically tracks your `itemHeight` + `visibleItems` props.
 Geometry is derived from those tokens. For example, the highlight band is placed
 with `calc(((visibleRows - 1) / 2) * rowHeight)` so the math stays correct even
 when you change the number of visible rows.
@@ -259,6 +265,7 @@ component only reads:
 - `--np-wheel-color`
 - `--np-wheel-accent-color`
 - `--np-wheel-unit-color`
+- `--np-wheel-unit-font-size`
 - `--np-wheel-gap`
 - `--np-wheel-padding-inline`
 - `--np-wheel-ease`
@@ -285,6 +292,9 @@ the internal selectors.
 - **Automatic layout math.** The highlight position and fade heights are derived
   from `--qni-row-height`/`--qni-visible-rows`, so changing row counts doesn’t
   require extra DOM reads or manual CSS overrides.
+- **Respect `prefers-reduced-motion`.** Both pickers disable their scale
+  animations when the OS requests reduced motion, preventing unnecessary paints
+  while keeping colors and layout intact.
 
 **Complete custom theme:**
 ```tsx
