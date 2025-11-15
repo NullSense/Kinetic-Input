@@ -70,6 +70,7 @@ describe('usePickerPhysics velocity wiring', () => {
     height: 200,
     isPickerOpen: true,
     wheelMode: 'natural' as const,
+    wheelSensitivity: 1,
     changeValue: vi.fn(),
     virtualization: { slotCount: 11, overscan: 5 },
   };
@@ -109,14 +110,15 @@ describe('usePickerPhysics velocity wiring', () => {
     expect(lastCall?.[0].velocityY).toBe(640);
   });
 
-  it('passes wheel velocity into snap physics calculations', () => {
+  it('projects wheel release distance using the measured velocity after the idle timeout', () => {
+    vi.useFakeTimers();
     const options = makeOptions(10);
     const { result } = renderHook(() =>
       usePickerPhysics({ ...baseConfig, options, selectedIndex: 4 })
     );
 
     const wheelEvent = {
-      deltaY: 4,
+      deltaY: 6,
       deltaMode: 0,
       preventDefault: vi.fn(),
     } as unknown as WheelEvent;
@@ -126,8 +128,13 @@ describe('usePickerPhysics velocity wiring', () => {
       result.current.handleWheel(wheelEvent);
     });
 
-    const lastCall = snapSpies.calculate.mock.calls.at(-1);
-    expect(lastCall?.[0].velocityY).toBe(-320);
+    act(() => {
+      vi.advanceTimersByTime(250);
+    });
+
+    const projectionCall = releaseMomentumMock.projectReleaseTranslate.mock.calls.at(-1);
+    expect(projectionCall?.[1]).toBe(-320);
+    vi.useRealTimers();
   });
 
   it('projects release distance using the measured velocity when a pointer settles', () => {
@@ -251,10 +258,7 @@ describe('usePickerPhysics velocity wiring', () => {
       result.current.handleWheel(wheelEvent);
     });
 
-    const snapFrame = snapSpies.calculate.mock.calls.at(-1)?.[0];
-    expect(snapFrame?.deltaY).toBeGreaterThan(0);
-    expect(snapFrame?.deltaY).toBeLessThan(baseConfig.itemHeight);
-    expect(snapFrame?.totalPixelsMoved).toBeCloseTo(0.2, 5);
+    expect(snapSpies.calculate).not.toHaveBeenCalled();
   });
 
   it('samples wheel translate using raw motion values so velocity is accurate', () => {
@@ -274,6 +278,6 @@ describe('usePickerPhysics velocity wiring', () => {
     });
 
     const lastSample = trackerSpies.addSample.mock.calls.at(-1)?.[0];
-    expect(lastSample).toBeCloseTo(0.4, 5);
+    expect(lastSample).toBeCloseTo(4, 5);
   });
 });

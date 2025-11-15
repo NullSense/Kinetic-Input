@@ -31,6 +31,11 @@ const MAX_OVERSCROLL = 80;
 const OPENING_DRAG_THRESHOLD = 6;
 const CLICK_STEP_THRESHOLD_RATIO = 0.3;
 const TOUCH_TAP_THRESHOLD_RATIO = 0.1;
+const DOM_DELTA_LINE = 0x01;
+const DOM_DELTA_PAGE = 0x02;
+
+const clampWheelSensitivity = (value: number) =>
+  Number.isFinite(value) && value > 0 ? value : 1;
 
 export interface PickerColumnInteractionsConfig {
   key: string;
@@ -40,6 +45,7 @@ export interface PickerColumnInteractionsConfig {
   height: number;
   isPickerOpen: boolean;
   wheelMode: 'off' | 'natural' | 'inverted';
+  wheelSensitivity: number;
   changeValue: (key: string, value: string | number) => boolean;
   /** Event-driven gesture handler */
   onGesture?: PickerGestureHandler;
@@ -62,6 +68,7 @@ export interface PickerColumnInteractionsResult {
   handlePointerUp: (event: React.PointerEvent<HTMLDivElement>) => void;
   handlePointerCancel: (event: React.PointerEvent<HTMLDivElement>) => void;
   handlePointerLeave: (event: React.PointerEvent<HTMLDivElement>) => void;
+  handleWheel: (event: WheelEvent) => void;
 }
 
 /**
@@ -80,6 +87,7 @@ export function usePickerPhysics({
   height,
   isPickerOpen,
   wheelMode,
+  wheelSensitivity,
   changeValue,
   onGesture,
   snapConfig,
@@ -115,6 +123,7 @@ export function usePickerPhysics({
   const ySnap = useMotionValue(0);
 
   const wheelEnabled = wheelMode !== 'off';
+  const normalizedWheelSensitivity = useMemo(() => clampWheelSensitivity(wheelSensitivity), [wheelSensitivity]);
 
   useMotionValueEvent(yRaw, 'change', (latest) => {
     const snapped = Math.round(Number(latest));
@@ -539,35 +548,20 @@ export function usePickerPhysics({
       }
       let delta = event.deltaY;
 
-      if (event.deltaMode === 0x01) {
-        delta *= 16;
-      } else if (event.deltaMode === 0x02) {
+      if (event.deltaMode === DOM_DELTA_LINE) {
+        delta *= itemHeight;
+      } else if (event.deltaMode === DOM_DELTA_PAGE) {
         delta *= height;
       }
 
-      delta *= 0.1;
+      delta *= normalizedWheelSensitivity;
 
       if (wheelMode === 'inverted') {
         delta = -delta;
       }
 
       const currentTranslate = yRaw.get();
-      let nextTranslate = currentTranslate + delta;
-
-      if (snapEnabled) {
-        const nearestIndex = indexFromY(nextTranslate, itemHeight, maxTranslate);
-        const snapTargetTranslate = yFromIndex(nearestIndex, itemHeight, maxTranslate, lastIndex);
-        const deltaToTarget = nextTranslate - snapTargetTranslate;
-        const frame = {
-          deltaY: deltaToTarget,
-          velocityY: velocityTracker.getVelocity(),
-          totalPixelsMoved: Math.abs(nextTranslate - (wheelStartTranslateRef.current ?? nextTranslate)),
-        };
-        const snapResult = snapPhysics.calculate(frame, 0, itemHeight);
-        nextTranslate = snapResult.mappedTranslate + snapTargetTranslate;
-      } else {
-        nextTranslate = currentTranslate + delta;
-      }
+      const nextTranslate = currentTranslate + delta;
 
       // Track wheel velocity using the raw translate value
       velocityTracker.addSample(nextTranslate);
@@ -579,8 +573,7 @@ export function usePickerPhysics({
       itemHeight,
       lastIndex,
       maxTranslate,
-      snapEnabled,
-      snapPhysics,
+      normalizedWheelSensitivity,
       updateScrollerWhileMoving,
       velocityTracker,
       wheelEnabled,
@@ -681,5 +674,6 @@ export function usePickerPhysics({
     handlePointerUp,
     handlePointerCancel,
     handlePointerLeave,
+    handleWheel,
   };
 }
