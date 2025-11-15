@@ -25,6 +25,24 @@ export interface AudioAdapter {
   resume: () => Promise<void>;
 }
 
+export interface AudioAdapterOptions {
+  frequency?: number;
+  waveform?: OscillatorType;
+  attackMs?: number;
+  decayMs?: number;
+  durationMs?: number;
+  peakGain?: number;
+}
+
+const DEFAULT_AUDIO_OPTIONS: Required<AudioAdapterOptions> = {
+  frequency: 920,
+  waveform: 'triangle',
+  attackMs: 10,
+  decayMs: 170,
+  durationMs: 200,
+  peakGain: 0.22,
+};
+
 /**
  * Creates an audio feedback adapter using Web Audio API
  *
@@ -33,17 +51,8 @@ export interface AudioAdapter {
  * automatically when needed.
  *
  * @returns Audio adapter or null if Web Audio API is not supported
- *
- * @example
- * ```ts
- * const audio = createAudioAdapter();
- * if (audio) {
- *   await audio.resume(); // Resume on user gesture
- *   audio.playConfirmation(); // Play on value commit
- * }
- * ```
  */
-export function createAudioAdapter(): AudioAdapter | null {
+export function createAudioAdapter(options: AudioAdapterOptions = {}): AudioAdapter | null {
   // SSR guard
   if (typeof window === 'undefined') {
     return null;
@@ -83,6 +92,8 @@ export function createAudioAdapter(): AudioAdapter | null {
         ctx.resume().catch(() => undefined);
       }
 
+      const resolved = { ...DEFAULT_AUDIO_OPTIONS, ...options };
+
       // Create gain node for volume envelope
       const gain = ctx.createGain();
       gain.gain.value = 0.0001; // Start silent
@@ -90,21 +101,20 @@ export function createAudioAdapter(): AudioAdapter | null {
 
       // Create triangle wave oscillator (softer than square/sawtooth)
       const osc = ctx.createOscillator();
-      osc.type = 'triangle';
+      osc.type = resolved.waveform;
 
       // Schedule volume envelope (quick attack, gentle decay)
       const now = ctx.currentTime;
       gain.gain.setValueAtTime(0.0001, now); // Start
-      gain.gain.linearRampToValueAtTime(0.22, now + 0.01); // Attack (10ms)
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.18); // Decay (170ms)
+      gain.gain.linearRampToValueAtTime(resolved.peakGain, now + resolved.attackMs / 1000);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + (resolved.attackMs + resolved.decayMs) / 1000);
 
-      // 920Hz frequency (pleasant confirmation tone, not annoying)
-      osc.frequency.setValueAtTime(920, now);
+      osc.frequency.setValueAtTime(resolved.frequency, now);
 
       // Connect and play
       osc.connect(gain);
       osc.start(now);
-      osc.stop(now + 0.2); // Total duration: 200ms
+      osc.stop(now + resolved.durationMs / 1000);
 
       // Cleanup nodes after playback
       osc.onended = () => {

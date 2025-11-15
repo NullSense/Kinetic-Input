@@ -5,6 +5,8 @@
  * haptics are enabled via the enableHaptics prop.
  */
 
+type VibratePattern = number | number[];
+
 export interface HapticAdapter {
   /**
    * Trigger a subtle haptic pulse for value changes
@@ -30,7 +32,13 @@ export interface HapticAdapter {
  * }
  * ```
  */
-export function createHapticAdapter(): HapticAdapter | null {
+export interface HapticAdapterOptions {
+  pattern?: VibratePattern;
+}
+
+const DEFAULT_PATTERN: VibratePattern = [3, 2, 1];
+
+export function createHapticAdapter(options: HapticAdapterOptions = {}): HapticAdapter | null {
   // SSR guard
   if (typeof navigator === 'undefined') {
     return null;
@@ -44,9 +52,8 @@ export function createHapticAdapter(): HapticAdapter | null {
   return {
     trigger: () => {
       try {
-        // Subtle triple-pulse pattern (3ms, pause 2ms, 1ms)
-        // This is gentle enough for rapid scrolling but noticeable
-        navigator.vibrate([3, 2, 1]);
+        const pattern = options.pattern ?? DEFAULT_PATTERN;
+        navigator.vibrate(pattern);
       } catch {
         // Ignore vibration failures (e.g., permissions, battery saver mode)
       }

@@ -1,44 +1,41 @@
-input[type=number]::-webkit-outer-spin-button,
-input[type=number]::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-
-input[type=number] {
-  -moz-appearance: textfield;
-}
-
+/*
+ * Quick number input structural styles. Everything hangs off the
+ * `.quick-number-input-root` element so consumers can safely scope overrides.
+ */
 .quick-number-input-root {
-  --qni-item-height: 40px;
-  --qni-picker-height: calc(var(--qni-item-height) * 5);
-  --qni-color-text: #9db1be;
-  --qni-color-text-active: #3edcff;
-  --qni-color-unit: #8e77b5;
-  --qni-color-highlight-border: rgba(62, 220, 255, 0.5);
-  --qni-color-highlight-fill: rgba(62, 220, 255, 0.05);
-  --qni-color-backdrop: rgba(0, 0, 0, 0.3);
-  --qni-color-fade: #0a0b0d;
+  --qni-row-height: 40px;
+  --qni-visible-rows: 5;
+  --qni-font-family: 'Geist Mono', monospace;
+  --qni-font-size: 1rem;
+  --qni-unit-font-family: 'Archivo', sans-serif;
+  --qni-unit-font-size: 0.75em;
   --qni-gap: 0.5rem;
-  --qni-picker-padding: 1rem;
-  --qni-active-scale: 1.18;
-  --qni-deselect-scale: 1.04;
-  --qni-deselect-opacity: 0.82;
-  --qni-deselect-fade: 0.14s;
-  --qni-trail-start-scale: 1.18;
-  --qni-highlight-padding: 0px;
-  --qni-highlight-height: var(--qni-item-height);
-  --qni-color-ease: cubic-bezier(0.32, 0.94, 0.6, 1);
-  --qni-scale-ease: cubic-bezier(0.32, 0.94, 0.6, 1);
-  --qni-transition-color: 0.12s;
-  --qni-transition-transform: 0.16s;
-  --qni-transition-opacity: 0.16s;
+  --qni-padding-inline: 1rem;
+  --qni-color-muted: #9db1be;
+  --qni-color-active: #3edcff;
+  --qni-color-unit: #8e77b5;
+  --qni-highlight-fill: rgba(62, 220, 255, 0.05);
+  --qni-fade-color: #0a0b0d;
+  --qni-backdrop-color: rgba(0, 0, 0, 0.6);
+  --qni-active-scale: 1.14;
+  --qni-selected-scale: 1.04;
+  --qni-selected-opacity: 0.82;
+  --qni-accent-letter-spacing: 0.02em;
+  --qni-accent-shadow: 0 0 0.5px currentColor, 0.5px 0 0.5px currentColor;
+  --qni-selected-shadow: 0 0 0.4px currentColor;
+  --qni-chevron-size: 20px;
+  --qni-ease: cubic-bezier(0.32, 0.94, 0.6, 1);
+  --qni-viewport-offset: calc(
+    ((var(--qni-visible-rows) - 1) / 2) * var(--qni-row-height)
+  );
 }
 
-:root, .quick-number-input-root {
-  /* Force 1-row highlight height */
-  --qni-highlight-height: var(--qni-item-height);
+.quick-number-input-root :where(.picker-item, .qni-closed) {
+  font-family: var(--qni-font-family);
+  font-size: var(--qni-font-size);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
 }
-
 
 .quick-number-input-root .picker-surface {
   touch-action: pan-x pinch-zoom;
@@ -47,169 +44,169 @@ input[type=number] {
 }
 
 .quick-number-input-root .picker-container {
-  position: relative; /* anchor highlight/fades */
-  height: var(--qni-picker-height);
+  position: relative;
+  height: calc(var(--qni-row-height) * var(--qni-visible-rows, 5));
   overflow: hidden;
 }
 
+.quick-number-input-root :where(.picker-item, .qni-closed, .qni-inner) {
+  gap: var(--qni-gap, 0.5rem);
+}
+
 .quick-number-input-root .picker-item {
-  height: var(--qni-item-height);
-  line-height: var(--qni-item-height); /* avoid off-by-1 row alignment */
+  height: var(--qni-row-height);
+  line-height: var(--qni-row-height);
   display: flex;
   align-items: center;
   justify-content: center;
   width: 100%;
-  padding-inline: var(--qni-picker-padding, 1rem);
-  gap: var(--qni-gap, 0.5rem);
-  font-family: var(--qni-font-family, 'Geist Mono', monospace);
-  font-size: var(--qni-font-size);
-  color: var(--qni-color-text);
+  padding-inline: var(--qni-padding-inline, 1rem);
+  color: var(--qni-color-muted);
   transition:
-    color var(--qni-transition-color, 0.12s) var(--qni-color-ease, cubic-bezier(0.32, 0.94, 0.6, 1)),
-    transform var(--qni-transition-transform, 0.16s) var(--qni-scale-ease, cubic-bezier(0.32, 0.94, 0.6, 1)),
-    opacity var(--qni-transition-opacity, 0.16s) var(--qni-color-ease, ease-out);
+    color 0.12s var(--qni-ease),
+    transform 0.16s var(--qni-ease),
+    opacity 0.16s var(--qni-ease);
   position: relative;
   z-index: 20;
 }
 
 .quick-number-input-root .picker-item-value {
-  font-variant-numeric: tabular-nums;
+  font-variant-numeric: inherit;
 }
 
-.quick-number-input-root .picker-item-unit {
-  margin-left: 0.4rem;
-  font-family: 'Archivo', sans-serif;
-  font-size: 0.75em;
+.quick-number-input-root :is(.picker-item-unit, .qni-unit) {
+  font-family: var(--qni-unit-font-family);
+  font-size: var(--qni-unit-font-size);
   color: var(--qni-color-unit);
 }
+
 .quick-number-input-root .picker-item.picker-item-active {
-  color: var(--qni-color-text-active) !important;
-  text-shadow: 0 0 0.5px currentColor, 0.5px 0 0.5px currentColor;
-  transform: scale(var(--qni-active-scale, 1.18));
-  letter-spacing: 0.02em;
+  color: var(--qni-color-active);
+  text-shadow: var(--qni-accent-shadow);
+  transform: scale(var(--qni-active-scale));
+  letter-spacing: var(--qni-accent-letter-spacing);
 }
 
 .quick-number-input-root .picker-item.picker-item-selected:not(.picker-item-active) {
-  color: var(--qni-color-text);
-  text-shadow: 0 0 0.4px currentColor;
-  transform: scale(var(--qni-deselect-scale, 1.04));
-  opacity: var(--qni-deselect-opacity, 0.82);
+  color: var(--qni-color-muted);
+  text-shadow: var(--qni-selected-shadow);
+  transform: scale(var(--qni-selected-scale));
+  opacity: var(--qni-selected-opacity);
 }
 
 .quick-number-input-root .picker-item[data-padding='true'] {
   opacity: 0;
 }
 
-.quick-number-input-root .picker-highlight-hitbox {
+.quick-number-input-root
+  :where(
+    .picker-highlight-hitbox,
+    .picker-highlight-fill,
+    .picker-fade-top,
+    .picker-fade-bottom
+  ) {
   position: absolute;
-  left: 0;
-  right: 0;
-  top: calc(var(--qni-item-height) * 2 + var(--qni-highlight-padding));
-  height: var(--qni-highlight-height);
-  border: none;
-  background: transparent;
+  inset-inline: 0;
   pointer-events: none;
+}
+
+.quick-number-input-root :where(.picker-highlight-hitbox, .picker-highlight-fill) {
+  top: var(--qni-viewport-offset);
+  height: var(--qni-row-height);
+}
+
+.quick-number-input-root .picker-highlight-hitbox {
+  background: transparent;
+  border: 0;
   z-index: 10;
 }
 
 .quick-number-input-root .picker-highlight-fill {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: calc(var(--qni-item-height) * 2 + var(--qni-highlight-padding));
-  height: var(--qni-highlight-height);
-  background: var(--qni-color-highlight-fill);
-  pointer-events: none;
+  background: var(--qni-highlight-fill);
   z-index: 6;
 }
 
-/* removed: defensive selector could hide a real child after refactor */
+.quick-number-input-root :where(.picker-fade-top, .picker-fade-bottom) {
+  height: var(--qni-viewport-offset);
+  z-index: 10;
+}
 
 .quick-number-input-root .picker-fade-top {
-  position: absolute;
   top: 0;
-  left: 0;
-  right: 0;
-  height: calc(var(--qni-item-height) * 2);
-  background: linear-gradient(to bottom, var(--qni-color-fade), transparent);
-  pointer-events: none;
-  z-index: 10;
+  background: linear-gradient(to bottom, var(--qni-fade-color), transparent);
 }
 
 .quick-number-input-root .picker-fade-bottom {
-  position: absolute;
   bottom: 0;
-  left: 0;
-  right: 0;
-  height: calc(var(--qni-item-height) * 2);
-  background: linear-gradient(to top, var(--qni-color-fade), transparent);
-  pointer-events: none;
-  z-index: 10;
+  background: linear-gradient(to top, var(--qni-fade-color), transparent);
 }
 
-/* Closed header autosizing: ghost sample + real content overlaid */
-.qni-closed {
+.quick-number-input-root .qni-closed {
   display: grid;
   grid-auto-flow: column;
   align-items: center;
-  gap: var(--qni-gap, 0.5rem);
-  inline-size: max-content; /* autosize to content width */
-  height: var(--qni-item-height);
-  line-height: var(--qni-item-height); /* match row height */
-  font-size: var(--qni-font-size);
-  font-family: var(--qni-font-family, 'Geist Mono', monospace);
-  font-variant-numeric: tabular-nums;
-  font-feature-settings: "tnum" 1;
+  inline-size: max-content;
+  height: var(--qni-row-height);
+  line-height: var(--qni-row-height);
   user-select: none;
-  -webkit-user-select: none;
 }
 
-.qni-ghost {
+.quick-number-input-root .qni-ghost {
   grid-area: 1 / 1;
-  visibility: hidden; /* contributes layout, not visible */
+  visibility: hidden;
   white-space: nowrap;
   pointer-events: none;
 }
 
-.qni-inner {
+.quick-number-input-root .qni-inner {
   grid-area: 1 / 1;
   display: inline-grid;
   grid-auto-flow: column;
   align-items: center;
-  gap: var(--qni-gap, 0.5rem);
 }
 
-/* Closed header visual styles (match picker row aesthetics) */
-.qni-closed .qni-value {
-  font-variant-numeric: tabular-nums;
-  font-feature-settings: "tnum" 1;
-  color: var(--qni-color-text-active);
-  /* mimic active row bold without layout shift */
-  text-shadow: 0 0 0.5px currentColor, 0.5px 0 0.5px currentColor;
-  letter-spacing: 0.02em;
-  transform: none;
+.quick-number-input-root .qni-closed .qni-value {
+  color: var(--qni-color-active);
+  text-shadow: var(--qni-accent-shadow);
+  letter-spacing: var(--qni-accent-letter-spacing);
 }
 
-.qni-closed .qni-unit {
-  margin-left: 0.4rem;
-  font-family: 'Archivo', sans-serif;
-  font-size: 0.75em;
-  color: var(--qni-color-unit);
-}
-
-.qni-closed .qni-chevron {
+.quick-number-input-root .qni-closed .qni-chevron {
   opacity: 0.9;
-  color: var(--qni-color-unit); /* purple, consistent with previous design */
-  stroke: currentColor; /* lucide uses stroke by default */
-  width: 20px;
-  height: 20px;
+  color: var(--qni-color-unit);
+  stroke: currentColor;
+  width: var(--qni-chevron-size);
+  height: var(--qni-chevron-size);
   vertical-align: middle;
 }
 
 .quick-number-input-root .picker-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.6); /* Slightly darker to compensate for no blur */
+  background: var(--qni-backdrop-color);
   z-index: 9;
   transition: opacity 0.2s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .quick-number-input-root .picker-item {
+    transition: none;
+  }
+
+  .quick-number-input-root
+    :is(
+      .picker-item.picker-item-active,
+      .picker-item.picker-item-selected:not(.picker-item-active)
+    ) {
+    transform: none;
+    letter-spacing: normal;
+  }
+
+  .quick-number-input-root .picker-item.picker-item-selected:not(.picker-item-active) {
+    opacity: 1;
+  }
+
+  .quick-number-input-root .qni-closed .qni-value {
+    letter-spacing: normal;
+  }
 }

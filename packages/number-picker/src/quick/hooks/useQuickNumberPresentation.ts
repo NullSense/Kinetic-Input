@@ -77,20 +77,9 @@ export const useQuickNumberPresentation = ({
     }, [selectedIndex, formatted.selectedValue.value, unit, formatted.values]);
 
     const resolvedVisualTweaks = useResolvedVisualTweaks(visualTweaks);
-    const {
-        activeScale,
-        deselectScale,
-        colorTransitionMs,
-        scaleTransitionMs,
-        colorEasing,
-        scaleEasing,
-        deselectFadeMs,
-        deselectOpacity,
-        trailOvershoot,
-        highlightPadding,
-    } = resolvedVisualTweaks;
+    const { activeScale, deselectScale, deselectOpacity, trailOvershoot, highlightPadding } = resolvedVisualTweaks;
 
-    const { trailStartScale, highlightPaddingPx, highlightHeightPx } = useHighlightMetrics({
+    const { highlightPaddingPx, highlightHeightPx } = useHighlightMetrics({
         itemHeight: itemHeightPx,
         tweaks: {
             activeScale,
@@ -100,48 +89,43 @@ export const useQuickNumberPresentation = ({
         },
     });
 
+    const visibleRows = useMemo(() => {
+        if (itemHeightPx <= 0) {
+            return 1;
+        }
+        const rows = pickerWindowHeight / itemHeightPx;
+        if (!Number.isFinite(rows) || rows <= 0) {
+            return 1;
+        }
+        return Number(rows.toFixed(4));
+    }, [itemHeightPx, pickerWindowHeight]);
+
     const cssVariables = useMemo<CSSVariableStyles>(() => ({
-        '--qni-item-height': `${itemHeightPx}px`,
-        '--qni-picker-height': `${pickerWindowHeight}px`,
-        '--qni-color-text': theme.textColor,
-        '--qni-color-text-active': theme.activeTextColor,
+        '--qni-row-height': `${itemHeightPx}px`,
+        '--qni-visible-rows': `${visibleRows}`,
+        '--qni-color-muted': theme.textColor,
+        '--qni-color-active': theme.activeTextColor,
         '--qni-color-unit': theme.unitColor,
-        '--qni-color-highlight-border': theme.highlightBorderColor,
-        '--qni-color-highlight-fill': theme.highlightFillColor,
-        '--picker-highlight-color': theme.highlightBorderColor,
-        '--qni-color-backdrop': theme.backdropColor,
-        '--qni-color-fade': theme.fadeColor,
+        '--qni-highlight-fill': theme.highlightFillColor,
+        '--qni-fade-color': theme.fadeColor,
+        '--qni-backdrop-color': theme.backdropColor,
         '--qni-font-size': theme.fontSize,
         '--qni-font-family': theme.fontFamily,
         '--qni-active-scale': `${activeScale}`,
-        '--qni-deselect-scale': `${deselectScale}`,
-        '--qni-deselect-fade': `${deselectFadeMs}ms`,
-        '--qni-deselect-opacity': `${deselectOpacity}`,
-        '--qni-trail-start-scale': `${trailStartScale}`,
-        '--qni-highlight-padding': `${highlightPaddingPx}px`,
-        '--qni-highlight-height': `${highlightHeightPx}px`,
+        '--qni-selected-scale': `${deselectScale}`,
+        '--qni-selected-opacity': `${deselectOpacity}`,
+        '--picker-highlight-color': theme.highlightBorderColor,
         '--picker-highlight-height': `${highlightHeightPx}px`,
         '--picker-highlight-padding': `${highlightPaddingPx}px`,
-        '--qni-transition-color': `${colorTransitionMs}ms`,
-        '--qni-transition-transform': `${scaleTransitionMs}ms`,
-        '--qni-transition-opacity': `${colorTransitionMs}ms`,
-        '--qni-color-ease': colorEasing,
-        '--qni-scale-ease': scaleEasing,
     }), [
         activeScale,
-        colorEasing,
-        colorTransitionMs,
-        deselectFadeMs,
         deselectOpacity,
         deselectScale,
         highlightHeightPx,
         highlightPaddingPx,
         itemHeightPx,
-        pickerWindowHeight,
-        scaleEasing,
-        scaleTransitionMs,
         theme,
-        trailStartScale,
+        visibleRows,
     ]);
 
     const valueDisplay = useValueDisplay({

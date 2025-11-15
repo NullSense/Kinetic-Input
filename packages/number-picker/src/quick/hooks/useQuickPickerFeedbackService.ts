@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { TIMING_PRESETS } from '../../config/timing';
 import type { TimingConfig, TimingPreset } from '../../config/timing';
+import type { QuickPickerFeedbackConfig } from '../types';
 import { usePickerFeedback } from './usePickerFeedback';
 
 type PickerValue = { value: string };
@@ -14,6 +15,7 @@ interface UseQuickPickerFeedbackServiceArgs {
     onChange: (value: number) => void;
     timingPreset?: TimingPreset;
     timingConfig?: Readonly<TimingConfig>;
+    feedbackConfig?: QuickPickerFeedbackConfig;
 }
 
 /**
@@ -24,6 +26,7 @@ interface UseQuickPickerFeedbackServiceArgs {
 export const useQuickPickerFeedbackService = ({
     enableHaptics,
     enableAudioFeedback,
+    feedbackConfig,
     showPicker,
     selectedValue,
     setSelectedValue,
@@ -41,13 +44,17 @@ export const useQuickPickerFeedbackService = ({
         return TIMING_PRESETS.balanced;
     }, [timingConfig, timingPreset]);
 
+    const resolvedEnableHaptics = feedbackConfig?.enableHaptics ?? enableHaptics;
+    const resolvedEnableAudio = feedbackConfig?.enableAudioFeedback ?? enableAudioFeedback;
+
     const { handleVisualValueChange, handleValueChange, playConfirmationIfChanged } = usePickerFeedback({
-        enableHaptics,
-        enableAudioFeedback,
+        enableHaptics: resolvedEnableHaptics,
+        enableAudioFeedback: resolvedEnableAudio,
         showPicker,
         selectedValue,
         setSelectedValue,
         onChange,
+        feedbackOverrides: feedbackConfig,
     });
 
     return {

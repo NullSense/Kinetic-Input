@@ -19,6 +19,7 @@ import { useSnapPhysics } from './useSnapPhysics';
 import { useVirtualWindow } from './useVirtualWindow';
 import { useSnappedIndexStore } from '../useSnappedIndexStore';
 import { clamp, clampIndex, indexFromY, yFromIndex } from '../utils/math';
+import { projectReleaseTranslate } from '../utils/releaseMomentum';
 import { animationDebugger, debugSnapLog } from '../../utils/debug';
 import {
   createGestureEmitter,
@@ -320,13 +321,24 @@ export function usePickerPhysics({
     [commitValueAtIndex, itemHeight, lastIndex, maxTranslate, options.length, stopActiveAnimation, yRaw],
   );
 
+  const releaseProjectionConfig = useMemo(
+    () => ({
+      projectionSeconds: mergedSnapConfig.rangeScaleIntensity ?? 0,
+      velocityCap: mergedSnapConfig.rangeScaleVelocityCap,
+      minTranslate,
+      maxTranslate,
+    }),
+    [maxTranslate, mergedSnapConfig.rangeScaleIntensity, mergedSnapConfig.rangeScaleVelocityCap, minTranslate],
+  );
+
   const settleFromY = useCallback(
-    (currentY: number, onComplete?: () => void) => {
-      const clampedY = clamp(currentY, minTranslate, maxTranslate);
+    (currentY: number, velocity: number, onComplete?: () => void) => {
+      const projected = projectReleaseTranslate(currentY, velocity, releaseProjectionConfig);
+      const clampedY = clamp(projected, minTranslate, maxTranslate);
       const index = clampIndex(indexFromY(clampedY, itemHeight, maxTranslate), lastIndex);
       settleToIndex(index, onComplete);
     },
-    [itemHeight, lastIndex, maxTranslate, minTranslate, settleToIndex],
+    [itemHeight, lastIndex, maxTranslate, minTranslate, releaseProjectionConfig, settleToIndex],
   );
 
   const handlePointerDown = useCallback(
@@ -381,7 +393,7 @@ export function usePickerPhysics({
       if (snapEnabled) {
         const totalPixelsMoved = Math.abs(event.clientY - startPointerYRef.current);
         const snapResult = snapPhysics.calculate(
-          { deltaY: deltaToTarget, velocityY: 0, totalPixelsMoved },
+          { deltaY: deltaToTarget, velocityY: velocityTracker.getVelocity(), totalPixelsMoved },
           0,
           itemHeight,
         );
@@ -422,6 +434,7 @@ export function usePickerPhysics({
         // Get velocity before emitting event
         const velocity = velocityTracker.getVelocity();
         emitter.dragEnd(false, velocity);
+        velocityTracker.reset();
         return;
       }
 
@@ -454,6 +467,7 @@ export function usePickerPhysics({
               wasOpenOnPointerDownRef.current = false;
               skipClickRef.current = false;
               emitter.dragEnd(true, velocity);
+              velocityTracker.reset();
             });
             return;
           }
@@ -468,9 +482,10 @@ export function usePickerPhysics({
         wasOpenOnPointerDownRef.current = false;
         skipClickRef.current = false;
         emitter.dragEnd(didMove, velocity);
+        velocityTracker.reset();
       };
 
-      settleFromY(currentTranslate, () => finalize(hasMoved));
+      settleFromY(currentTranslate, velocity, () => finalize(hasMoved));
     },
     [
       columnRef,
@@ -518,19 +533,12 @@ export function usePickerPhysics({
 
       delta *= 0.1;
 
-      if (Math.abs(delta) < itemHeight) {
-        delta = itemHeight * Math.sign(delta);
-      }
-
       if (wheelMode === 'inverted') {
         delta = -delta;
       }
 
-      const currentTranslate = ySnap.get();
+      const currentTranslate = yRaw.get();
       let nextTranslate = currentTranslate + delta;
-
-      // Track wheel velocity
-      velocityTracker.addSample(nextTranslate);
 
       if (snapEnabled) {
         const nearestIndex = indexFromY(nextTranslate, itemHeight, maxTranslate);
@@ -538,8 +546,8 @@ export function usePickerPhysics({
         const deltaToTarget = nextTranslate - snapTargetTranslate;
         const frame = {
           deltaY: deltaToTarget,
-          velocityY: 0,
-          totalPixelsMoved: 0,
+          velocityY: velocityTracker.getVelocity(),
+          totalPixelsMoved: Math.abs(nextTranslate - (wheelStartTranslateRef.current ?? nextTranslate)),
         };
         const snapResult = snapPhysics.calculate(frame, 0, itemHeight);
         nextTranslate = snapResult.mappedTranslate + snapTargetTranslate;
@@ -547,9 +555,12 @@ export function usePickerPhysics({
         nextTranslate = currentTranslate + delta;
       }
 
+      // Track wheel velocity using the raw translate value
+      velocityTracker.addSample(nextTranslate);
+
       updateScrollerWhileMoving(nextTranslate);
     },
-    [height, itemHeight, lastIndex, maxTranslate, snapEnabled, snapPhysics, updateScrollerWhileMoving, velocityTracker, wheelMode, ySnap],
+    [height, itemHeight, lastIndex, maxTranslate, snapEnabled, snapPhysics, updateScrollerWhileMoving, velocityTracker, wheelMode, yRaw],
   );
 
   const handleWheel = useCallback(
@@ -557,7 +568,7 @@ export function usePickerPhysics({
       event.preventDefault();
 
       if (wheelStartTranslateRef.current === null) {
-        wheelStartTranslateRef.current = ySnap.get();
+        wheelStartTranslateRef.current = yRaw.get();
 
         // Reset velocity tracker for new wheel gesture
         velocityTracker.reset();
@@ -575,7 +586,7 @@ export function usePickerPhysics({
       }
 
       wheelingTimer.current = window.setTimeout(() => {
-        const currentTranslate = ySnap.get();
+        const currentTranslate = yRaw.get();
         const startTranslate = wheelStartTranslateRef.current ?? currentTranslate;
         const movementDelta = Math.abs(currentTranslate - startTranslate);
         const hasMoved = movementDelta > 2;
@@ -583,15 +594,16 @@ export function usePickerPhysics({
         // Get velocity before settling
         const velocity = velocityTracker.getVelocity();
 
-        settleFromY(currentTranslate, () => {
+        settleFromY(currentTranslate, velocity, () => {
           snapPhysics.reset();
           emitter.dragEnd(hasMoved, velocity);
           wheelStartTranslateRef.current = null;
           wheelingTimer.current = null;
+          velocityTracker.reset();
         });
       }, 200);
     },
-    [emitter, handleWheeling, settleFromY, snapPhysics, velocityTracker, ySnap],
+    [emitter, handleWheeling, settleFromY, snapPhysics, velocityTracker, yRaw],
   );
 
   useEffect(() => {

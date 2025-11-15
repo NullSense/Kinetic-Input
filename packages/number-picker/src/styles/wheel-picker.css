@@ -1,32 +1,61 @@
+/* Standalone wheel picker styling */
 .np-wheel-picker {
+  --np-wheel-item-height: 48px;
+  --np-wheel-font-family: 'Geist Mono', monospace;
+  --np-wheel-font-size: 1.25rem;
+  --np-wheel-color: #e7edf2;
+  --np-wheel-accent-color: #3edcff;
+  --np-wheel-unit-color: #8e77b5;
+  --np-wheel-unit-font-size: 0.85rem;
+  --np-wheel-gap: 0.35rem;
+  --np-wheel-padding-inline: 12px;
+  --np-wheel-ease: cubic-bezier(0.32, 0.94, 0.6, 1);
+  --np-wheel-active-scale: 1.04;
+  --np-wheel-active-weight: 600;
+  --np-wheel-transition: 0.2s;
   width: 100%;
 }
 
 .np-wheel-picker .np-wheel-container {
-  width: 100%;
   position: relative;
+  width: 100%;
 }
 
-.np-wheel-picker .np-wheel-item {
-  min-height: 48px;
+.np-wheel-picker :where(.np-wheel-item) {
+  min-height: var(--np-wheel-item-height);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'Geist Mono', monospace;
-  font-size: 1.25rem;
-  color: #e7edf2;
-  transition: color 0.2s ease, font-weight 0.2s ease;
-  padding: 0 12px;
+  gap: var(--np-wheel-gap);
+  padding-inline: var(--np-wheel-padding-inline);
   text-align: center;
+  font-family: var(--np-wheel-font-family);
+  font-size: var(--np-wheel-font-size);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+  color: var(--np-wheel-color);
+  transition:
+    color var(--np-wheel-transition) var(--np-wheel-ease),
+    transform var(--np-wheel-transition) var(--np-wheel-ease);
 }
 
 .np-wheel-picker .np-wheel-item-selected {
-  font-weight: 600;
-  font-size: 1.35rem;
+  font-weight: var(--np-wheel-active-weight);
+  color: var(--np-wheel-accent-color);
+  transform: scale(var(--np-wheel-active-scale));
 }
 
 .np-wheel-picker .np-wheel-unit {
-  margin-left: 0.35rem;
-  font-size: 0.85rem;
-  color: #8e77b5;
+  font-size: var(--np-wheel-unit-font-size);
+  color: var(--np-wheel-unit-color);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .np-wheel-picker :where(.np-wheel-item) {
+    transition: none;
+  }
+
+  .np-wheel-picker .np-wheel-item-selected {
+    transform: none;
+  }
 }

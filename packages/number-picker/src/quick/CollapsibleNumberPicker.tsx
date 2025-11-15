@@ -47,6 +47,7 @@ const CollapsibleNumberPickerComponent: React.FC<CollapsibleNumberPickerProps> =
     snapPhysicsConfig,
     enableHaptics = true,
     enableAudioFeedback = true,
+    feedbackConfig,
     wheelMode = 'inverted',
     visualTweaks,
     timingPreset,
@@ -120,6 +121,7 @@ const CollapsibleNumberPickerComponent: React.FC<CollapsibleNumberPickerProps> =
     } = useQuickPickerFeedbackService({
         enableHaptics,
         enableAudioFeedback,
+        feedbackConfig,
         showPicker,
         selectedValue,
         setSelectedValue,

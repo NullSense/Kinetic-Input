@@ -127,7 +127,8 @@ export function SessionPicker({ value, onChange }) {
 | `snapPhysicsConfig` | `Partial<SnapPhysicsConfig>` | defaults | Override snap parameters |
 | `wheelMode` | `'natural' \| 'inverted' \| 'off'` | `'inverted'` | Mouse wheel scroll direction (inverted: down=increment) |
 | `enableHaptics` | `boolean` | `true` | Vibration feedback on selection (mobile) |
-| `enableAudioFeedback` | `boolean` | `false` | Audio clicks on selection |
+| `enableAudioFeedback` | `boolean` | `true` | Audio clicks on selection |
+| `feedbackConfig` | `QuickPickerFeedbackConfig` | - | Override audio/haptic adapters, patterns, or disable features per instance |
 
 ### Theming
 
@@ -209,6 +210,103 @@ import { DEFAULT_THEME } from '@tensil/kinetic-input'
   }}
 />
 ```
+
+### CSS surface area
+
+The package ships two scoped style sheets:
+
+- `quick-number-input.css` – used by `CollapsibleNumberPicker`
+- `wheel-picker.css` – used by `StandaloneWheelPicker`
+
+Both root selectors (`.quick-number-input-root` and `.np-wheel-picker`) define a
+small set of CSS custom properties. Everything else is expressed relative to
+those tokens, so theming the component means touching a handful of values instead
+of copy/pasting large swaths of CSS.
+
+#### Quick number input tokens
+
+| Token | Purpose |
+|-------|---------|
+| `--qni-row-height` | Controls each row’s height and the highlight band thickness |
+| `--qni-visible-rows` | Sets the viewport height (defaults to 5 rows) |
+| `--qni-font-family` / `--qni-font-size` | Typography for rows and the closed value |
+| `--qni-unit-font-family` / `--qni-unit-font-size` | Typography for the value suffix ("kg", "lbs") |
+| `--qni-gap` / `--qni-padding-inline` | Spacing between value + unit and the row padding |
+| `--qni-color-muted` / `--qni-color-active` | Non-selected vs. selected text color |
+| `--qni-color-unit` | Unit label color in both open and closed states |
+| `--qni-highlight-fill` | Semi-transparent fill that sits behind the center row |
+| `--qni-fade-color` | Top/bottom gradient color for the ambient fades |
+| `--qni-backdrop-color` | Full-screen scrim color when the picker is modal |
+| `--qni-active-scale` / `--qni-selected-scale` | Scale factor for the focused row vs. the surrounding trail |
+| `--qni-selected-opacity` | Dimmed opacity for the previously selected row |
+| `--qni-accent-letter-spacing` / `--qni-accent-shadow` | Shared accent text cosmetics for both states |
+| `--qni-chevron-size` | Closed-state chevron icon size |
+| `--qni-viewport-offset` | Derived placement for fades + highlight (auto-calculated) |
+
+The presenter sets `--qni-row-height`/`--qni-visible-rows` at runtime so
+highlight math automatically tracks your `itemHeight` + `visibleItems` props.
+Geometry is derived from those tokens. For example, the highlight band is placed
+with `calc(((visibleRows - 1) / 2) * rowHeight)` so the math stays correct even
+when you change the number of visible rows.
+
+Structural selectors:
+
+- `.picker-surface` and `.picker-container` – wrap the scrollable column
+- `.picker-item`, `.picker-item-active`, `.picker-item-selected` – individual rows
+- `.picker-item-unit` and `.qni-unit` – unit text in both states
+
+Overlay selectors:
+
+- `.picker-highlight-fill` / `.picker-highlight-hitbox` – selection band & click
+  target
+- `.picker-fade-top` / `.picker-fade-bottom` – ambient fades above/below the
+  list, tinted by `--qni-fade-color`
+- `.picker-backdrop` – optional modal scrim (`--qni-backdrop-color`)
+
+The closed state is scoped under `.quick-number-input-root`, so it reuses the
+same font + unit tokens and never leaks global selectors.
+
+#### Standalone wheel tokens
+
+`StandaloneWheelPicker` exposes matching variables on `.np-wheel-picker`. The
+component only reads:
+
+- `--np-wheel-item-height`
+- `--np-wheel-font-family`
+- `--np-wheel-font-size`
+- `--np-wheel-color`
+- `--np-wheel-accent-color`
+- `--np-wheel-unit-color`
+- `--np-wheel-unit-font-size`
+- `--np-wheel-gap`
+- `--np-wheel-padding-inline`
+- `--np-wheel-ease`
+- `--np-wheel-active-scale`
+- `--np-wheel-active-weight`
+- `--np-wheel-transition`
+
+Override those to customize spacing, fonts, and accent colors without touching
+the internal selectors.
+
+### Performance
+
+- **Scoped selectors only.** Both style sheets hang entirely off their root
+  class, so they never trigger restyles elsewhere in the host app.
+- **Minimal custom properties.** Only geometry, typography, and color tokens are
+  exposed; animation timing and scaling stay constant to avoid recalculating
+  transitions on every render.
+- **Shared typography.** The open and closed states reference the same font
+  tokens, cutting duplicate declarations and ensuring text is only painted once
+  per change.
+- **Reduced stacking contexts.** Overlay/fade elements share absolute-positioning
+  rules via `:where(...)`, which trims selector cost and keeps the layer tree
+  shallow.
+- **Automatic layout math.** The highlight position and fade heights are derived
+  from `--qni-row-height`/`--qni-visible-rows`, so changing row counts doesn’t
+  require extra DOM reads or manual CSS overrides.
+- **Respect `prefers-reduced-motion`.** Both pickers disable their scale
+  animations when the OS requests reduced motion, preventing unnecessary paints
+  while keeping colors and layout intact.
 
 **Complete custom theme:**
 ```tsx
@@ -437,3 +535,48 @@ Changes in `packages/number-picker/src` hot-reload in the dev app via Vite path 
 ## License
 
 See [LICENSE](./LICENSE) for details.
+### Audio & Haptic Configuration
+
+`feedbackConfig` exposes a single object for tuning sound/vibration without reaching into internal hooks:
+
+```tsx
+<CollapsibleNumberPicker
+  label="Speed"
+  value={72}
+  onChange={setSpeed}
+  unit="mph"
+  feedbackConfig={{
+    enableAudioFeedback: false,           // disable audio globally for this picker
+    haptics: { pattern: [8, 4, 8] },       // custom vibrate pattern per tick
+    audio: { frequency: 660, waveform: 'sine' },
+    adapters: {                           // inject bespoke adapters if you already own a feedback system
+      audio: customAudioAdapter,
+    },
+  }}
+/>
+```
+
+`QuickPickerFeedbackConfig` mirrors the exported adapter options:
+
+```ts
+type QuickPickerFeedbackConfig = {
+  enableHaptics?: boolean;          // override legacy props per instance
+  enableAudioFeedback?: boolean;
+  haptics?: { pattern?: number | number[] };
+  audio?: {
+    frequency?: number;
+    waveform?: OscillatorType;
+    attackMs?: number;
+    decayMs?: number;
+    durationMs?: number;
+    peakGain?: number;
+  };
+  adapters?: {
+    haptics?: HapticAdapter | null;
+    audio?: AudioAdapter | null;
+  };
+};
+```
+
+When you provide adapters the built-in modules are never instantiated, so host apps can plug into shared audio/haptic controllers or stub them entirely for tests.
+
