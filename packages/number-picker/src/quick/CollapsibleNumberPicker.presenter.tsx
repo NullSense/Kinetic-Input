@@ -188,15 +188,16 @@ export function CollapsibleNumberPickerPresenter({ viewModel }: CollapsibleNumbe
                 )}
             </div>
 
-            <div className="relative min-h-[3rem] md:min-h-[3.5rem]" ref={wrapperRef} data-testid="qni-wrapper">
+            <div className="relative" style={{ minHeight: `${collapsedHeight}px` }} ref={wrapperRef} data-testid="qni-wrapper">
                 <div
                     data-testid="qni-closed"
                     aria-hidden={showPicker}
                     style={closedDisplayStyle}
                 >
                     <div
-                        className="w-full h-12 px-4 transition-all flex items-center justify-center relative"
+                        className="w-full px-4 transition-all flex items-center justify-center relative"
                         style={{
+                            height: `${collapsedHeight}px`,
                             borderWidth: 2,
                             borderStyle: 'solid',
                             borderColor: closedHasValue ? theme.closedBorderColor : theme.closedBorderColorEmpty,
@@ -220,9 +221,7 @@ export function CollapsibleNumberPickerPresenter({ viewModel }: CollapsibleNumbe
                 {showPicker && showBackdrop && <div className="picker-backdrop" onClick={onBackdropClick} />}
 
                 <div
-                    className={`absolute top-0 left-0 right-0 overflow-hidden focus:outline-none ${
-                        !showPicker ? 'h-12' : ''
-                    } picker-surface`}
+                    className="absolute top-0 left-0 right-0 overflow-hidden focus:outline-none picker-surface"
                     style={pickerSurfaceStyle}
                     id={controlId}
                     ref={interactiveRef}
@@ -253,7 +252,7 @@ export function CollapsibleNumberPickerPresenter({ viewModel }: CollapsibleNumbe
                             scaleY: showPicker ? 1 : collapsedHeight / pickerWindowHeight,
                         }}
                         transition={{ duration: 0.2 }}
-                        className={`overflow-hidden ${!showPicker ? 'h-12' : ''}`}
+                        className="overflow-hidden"
                         style={motionDivStyle}
                     >
                         <div

@@ -75,7 +75,8 @@ const CollapsibleNumberPickerComponent: React.FC<CollapsibleNumberPickerProps> =
 
     const itemHeightPx = itemHeightProp ?? ITEM_HEIGHT;
     const pickerWindowHeight = itemHeightPx * 5;
-    const collapsedHeight = 48;
+    // Make collapsedHeight responsive: use itemHeight as base, minimum 48px
+    const collapsedHeight = Math.max(itemHeightPx, 48);
     const pickerTranslate = showPicker
         ? -(pickerWindowHeight / 2 - collapsedHeight / 2)
         : undefined;

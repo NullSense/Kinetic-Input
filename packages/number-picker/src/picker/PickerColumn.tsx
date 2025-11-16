@@ -195,6 +195,33 @@ function PickerColumn({
     ? `picker-column ${classNameFromUser}`
     : 'picker-column';
 
+  // Highlight lines for the center row (only shown when column has focus in multi-column mode)
+  const highlightStyle = useMemo<CSSProperties>(
+    () => ({
+      height: `${itemHeight}px`,
+      marginTop: `${-itemHeight / 2}px`,
+      position: 'absolute',
+      top: '50%',
+      left: 0,
+      right: 0,
+      pointerEvents: 'none' as const,
+      zIndex: 10,
+    }),
+    [itemHeight]
+  );
+
+  const highlightBorderStyle = useMemo<CSSProperties>(
+    () => ({
+      position: 'absolute',
+      left: 0,
+      width: '100%',
+      height: 1,
+      background: 'var(--picker-highlight-color, rgba(62, 220, 255, 0.6))',
+      transform: 'scaleY(0.5)',
+    }),
+    []
+  );
+
   return (
     <PickerConfigProvider value={pickerConfigValue}>
       <div
@@ -216,6 +243,11 @@ function PickerColumn({
         }}
         {...restProps}
       >
+        {/* Column-specific highlights for multi-column pickers */}
+        <div className="picker-column-highlight" style={highlightStyle}>
+          <div style={{ ...highlightBorderStyle, top: 0 }} />
+          <div style={{ ...highlightBorderStyle, bottom: 0 }} />
+        </div>
         <motion.div
           className="picker-scroller"
           style={{

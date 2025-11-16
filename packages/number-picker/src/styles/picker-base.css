@@ -34,8 +34,18 @@
 
 /* Keyboard focus indicator */
 .picker-column:focus-visible {
-  outline: 2px solid var(--picker-highlight-color, #d9d9d9);
+  outline: 2px solid var(--picker-highlight-color, rgba(62, 220, 255, 0.6));
   outline-offset: -2px;
+}
+
+/* Column-specific highlights - only visible when column is focused */
+.picker-column-highlight {
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.picker-column:focus .picker-column-highlight {
+  opacity: 1;
 }
 
 /* PickerGroup-level highlight lines (center row indicators) */
