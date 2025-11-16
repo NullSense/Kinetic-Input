@@ -19,7 +19,7 @@ export default defineConfig({
     },
   },
   optimizeDeps: {
-    // Force Vite to optimize the workspace package to prevent re-render loops
-    include: ['@tensil/kinetic-input'],
+    // Exclude local workspace package from pre-bundling to enable HMR
+    exclude: ['@tensil/kinetic-input'],
   },
 });
