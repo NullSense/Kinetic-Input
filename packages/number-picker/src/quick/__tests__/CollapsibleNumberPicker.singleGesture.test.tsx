@@ -80,7 +80,6 @@ describe('CollapsibleNumberPicker single-gesture mode', () => {
     const { getByTestId } = render(<CollapsibleNumberPicker {...baseProps} />);
 
     const surface = getByTestId('picker-surface');
-    const style = window.getComputedStyle(surface);
 
     // When closed, cursor should be 'pointer' (hand cursor)
     expect(surface.style.cursor).toBe('pointer');
