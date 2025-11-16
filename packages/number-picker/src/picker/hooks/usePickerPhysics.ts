@@ -27,6 +27,9 @@ import {
   type PickerGestureHandler,
 } from '../gestures';
 
+// DEBUG: Verify logging works at module load
+console.log('[PICKER-DEBUG] usePickerPhysics module loaded - console logging is active');
+
 const MAX_OVERSCROLL = 80;
 const OPENING_DRAG_THRESHOLD = 6;
 const CLICK_STEP_THRESHOLD_RATIO = 0.3;
