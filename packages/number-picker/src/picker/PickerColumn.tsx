@@ -22,6 +22,7 @@ const SLOT_COUNT = VISIBLE_ROWS + OVERSCAN_ROWS * 2;
 
 function PickerColumn({
   style: styleFromUser,
+  className: classNameFromUser,
   children,
   name: key,
   onGesture,
@@ -189,11 +190,16 @@ function PickerColumn({
   // Use motion template to avoid regex parsing on every frame (60-120 times/sec)
   const transform = useMotionTemplate`translate3d(0, ${ySnap}px, 0)`;
 
+  // Merge classNames to ensure picker-column is always present
+  const mergedClassName = classNameFromUser
+    ? `picker-column ${classNameFromUser}`
+    : 'picker-column';
+
   return (
     <PickerConfigProvider value={pickerConfigValue}>
       <div
         ref={columnRef}
-        className="picker-column"
+        className={mergedClassName}
         tabIndex={0}
         onKeyDown={handleKeyDown}
         onPointerDown={handlePointerDown}
@@ -206,9 +212,8 @@ function PickerColumn({
           flex: 1,
           alignItems: 'center',
           justifyContent: 'center',
-          '--highlight-item-height': `${itemHeight}px`,
           ...styleFromUser,
-        } as React.CSSProperties}
+        }}
         {...restProps}
       >
         <motion.div

@@ -32,48 +32,13 @@
   cursor: default;
 }
 
-/* Keyboard focus indicator - use subtle outline, not the highlight lines */
+/* Keyboard focus indicator */
 .picker-column:focus-visible {
   outline: 2px solid var(--picker-highlight-color, #d9d9d9);
   outline-offset: -2px;
 }
 
-/* Column-level central row highlight (only visible when focused) - CSS-only with pseudo-elements */
-.picker-column {
-  --highlight-item-height: 40px; /* Default, can be overridden via inline style */
-}
-
-.picker-column::before,
-.picker-column::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: var(--picker-highlight-color, #d9d9d9);
-  transform: scaleY(0.5);
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.15s ease;
-  z-index: 1;
-}
-
-.picker-column::before {
-  top: calc(50% - var(--highlight-item-height) / 2);
-}
-
-.picker-column::after {
-  top: calc(50% + var(--highlight-item-height) / 2);
-}
-
-.picker-column:focus::before,
-.picker-column:focus::after,
-.picker-column:focus-within::before,
-.picker-column:focus-within::after {
-  opacity: 1;
-}
-
-/* Legacy highlight hitbox (for PickerGroup showHighlightLines prop) */
+/* PickerGroup-level highlight lines (center row indicators) */
 .picker-highlight-hitbox {
   position: absolute;
   pointer-events: none;
