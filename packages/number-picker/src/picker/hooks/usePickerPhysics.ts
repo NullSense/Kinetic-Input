@@ -117,13 +117,16 @@ export function usePickerPhysics({
   const snapEnabled = mergedSnapConfig.enabled;
   const snapPhysics = useSnapPhysics(mergedSnapConfig);
 
-  // Wheel-specific snap: strong magnetic feel with sticky center for precision
+  // Wheel-specific snap: VERY strong magnetic pull for precision (especially important for ranges like reps)
   const wheelSnapConfig = useMemo<SnapPhysicsConfig>(
     () => ({
       ...mergedSnapConfig,
-      pullStrength: 1.0,  // Strong pull (matches pointer) without blocking accumulation
-      centerLock: 0.5,    // Sticky center for precision landing (balanced between 0.3 and 1.0)
-      velocityReducer: 0.05, // Very minimal scaling - snap stays strong at all speeds
+      pullStrength: 1.4,  // Maximum pull strength (same as pointer) for rigid feel
+      centerLock: 0.85,   // Very sticky center - easy to land precisely on target value
+      velocityReducer: 0.05, // Minimal scaling - snap stays strong even when scrolling
+      // Gentler projection for wheel (touchpad has acceleration, don't over-project)
+      rangeScaleIntensity: 0.06, // 60ms projection (vs 120ms for pointer) - less aggressive
+      rangeScaleVelocityBoost: 1.0, // No boost (vs 1.1 for pointer)
     }),
     [mergedSnapConfig],
   );
@@ -369,9 +372,29 @@ export function usePickerPhysics({
     ],
   );
 
+  // Wheel-specific projection: gentler to avoid over-projection from touchpad acceleration
+  const wheelReleaseProjectionConfig = useMemo(
+    () => ({
+      projectionSeconds: wheelSnapConfig.rangeScaleIntensity ?? 0,
+      velocityCap: wheelSnapConfig.rangeScaleVelocityCap,
+      velocityThreshold: wheelSnapConfig.velocityThreshold,
+      velocityBoost: wheelSnapConfig.rangeScaleVelocityBoost,
+      minTranslate,
+      maxTranslate,
+    }),
+    [
+      maxTranslate,
+      wheelSnapConfig.rangeScaleIntensity,
+      wheelSnapConfig.rangeScaleVelocityCap,
+      wheelSnapConfig.rangeScaleVelocityBoost,
+      wheelSnapConfig.velocityThreshold,
+      minTranslate,
+    ],
+  );
+
   const settleFromY = useCallback(
-    (currentY: number, velocity: number, onComplete?: () => void) => {
-      const projected = projectReleaseTranslate(currentY, velocity, releaseProjectionConfig);
+    (currentY: number, velocity: number, onComplete?: () => void, config = releaseProjectionConfig) => {
+      const projected = projectReleaseTranslate(currentY, velocity, config);
       const clampedY = clamp(projected, minTranslate, maxTranslate);
       const index = clampIndex(indexFromY(clampedY, itemHeight, maxTranslate), lastIndex);
       settleToIndex(index, onComplete);
@@ -584,8 +607,8 @@ export function usePickerPhysics({
       const accumulated = wheelRemainderRef.current + delta;
       const boundedDelta = clamp(accumulated, -maxDelta, maxDelta);
       const wasCapped = Math.abs(accumulated) > Math.abs(boundedDelta);
-      // Only flag as spike if capping ratio is large (>3x = spike, not normal accel)
-      if (wasCapped && Math.abs(accumulated) / Math.abs(boundedDelta) > 3) {
+      // Flag as spike if capped by >20% (touchpad accel creates high velocity, don't over-project)
+      if (wasCapped && Math.abs(accumulated - boundedDelta) / Math.abs(boundedDelta) > 0.2) {
         wheelWasCappedRef.current = true;
       }
       wheelRemainderRef.current = accumulated - boundedDelta;
@@ -670,6 +693,7 @@ export function usePickerPhysics({
         const rawVelocity = velocityTracker.getVelocity();
         const velocity = wheelWasCappedRef.current ? 0 : rawVelocity;
 
+        // Use wheel-specific projection config (gentler than pointer)
         settleFromY(currentTranslate, velocity, () => {
           snapPhysics.reset();
           emitter.dragEnd(hasMoved, velocity);
@@ -678,10 +702,10 @@ export function usePickerPhysics({
           wheelRemainderRef.current = 0;
           wheelWasCappedRef.current = false;
           velocityTracker.reset();
-        });
+        }, wheelReleaseProjectionConfig);
       }, 200);
     },
-    [emitter, handleWheeling, settleFromY, snapPhysics, velocityTracker, wheelEnabled, wheelSnapPhysics, yRaw],
+    [emitter, handleWheeling, settleFromY, snapPhysics, velocityTracker, wheelEnabled, wheelReleaseProjectionConfig, wheelSnapPhysics, yRaw],
   );
 
   useEffect(() => {
