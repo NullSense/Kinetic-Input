@@ -124,7 +124,7 @@ function PickerGroupRoot<TType extends PickerValue>(props: PickerGroupRootProps<
     wheelMode = DEFAULT_WHEEL_MODE,
     wheelSensitivity = DEFAULT_WHEEL_SENSITIVITY,
     wheelDeltaCap = DEFAULT_WHEEL_DELTA_CAP,
-    showHighlightLines = false,
+    showHighlightLines = true,
     ...restProps
   } = props;
 
@@ -297,12 +297,18 @@ function PickerGroupRoot<TType extends PickerValue>(props: PickerGroupRootProps<
     }
   }, []);
 
+  // Prevent page scroll when wheeling over picker (columns handle their own scrolling when wheelMode is enabled)
+  const handleWheel = useCallback((e: React.WheelEvent<HTMLDivElement>) => {
+    e.preventDefault();
+  }, []);
+
   return (
     <div
       ref={containerRef}
       className="picker-surface"
       style={mergedContainerStyle}
       onKeyDownCapture={handleContainerKeyDown}
+      onWheel={handleWheel}
       onTouchMove={(e) => {
         e.preventDefault();
         e.stopPropagation();
