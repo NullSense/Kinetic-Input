@@ -124,7 +124,7 @@ function PickerGroupRoot<TType extends PickerValue>(props: PickerGroupRootProps<
     wheelMode = DEFAULT_WHEEL_MODE,
     wheelSensitivity = DEFAULT_WHEEL_SENSITIVITY,
     wheelDeltaCap = DEFAULT_WHEEL_DELTA_CAP,
-    showHighlightLines = true,
+    showHighlightLines = false,
     ...restProps
   } = props;
 
@@ -276,6 +276,7 @@ function PickerGroupRoot<TType extends PickerValue>(props: PickerGroupRootProps<
       // No column focused, focus the first one
       columns[0]?.focus();
       e.preventDefault();
+      e.stopPropagation();
       return;
     }
 
@@ -284,12 +285,14 @@ function PickerGroupRoot<TType extends PickerValue>(props: PickerGroupRootProps<
       if (prevIndex >= 0) {
         columns[prevIndex].focus();
         e.preventDefault();
+        e.stopPropagation();
       }
     } else if (e.key === 'ArrowRight') {
       const nextIndex = currentIndex + 1;
       if (nextIndex < columns.length) {
         columns[nextIndex].focus();
         e.preventDefault();
+        e.stopPropagation();
       }
     }
   }, []);

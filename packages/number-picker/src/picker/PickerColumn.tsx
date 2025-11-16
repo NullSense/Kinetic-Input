@@ -206,8 +206,9 @@ function PickerColumn({
           flex: 1,
           alignItems: 'center',
           justifyContent: 'center',
+          '--highlight-item-height': `${itemHeight}px`,
           ...styleFromUser,
-        }}
+        } as React.CSSProperties}
         {...restProps}
       >
         <motion.div
