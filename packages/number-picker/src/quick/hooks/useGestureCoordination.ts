@@ -160,10 +160,18 @@ export const useGestureCoordination = ({
 
     const handlePointerDown = useCallback(
         (event: React.PointerEvent) => {
+            debugLog('handlePointerDown CALLED', {
+                showPicker: showPickerRef.current,
+                target: event.target,
+                currentTarget: event.currentTarget,
+                pointerType: event.pointerType,
+            });
+
             clearBoundaryCloseTimer();
             clearWheelIdleTimer();
 
             if (!showPickerRef.current) {
+                debugLog('pointerDownToOpen - OPENING PICKER', {});
                 handlePickerOpen();
                 openedViaRef.current = 'pointer';
                 isOpeningInteraction.current = true;

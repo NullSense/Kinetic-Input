@@ -26,6 +26,7 @@ export function TimePickerExample() {
       <div className="ios-time-picker glass-subtle p-4 rounded-lg">
         <PickerGroup
           className="flex gap-2"
+          style={{ '--picker-highlight-color': 'rgba(62, 220, 255, 0.8)' } as React.CSSProperties}
           value={{
             h: time.hours,
             m: time.minutes,

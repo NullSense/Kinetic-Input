@@ -297,10 +297,10 @@ function PickerGroupRoot<TType extends PickerValue>(props: PickerGroupRootProps<
     }
   }, []);
 
-  // Prevent page scroll when wheeling over picker (only when wheelMode is off - enabled modes handle preventDefault themselves)
+  // Prevent page scroll when wheeling over picker
+  // - When wheelMode='off': prevent default to stop page scroll (picker doesn't scroll)
+  // - When wheelMode enabled: column's native listener handles preventDefault
   const handleWheel = useCallback((e: React.WheelEvent<HTMLDivElement>) => {
-    // Only prevent default if wheelMode is off AND it's not a pinch-zoom gesture
-    // When wheelMode is enabled, column's wheel listener handles preventDefault
     if (wheelMode === 'off' && !e.ctrlKey) {
       e.preventDefault();
     }
