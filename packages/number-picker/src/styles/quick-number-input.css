@@ -28,12 +28,7 @@
 }
 
 .quick-number-input-root .picker-surface {
-  /* Base protections */
-  user-select: none;
-  -webkit-user-select: none;
-  touch-action: pan-x pinch-zoom;
-  overscroll-behavior-y: contain;
-  cursor: default;
+  /* Base protections inherited from picker-base.css */
 }
 
 .quick-number-input-root .picker-container {

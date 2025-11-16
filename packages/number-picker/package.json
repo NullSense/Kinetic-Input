@@ -28,6 +28,7 @@
       "types": "./dist/types/index.d.ts",
       "import": "./dist/types/index.js"
     },
+    "./styles/picker.css": "./dist/picker-base.css",
     "./styles/quick.css": "./dist/quick-number-input.css",
     "./styles/wheel.css": "./dist/wheel-picker.css",
     "./reactMobilePicker": {

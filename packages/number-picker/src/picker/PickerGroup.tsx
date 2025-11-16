@@ -250,6 +250,7 @@ function PickerGroupRoot<TType extends PickerValue>(props: PickerGroupRootProps<
 
   return (
     <div
+      className="picker-surface"
       style={mergedContainerStyle}
       onTouchMove={(e) => {
         e.preventDefault();
@@ -273,11 +274,13 @@ function PickerGroupRoot<TType extends PickerValue>(props: PickerGroupRootProps<
         style={bottomGradientStyle}
       />
       {showHighlightLines && (
-        <div style={highlightStyle}>
+        <div className="picker-highlight-hitbox" style={highlightStyle}>
           <div
+            className="picker-highlight-line-top"
             style={highlightBorderTopStyle}
           />
           <div
+            className="picker-highlight-line-bottom"
             style={highlightBorderBottomStyle}
           />
         </div>

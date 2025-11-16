@@ -13,10 +13,7 @@
 .np-wheel-picker .np-wheel-container {
   position: relative;
   width: 100%;
-  /* Base protections */
-  user-select: none;
-  -webkit-user-select: none;
-  touch-action: pan-x pinch-zoom;
+  /* Base protections inherited from .picker-surface */
 }
 
 .np-wheel-picker .np-wheel-item {
@@ -31,7 +28,6 @@
   font-variant-numeric: tabular-nums;
   font-feature-settings: 'tnum' 1;
   color: var(--np-wheel-color);
-  cursor: default;
   /* Hardcoded for consistency */
   transition: color 0.2s cubic-bezier(0.32, 0.94, 0.6, 1),
               transform 0.2s cubic-bezier(0.32, 0.94, 0.6, 1);

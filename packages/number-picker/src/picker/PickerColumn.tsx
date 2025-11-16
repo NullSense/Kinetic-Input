@@ -1,4 +1,4 @@
-import { HTMLProps, useMemo } from 'react';
+import { HTMLProps, useCallback, useMemo } from 'react';
 import { motion, useMotionTemplate } from 'framer-motion';
 import { usePickerActions, usePickerData, type PickerOption } from './PickerGroup';
 import { PickerConfigProvider } from './context';
@@ -123,6 +123,57 @@ function PickerColumn({
     [isPickerOpen, key],
   );
 
+  // Keyboard navigation support
+  const handleKeyDown = useCallback(
+    (event: React.KeyboardEvent<HTMLDivElement>) => {
+      if (event.defaultPrevented || options.length === 0) {
+        return;
+      }
+
+      const pageJump = Math.max(1, Math.min(10, Math.floor(options.length / 5) || 1));
+      let targetIndex = selectedIndex;
+
+      switch (event.key) {
+        case 'ArrowDown':
+        case 'ArrowRight':
+          event.preventDefault();
+          targetIndex = Math.min(options.length - 1, selectedIndex + 1);
+          break;
+        case 'ArrowUp':
+        case 'ArrowLeft':
+          event.preventDefault();
+          targetIndex = Math.max(0, selectedIndex - 1);
+          break;
+        case 'PageDown':
+          event.preventDefault();
+          targetIndex = Math.min(options.length - 1, selectedIndex + pageJump);
+          break;
+        case 'PageUp':
+          event.preventDefault();
+          targetIndex = Math.max(0, selectedIndex - pageJump);
+          break;
+        case 'Home':
+          event.preventDefault();
+          targetIndex = 0;
+          break;
+        case 'End':
+          event.preventDefault();
+          targetIndex = options.length - 1;
+          break;
+        default:
+          return;
+      }
+
+      if (targetIndex !== selectedIndex) {
+        const targetOption = options[targetIndex];
+        if (targetOption) {
+          pickerActions.change(key, targetOption.value);
+        }
+      }
+    },
+    [options, selectedIndex, key, pickerActions],
+  );
+
   // Pre-compute base item style (shared by all 250 items) to avoid recreating it in the loop
   const baseItemStyle = useMemo(
     () => ({
@@ -142,6 +193,9 @@ function PickerColumn({
     <PickerConfigProvider value={pickerConfigValue}>
       <div
         ref={columnRef}
+        className="picker-column"
+        tabIndex={0}
+        onKeyDown={handleKeyDown}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
