@@ -9,6 +9,7 @@ import {
   useMemo,
   useReducer,
   useRef,
+  type KeyboardEvent,
 } from 'react';
 
 const DEFAULT_HEIGHT = 216;
@@ -248,10 +249,57 @@ function PickerGroupRoot<TType extends PickerValue>(props: PickerGroupRootProps<
     []
   );
 
+  // Cross-column keyboard navigation
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const handleContainerKeyDown = useCallback((e: KeyboardEvent<HTMLDivElement>) => {
+    // Only intercept ArrowLeft/ArrowRight for multi-column navigation
+    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') {
+      return;
+    }
+
+    const container = containerRef.current;
+    if (!container) return;
+
+    // Find all focusable columns
+    const columns = Array.from(container.querySelectorAll('.picker-column')) as HTMLElement[];
+    if (columns.length <= 1) {
+      // Single column - let the column handle left/right as up/down
+      return;
+    }
+
+    // Multi-column picker - use left/right to navigate between columns
+    const activeElement = document.activeElement as HTMLElement;
+    const currentIndex = columns.indexOf(activeElement);
+
+    if (currentIndex === -1) {
+      // No column focused, focus the first one
+      columns[0]?.focus();
+      e.preventDefault();
+      return;
+    }
+
+    if (e.key === 'ArrowLeft') {
+      const prevIndex = currentIndex - 1;
+      if (prevIndex >= 0) {
+        columns[prevIndex].focus();
+        e.preventDefault();
+      }
+    } else if (e.key === 'ArrowRight') {
+      const nextIndex = currentIndex + 1;
+      if (nextIndex < columns.length) {
+        columns[nextIndex].focus();
+        e.preventDefault();
+      }
+    }
+  }, []);
+
   return (
     <div
+      ref={containerRef}
       className="picker-surface"
       style={mergedContainerStyle}
+      onKeyDownCapture={handleContainerKeyDown}
       onTouchMove={(e) => {
         e.preventDefault();
         e.stopPropagation();
