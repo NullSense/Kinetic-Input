@@ -117,13 +117,13 @@ export function usePickerPhysics({
   const snapEnabled = mergedSnapConfig.enabled;
   const snapPhysics = useSnapPhysics(mergedSnapConfig);
 
-  // Wheel-specific snap: gentler pull for discrete events (prevents blocking while maintaining feel)
+  // Wheel-specific snap: strong magnetic feel like phone touch, but easier to scroll through rows
   const wheelSnapConfig = useMemo<SnapPhysicsConfig>(
     () => ({
       ...mergedSnapConfig,
-      pullStrength: 0.5,  // Much gentler than pointer (1.4) - gives feedback without fighting user
-      centerLock: 0.3,    // Less sticky center - allows easier scrolling through rows
-      velocityReducer: 0.5, // More velocity damping - snap feels stronger at low speeds
+      pullStrength: 1.0,  // Strong magnetic pull (same as pointer for satisfying "thunk")
+      centerLock: 0.3,    // Less sticky center (vs 1.0) - allows easier scrolling through rows
+      velocityReducer: 0.1, // Minimal velocity scaling - keep snap engaged even while moving
     }),
     [mergedSnapConfig],
   );
@@ -590,13 +590,13 @@ export function usePickerPhysics({
       const currentTranslate = yRaw.get();
       const rawTranslate = currentTranslate + boundedDelta;
 
-      // Apply gentle snap ONLY to uncapped deltas (micro-scrolling gets magnetic feel, spikes don't)
+      // Apply strong snap physics for satisfying magnetic "thunk" feel (like phone touch)
       const nearestIndex = indexFromY(rawTranslate, itemHeight, maxTranslate);
       const snapTargetTranslate = yFromIndex(nearestIndex, itemHeight, maxTranslate, lastIndex);
       const deltaToTarget = rawTranslate - snapTargetTranslate;
 
       let nextTranslate = rawTranslate;
-      if (snapEnabled && !wasCapped) {
+      if (snapEnabled) {
         const wheelStartTranslate = wheelStartTranslateRef.current ?? currentTranslate;
         const totalPixelsMoved = Math.abs(rawTranslate - wheelStartTranslate);
         const snapResult = wheelSnapPhysics.calculate(
@@ -607,8 +607,10 @@ export function usePickerPhysics({
         nextTranslate = snapResult.mappedTranslate + snapTargetTranslate;
       }
 
-      // Track wheel velocity using raw translate for accurate projection
-      velocityTracker.addSample(rawTranslate);
+      // Track velocity ONLY for uncapped deltas (prevents false velocity from touchpad spikes)
+      if (!wasCapped) {
+        velocityTracker.addSample(rawTranslate);
+      }
 
       updateScrollerWhileMoving(nextTranslate);
     },
@@ -663,13 +665,12 @@ export function usePickerPhysics({
         const movementDelta = Math.abs(currentTranslate - startTranslate);
         const hasMoved = movementDelta > 2;
 
-        // Get velocity before settling (but disable projection if deltas were capped)
-        const rawVelocity = velocityTracker.getVelocity();
-        const velocity = wheelWasCappedRef.current ? 0 : rawVelocity;
+        // Get velocity before settling (will be 0 for spikes since we don't track capped deltas)
+        const velocity = velocityTracker.getVelocity();
 
         settleFromY(currentTranslate, velocity, () => {
           snapPhysics.reset();
-          emitter.dragEnd(hasMoved, rawVelocity);
+          emitter.dragEnd(hasMoved, velocity);
           wheelStartTranslateRef.current = null;
           wheelingTimer.current = null;
           wheelRemainderRef.current = 0;
