@@ -151,8 +151,10 @@ export function CollapsibleNumberPickerPresenter({ viewModel }: CollapsibleNumbe
             borderStyle: 'solid',
             height: `${pickerWindowHeight}px`,
             transformOrigin: 'top',
+            // CRITICAL: Disable pointer events when closed to prevent PickerColumn from capturing clicks
+            pointerEvents: showPicker ? ('auto' as const) : ('none' as const),
         }),
-        [pickerWindowHeight, theme.fadeColor, theme.highlightBorderColor]
+        [pickerWindowHeight, theme.fadeColor, theme.highlightBorderColor, showPicker]
     );
 
     const pickerWindowStyle = useMemo<CSSProperties>(
