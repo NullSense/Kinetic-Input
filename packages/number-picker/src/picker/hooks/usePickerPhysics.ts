@@ -37,6 +37,9 @@ const DOM_DELTA_PAGE = 0x02;
 const clampWheelSensitivity = (value: number) =>
   Number.isFinite(value) && value > 0 ? value : 1;
 
+const clampWheelDeltaCap = (value: number) =>
+  Number.isFinite(value) && value > 0 ? value : 1.25;
+
 export interface PickerColumnInteractionsConfig {
   key: string;
   options: PickerOption[];
@@ -46,6 +49,7 @@ export interface PickerColumnInteractionsConfig {
   isPickerOpen: boolean;
   wheelMode: 'off' | 'natural' | 'inverted';
   wheelSensitivity: number;
+  wheelDeltaCap: number;
   changeValue: (key: string, value: string | number) => boolean;
   /** Event-driven gesture handler */
   onGesture?: PickerGestureHandler;
@@ -88,6 +92,7 @@ export function usePickerPhysics({
   isPickerOpen,
   wheelMode,
   wheelSensitivity,
+  wheelDeltaCap,
   changeValue,
   onGesture,
   snapConfig,
@@ -124,6 +129,7 @@ export function usePickerPhysics({
 
   const wheelEnabled = wheelMode !== 'off';
   const normalizedWheelSensitivity = useMemo(() => clampWheelSensitivity(wheelSensitivity), [wheelSensitivity]);
+  const normalizedWheelDeltaCap = useMemo(() => clampWheelDeltaCap(wheelDeltaCap), [wheelDeltaCap]);
 
   useMotionValueEvent(yRaw, 'change', (latest) => {
     const snapped = Math.round(Number(latest));
@@ -540,6 +546,7 @@ export function usePickerPhysics({
 
   const wheelingTimer = useRef<number | null>(null);
   const wheelStartTranslateRef = useRef<number | null>(null);
+  const wheelRemainderRef = useRef(0);
 
   const handleWheeling = useCallback(
     (event: WheelEvent) => {
@@ -560,8 +567,13 @@ export function usePickerPhysics({
         delta = -delta;
       }
 
+      const maxDelta = itemHeight * normalizedWheelDeltaCap;
+      const accumulated = wheelRemainderRef.current + delta;
+      const boundedDelta = clamp(accumulated, -maxDelta, maxDelta);
+      wheelRemainderRef.current = accumulated - boundedDelta;
+
       const currentTranslate = yRaw.get();
-      const nextTranslate = currentTranslate + delta;
+      const nextTranslate = currentTranslate + boundedDelta;
 
       // Track wheel velocity using the raw translate value
       velocityTracker.addSample(nextTranslate);
@@ -595,6 +607,7 @@ export function usePickerPhysics({
         // Reset velocity tracker for new wheel gesture
         velocityTracker.reset();
         velocityTracker.addSample(wheelStartTranslateRef.current);
+        wheelRemainderRef.current = 0;
         emitter.dragStart('wheel');
 
         snapPhysics.reset();
@@ -621,6 +634,7 @@ export function usePickerPhysics({
           emitter.dragEnd(hasMoved, velocity);
           wheelStartTranslateRef.current = null;
           wheelingTimer.current = null;
+          wheelRemainderRef.current = 0;
           velocityTracker.reset();
         });
       }, 200);
