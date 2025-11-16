@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { act, render, waitFor } from '@testing-library/react'
+import { render, waitFor } from '@testing-library/react'
 import Picker from '../PickerGroup'
 import PickerColumn from '../PickerColumn'
 import PickerItem from '../PickerItem'
