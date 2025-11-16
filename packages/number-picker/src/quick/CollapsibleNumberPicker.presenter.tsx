@@ -195,7 +195,7 @@ export function CollapsibleNumberPickerPresenter({ viewModel }: CollapsibleNumbe
                     style={closedDisplayStyle}
                 >
                     <div
-                        className="w-full h-12 md:h-14 px-4 transition-all flex items-center justify-center relative"
+                        className="w-full h-12 px-4 transition-all flex items-center justify-center relative"
                         style={{
                             borderWidth: 2,
                             borderStyle: 'solid',
@@ -221,7 +221,7 @@ export function CollapsibleNumberPickerPresenter({ viewModel }: CollapsibleNumbe
 
                 <div
                     className={`absolute top-0 left-0 right-0 overflow-hidden focus:outline-none ${
-                        !showPicker ? 'h-12 md:h-14' : ''
+                        !showPicker ? 'h-12' : ''
                     } picker-surface`}
                     style={pickerSurfaceStyle}
                     id={controlId}
@@ -253,7 +253,7 @@ export function CollapsibleNumberPickerPresenter({ viewModel }: CollapsibleNumbe
                             scaleY: showPicker ? 1 : collapsedHeight / pickerWindowHeight,
                         }}
                         transition={{ duration: 0.2 }}
-                        className={`overflow-hidden ${!showPicker ? 'h-12 md:h-14' : ''}`}
+                        className={`overflow-hidden ${!showPicker ? 'h-12' : ''}`}
                         style={motionDivStyle}
                     >
                         <div
