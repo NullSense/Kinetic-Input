@@ -139,6 +139,11 @@ export function SessionPicker({ value, onChange }) {
 - Tune `wheelSensitivity` on `CollapsibleNumberPicker` or `PickerGroup` to match your hardware. The default `1` keeps deltas 1:1 with incoming pixels/lines, >1 amplifies tiny trackpad deltas, and <1 slows aggressive desktop wheels without touching the physics stack.
 - The same guard powers both `CollapsibleNumberPicker` and bare `PickerGroup`, so standalone wheel pickers opt into wheel capture explicitly while every other instance remains passive by default.
 
+#### Performance notes
+
+- Wheel listeners are only attached when `wheelMode` is `'natural'` or `'inverted'`, and they use `passive: false` deliberately so `preventDefault` can stop accidental page scrolling without forcing reflows on unrelated nodes.
+- Deltas stay in raw MotionValues until a settle frame runs, avoiding React state churn while still sampling velocity for momentum projection. The virtualization window (`slotCount` × `overscan`) means only a handful of rows render at any time, so long option lists keep layout and paint work bounded.
+
 ### Theming
 
 Every color, font, and spacing can be customized via the `theme` prop. The library ships with sensible defaults (cyan accents on dark backgrounds), but you can override any property to match your design system.
