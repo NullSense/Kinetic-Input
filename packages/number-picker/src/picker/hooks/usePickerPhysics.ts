@@ -117,6 +117,18 @@ export function usePickerPhysics({
   const snapEnabled = mergedSnapConfig.enabled;
   const snapPhysics = useSnapPhysics(mergedSnapConfig);
 
+  // Wheel-specific snap: gentler pull for discrete events (prevents blocking while maintaining feel)
+  const wheelSnapConfig = useMemo<SnapPhysicsConfig>(
+    () => ({
+      ...mergedSnapConfig,
+      pullStrength: 0.5,  // Much gentler than pointer (1.4) - gives feedback without fighting user
+      centerLock: 0.3,    // Less sticky center - allows easier scrolling through rows
+      velocityReducer: 0.5, // More velocity damping - snap feels stronger at low speeds
+    }),
+    [mergedSnapConfig],
+  );
+  const wheelSnapPhysics = useSnapPhysics(wheelSnapConfig);
+
   const lastIndex = Math.max(0, options.length - 1);
   const maxTranslate = useMemo(() => height / 2 - itemHeight / 2, [height, itemHeight]);
   const minTranslate = useMemo(
@@ -547,6 +559,7 @@ export function usePickerPhysics({
   const wheelingTimer = useRef<number | null>(null);
   const wheelStartTranslateRef = useRef<number | null>(null);
   const wheelRemainderRef = useRef(0);
+  const wheelWasCappedRef = useRef(false);
 
   const handleWheeling = useCallback(
     (event: WheelEvent) => {
@@ -570,25 +583,48 @@ export function usePickerPhysics({
       const maxDelta = itemHeight * normalizedWheelDeltaCap;
       const accumulated = wheelRemainderRef.current + delta;
       const boundedDelta = clamp(accumulated, -maxDelta, maxDelta);
+      const wasCapped = Math.abs(accumulated) > Math.abs(boundedDelta);
+      if (wasCapped) wheelWasCappedRef.current = true;
       wheelRemainderRef.current = accumulated - boundedDelta;
 
       const currentTranslate = yRaw.get();
-      const nextTranslate = currentTranslate + boundedDelta;
+      const rawTranslate = currentTranslate + boundedDelta;
 
-      // Track wheel velocity using raw delta (snap applied only on settle, not during active scroll)
-      velocityTracker.addSample(nextTranslate);
+      // Apply gentle snap ONLY to uncapped deltas (micro-scrolling gets magnetic feel, spikes don't)
+      const nearestIndex = indexFromY(rawTranslate, itemHeight, maxTranslate);
+      const snapTargetTranslate = yFromIndex(nearestIndex, itemHeight, maxTranslate, lastIndex);
+      const deltaToTarget = rawTranslate - snapTargetTranslate;
+
+      let nextTranslate = rawTranslate;
+      if (snapEnabled && !wasCapped) {
+        const wheelStartTranslate = wheelStartTranslateRef.current ?? currentTranslate;
+        const totalPixelsMoved = Math.abs(rawTranslate - wheelStartTranslate);
+        const snapResult = wheelSnapPhysics.calculate(
+          { deltaY: deltaToTarget, velocityY: velocityTracker.getVelocity(), totalPixelsMoved },
+          0,
+          itemHeight,
+        );
+        nextTranslate = snapResult.mappedTranslate + snapTargetTranslate;
+      }
+
+      // Track wheel velocity using raw translate for accurate projection
+      velocityTracker.addSample(rawTranslate);
 
       updateScrollerWhileMoving(nextTranslate);
     },
     [
       height,
       itemHeight,
+      lastIndex,
+      maxTranslate,
       normalizedWheelDeltaCap,
       normalizedWheelSensitivity,
+      snapEnabled,
       updateScrollerWhileMoving,
       velocityTracker,
       wheelEnabled,
       wheelMode,
+      wheelSnapPhysics,
       yRaw,
     ],
   );
@@ -607,9 +643,11 @@ export function usePickerPhysics({
         velocityTracker.reset();
         velocityTracker.addSample(wheelStartTranslateRef.current);
         wheelRemainderRef.current = 0;
+        wheelWasCappedRef.current = false;
         emitter.dragStart('wheel');
 
         snapPhysics.reset();
+        wheelSnapPhysics.reset();
         boundaryHitFiredRef.current = false;
       }
 
@@ -625,20 +663,22 @@ export function usePickerPhysics({
         const movementDelta = Math.abs(currentTranslate - startTranslate);
         const hasMoved = movementDelta > 2;
 
-        // Get velocity before settling
-        const velocity = velocityTracker.getVelocity();
+        // Get velocity before settling (but disable projection if deltas were capped)
+        const rawVelocity = velocityTracker.getVelocity();
+        const velocity = wheelWasCappedRef.current ? 0 : rawVelocity;
 
         settleFromY(currentTranslate, velocity, () => {
           snapPhysics.reset();
-          emitter.dragEnd(hasMoved, velocity);
+          emitter.dragEnd(hasMoved, rawVelocity);
           wheelStartTranslateRef.current = null;
           wheelingTimer.current = null;
           wheelRemainderRef.current = 0;
+          wheelWasCappedRef.current = false;
           velocityTracker.reset();
         });
       }, 200);
     },
-    [emitter, handleWheeling, settleFromY, snapPhysics, velocityTracker, wheelEnabled, yRaw],
+    [emitter, handleWheeling, settleFromY, snapPhysics, velocityTracker, wheelEnabled, wheelSnapPhysics, yRaw],
   );
 
   useEffect(() => {

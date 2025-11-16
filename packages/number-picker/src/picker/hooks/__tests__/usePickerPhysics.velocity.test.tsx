@@ -243,7 +243,7 @@ describe('usePickerPhysics velocity wiring', () => {
     expect(projectionCall?.[2].projectionSeconds).toBeCloseTo(0.08, 5);
   });
 
-  it('keeps wheel micro-scroll deltas intact (snap only on settle, not during active scroll)', () => {
+  it('applies gentle snap physics to wheel for satisfying tactile feel', () => {
     const options = makeOptions(7);
     const { result } = renderHook(() =>
       usePickerPhysics({ ...baseConfig, options, selectedIndex: 3 })
@@ -259,8 +259,8 @@ describe('usePickerPhysics velocity wiring', () => {
       result.current.handleWheel(wheelEvent);
     });
 
-    // Snap physics should NOT be applied during active wheel scrolling (only on settle)
-    expect(snapSpies.calculate).not.toHaveBeenCalled();
+    // Snap physics SHOULD be applied during wheel scrolling for magnetic "thunk" feel
+    expect(snapSpies.calculate).toHaveBeenCalled();
   });
 
   it('samples wheel translate using raw motion values so velocity is accurate', () => {
