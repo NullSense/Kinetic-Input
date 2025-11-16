@@ -188,8 +188,9 @@ export function CollapsibleNumberPickerPresenter({ viewModel }: CollapsibleNumbe
                 )}
             </div>
 
-            <div className="relative" style={{ minHeight: `${collapsedHeight}px` }} ref={wrapperRef} data-testid="qni-wrapper">
+            <div className="relative" style={{ height: `${collapsedHeight}px` }} ref={wrapperRef} data-testid="qni-wrapper">
                 <div
+                    className="absolute top-0 left-0 right-0"
                     data-testid="qni-closed"
                     aria-hidden={showPicker}
                     style={closedDisplayStyle}
