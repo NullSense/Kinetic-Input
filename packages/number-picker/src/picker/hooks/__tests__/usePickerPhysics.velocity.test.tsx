@@ -18,7 +18,7 @@ const trackerSpies = vi.hoisted(() => ({
   getSampleCount: vi.fn(() => 0),
 }));
 
-type ReleaseMomentumConfig = import('../utils/releaseMomentum').ReleaseMomentumConfig;
+type ReleaseMomentumConfig = import('../../utils/releaseMomentum').ReleaseMomentumConfig;
 
 const releaseMomentumMock = vi.hoisted(() => ({
   projectReleaseTranslate: vi.fn(
@@ -34,15 +34,15 @@ vi.mock('../useSnapPhysics', () => ({
   useSnapPhysics: () => snapSpies,
 }));
 
-vi.mock('../gestures', async () => {
-  const actual = await vi.importActual<typeof import('../gestures')>('../gestures');
+vi.mock('../../gestures', async () => {
+  const actual = await vi.importActual<typeof import('../../gestures')>('../../gestures');
   return {
     ...actual,
     createVelocityTracker: vi.fn(() => trackerSpies),
   };
 });
 
-vi.mock('../utils/releaseMomentum', () => releaseMomentumMock);
+vi.mock('../../utils/releaseMomentum', () => releaseMomentumMock);
 
 type Option = { value: string; render: (state: { selected: boolean; visuallySelected: boolean }) => React.ReactNode; props: Record<string, unknown> };
 const makeOptions = (count: number): Option[] =>
