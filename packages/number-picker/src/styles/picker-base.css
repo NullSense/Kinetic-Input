@@ -32,20 +32,24 @@
   cursor: default;
 }
 
+/* Prevent browser default focus outlines (no vertical bars) */
+.picker-column {
+  outline: none;
+}
+
+.picker-column:focus {
+  outline: none;
+}
+
 /* Column-specific highlights (horizontal bars for center row) */
 .picker-column-highlight {
   opacity: 0;
   transition: opacity 0.15s ease;
 }
 
-/* Single column: show highlights only on focus */
-.picker-column:only-child:focus .picker-column-highlight {
+/* Show horizontal highlights on focus (for both single and multi-column) */
+.picker-column:focus .picker-column-highlight {
   opacity: 1;
-}
-
-/* Multi-column: show highlights persistently (brighter and always visible) */
-.picker-column:not(:only-child) .picker-column-highlight {
-  opacity: 0.9;
 }
 
 /* PickerGroup-level highlight lines (center row indicators) */
