@@ -73,6 +73,7 @@ export interface PickerColumnInteractionsResult {
   handlePointerCancel: (event: React.PointerEvent<HTMLDivElement>) => void;
   handlePointerLeave: (event: React.PointerEvent<HTMLDivElement>) => void;
   handleWheel: (event: WheelEvent) => void;
+  handleDoubleClick: (event: React.MouseEvent<HTMLDivElement>) => void;
 }
 
 /**
@@ -406,6 +407,15 @@ export function usePickerPhysics({
     (event: React.PointerEvent<HTMLDivElement>) => {
       const element = event.currentTarget as HTMLElement;
       element.setPointerCapture?.(event.pointerId);
+
+      // DEBUG: Track pointer down
+      console.log('[PICKER-POINTER] DOWN', {
+        pointerId: event.pointerId,
+        pointerType: event.pointerType,
+        isMovingBefore: isMovingRef.current,
+        timestamp: Date.now(),
+      });
+
       pointerTypeRef.current =
         event.pointerType === 'mouse' || event.pointerType === 'pen' || event.pointerType === 'touch'
           ? event.pointerType
@@ -430,7 +440,14 @@ export function usePickerPhysics({
 
   const handlePointerMove = useCallback(
     (event: React.PointerEvent<HTMLDivElement>) => {
-      if (!isMovingRef.current) return;
+      if (!isMovingRef.current) {
+        // DEBUG: Movement blocked
+        console.log('[PICKER-POINTER] MOVE BLOCKED (isMoving=false)', {
+          pointerId: event.pointerId,
+          timestamp: Date.now(),
+        });
+        return;
+      }
 
       // Track velocity
       velocityTracker.addSample(event.clientY);
@@ -470,9 +487,18 @@ export function usePickerPhysics({
 
   const handlePointerUp = useCallback(
     (event: React.PointerEvent<HTMLDivElement>) => {
+      // DEBUG: Track pointer up BEFORE any logic
+      console.log('[PICKER-POINTER] UP', {
+        pointerId: event.pointerId,
+        isMovingBefore: isMovingRef.current,
+        timestamp: Date.now(),
+      });
+
       try {
         (event.currentTarget as HTMLElement).releasePointerCapture?.(event.pointerId);
+        console.log('[PICKER-POINTER] Released capture for ID', event.pointerId);
       } catch (error) {
+        console.error('[PICKER-POINTER] Failed to release capture', error);
         debugSnapLog?.('releasePointerCapture failed', error);
       }
 
@@ -483,6 +509,7 @@ export function usePickerPhysics({
       const shouldSkipSettle = !openingDragThresholdPassedRef.current && !wasOpenOnPointerDownRef.current;
 
       isMovingRef.current = false;
+      console.log('[PICKER-POINTER] Set isMoving = false');
       snapPhysics.reset();
 
       const pointerType = pointerTypeRef.current;
@@ -746,6 +773,19 @@ export function usePickerPhysics({
     boundaryHitFiredRef.current = false;
   }, [options.length]);
 
+  // DEBUG: Handle double-click to detect if pointerUp is being suppressed
+  const handleDoubleClick = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
+    console.log('[PICKER-POINTER] DOUBLE-CLICK detected', {
+      timestamp: Date.now(),
+      isMoving: isMovingRef.current,
+      clientX: event.clientX,
+      clientY: event.clientY,
+    });
+    // Force cleanup in case pointerUp was suppressed
+    isMovingRef.current = false;
+    console.log('[PICKER-POINTER] Forced isMoving = false (dblclick cleanup)');
+  }, []);
+
   return {
     columnRef,
     ySnap,
@@ -759,5 +799,6 @@ export function usePickerPhysics({
     handlePointerCancel,
     handlePointerLeave,
     handleWheel,
+    handleDoubleClick,
   };
 }
