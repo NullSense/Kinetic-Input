@@ -103,6 +103,7 @@ function PickerColumn({
     handlePointerUp,
     handlePointerCancel,
     handlePointerLeave,
+    handleClick,
     handleDoubleClick,
   } = usePickerPhysics({
     key,
@@ -235,6 +236,7 @@ function PickerColumn({
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerCancel}
         onPointerLeave={handlePointerLeave}
+        onClick={handleClick}
         onDoubleClick={handleDoubleClick}
         style={{
           position: 'relative',

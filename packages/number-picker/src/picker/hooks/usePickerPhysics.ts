@@ -76,6 +76,7 @@ export interface PickerColumnInteractionsResult {
   handlePointerCancel: (event: React.PointerEvent<HTMLDivElement>) => void;
   handlePointerLeave: (event: React.PointerEvent<HTMLDivElement>) => void;
   handleWheel: (event: WheelEvent) => void;
+  handleClick: (event: React.MouseEvent<HTMLDivElement>) => void;
   handleDoubleClick: (event: React.MouseEvent<HTMLDivElement>) => void;
 }
 
@@ -406,16 +407,23 @@ export function usePickerPhysics({
     [itemHeight, lastIndex, maxTranslate, minTranslate, releaseProjectionConfig, settleToIndex],
   );
 
+  // DEBUG: Track all captured pointer IDs
+  const capturedPointersRef = useRef<Set<number>>(new Set());
+
   const handlePointerDown = useCallback(
     (event: React.PointerEvent<HTMLDivElement>) => {
       const element = event.currentTarget as HTMLElement;
       element.setPointerCapture?.(event.pointerId);
+
+      // Track this pointer ID
+      capturedPointersRef.current.add(event.pointerId);
 
       // DEBUG: Track pointer down
       console.log('[PICKER-POINTER] DOWN', {
         pointerId: event.pointerId,
         pointerType: event.pointerType,
         isMovingBefore: isMovingRef.current,
+        capturedPointers: Array.from(capturedPointersRef.current),
         timestamp: Date.now(),
       });
 
@@ -494,12 +502,17 @@ export function usePickerPhysics({
       console.log('[PICKER-POINTER] UP', {
         pointerId: event.pointerId,
         isMovingBefore: isMovingRef.current,
+        capturedPointersBefore: Array.from(capturedPointersRef.current),
         timestamp: Date.now(),
       });
 
+      // Remove from tracked pointers
+      capturedPointersRef.current.delete(event.pointerId);
+
       try {
         (event.currentTarget as HTMLElement).releasePointerCapture?.(event.pointerId);
-        console.log('[PICKER-POINTER] Released capture for ID', event.pointerId);
+        console.log('[PICKER-POINTER] Released capture for ID', event.pointerId,
+          'remaining:', Array.from(capturedPointersRef.current));
       } catch (error) {
         console.error('[PICKER-POINTER] Failed to release capture', error);
         debugSnapLog?.('releasePointerCapture failed', error);
@@ -776,17 +789,39 @@ export function usePickerPhysics({
     boundaryHitFiredRef.current = false;
   }, [options.length]);
 
+  // DEBUG: Track click events
+  const handleClick = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
+    console.log('[PICKER-CLICK] CLICK', {
+      timestamp: Date.now(),
+      detail: event.detail, // 1 for single, 2 for double
+      isMoving: isMovingRef.current,
+      capturedPointers: Array.from(capturedPointersRef.current),
+    });
+  }, []);
+
   // DEBUG: Handle double-click to detect if pointerUp is being suppressed
   const handleDoubleClick = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
-    console.log('[PICKER-POINTER] DOUBLE-CLICK detected', {
+    console.log('[PICKER-CLICK] DOUBLE-CLICK detected', {
       timestamp: Date.now(),
       isMoving: isMovingRef.current,
+      capturedPointers: Array.from(capturedPointersRef.current),
       clientX: event.clientX,
       clientY: event.clientY,
     });
-    // Force cleanup in case pointerUp was suppressed
+
+    // SAFETY: Force release ALL captured pointers and cleanup
+    console.log('[PICKER-SAFETY] Forcing cleanup due to dblclick');
+    capturedPointersRef.current.forEach(id => {
+      try {
+        columnRef.current?.releasePointerCapture(id);
+        console.log('[PICKER-SAFETY] Released pointer ID', id);
+      } catch (e) {
+        console.error('[PICKER-SAFETY] Failed to release pointer ID', id, e);
+      }
+    });
+    capturedPointersRef.current.clear();
     isMovingRef.current = false;
-    console.log('[PICKER-POINTER] Forced isMoving = false (dblclick cleanup)');
+    console.log('[PICKER-SAFETY] Forced isMoving = false, cleared all captures');
   }, []);
 
   return {
@@ -802,6 +837,7 @@ export function usePickerPhysics({
     handlePointerCancel,
     handlePointerLeave,
     handleWheel,
+    handleClick,
     handleDoubleClick,
   };
 }
