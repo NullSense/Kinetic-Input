@@ -546,7 +546,11 @@ export function usePickerPhysics({
         velocityTracker.reset();
       };
 
-      settleFromY(currentTranslate, velocity, () => finalize(hasMoved));
+      // CRITICAL: Disable flicking/momentum in single-gesture mode (touch-to-open-and-drag)
+      // Only multi-gesture (picker already open) should have momentum projection
+      const velocityForSettle = wasOpenOnPointerDownRef.current ? velocity : 0;
+
+      settleFromY(currentTranslate, velocityForSettle, () => finalize(hasMoved));
     },
     [
       columnRef,
