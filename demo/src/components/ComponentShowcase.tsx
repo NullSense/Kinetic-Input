@@ -3,12 +3,10 @@ import { motion } from 'framer-motion';
 import {
   CollapsibleNumberPicker,
   StandaloneWheelPicker,
-  PickerGroup,
-  PickerColumn,
-  PickerItem,
 } from '@tensil/kinetic-input';
 import { Code2 } from 'lucide-react';
 import { DEMO_PICKERS } from '../config/pickerDefaults';
+import { TimePickerExample } from './TimePickerExample';
 
 /**
  * Component Showcase Section
@@ -21,9 +19,6 @@ import { DEMO_PICKERS } from '../config/pickerDefaults';
 export function ComponentShowcase() {
   const [weight, setWeight] = useState(DEMO_PICKERS.weight.initialValue);
   const [distance, setDistance] = useState(DEMO_PICKERS.distance.initialValue);
-  const [customValue, setCustomValue] = useState('M');
-
-  const sizeOptions = ['XS', 'S', 'M', 'L', 'XL'];
 
   return (
     <section id="components" className="py-16 px-4x bg-bg">
@@ -40,8 +35,7 @@ export function ComponentShowcase() {
             COMPONENTS
           </h2>
           <p className="text-lg text-muted max-w-2xl mx-auto">
-            Three components, infinite possibilities. From simple number inputs
-            to complex multi-column pickers.
+            Three levels of abstraction. Compact inputs for forms. Inline wheels for dashboards. Multi-column foundation for complex pickers.
           </p>
         </motion.div>
 
@@ -125,7 +119,7 @@ export function ComponentShowcase() {
             </div>
           </motion.div>
 
-          {/* PickerGroup (Custom) */}
+          {/* PickerGroup (Multi-column Time Picker) */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -139,34 +133,22 @@ export function ComponentShowcase() {
                   PickerGroup
                 </h3>
                 <p className="text-sm text-muted">
-                  Low-level API for custom pickers
+                  Multi-column foundation (time picker)
                 </p>
               </div>
               <Code2 className="w-5 h-5 text-accent" strokeWidth={2} />
             </div>
 
             <div className="space-y-4x">
-              <PickerGroup
-                className="h-48 glass-subtle"
-                value={{ size: customValue }}
-                onChange={(newValue: { size: string | number }) => setCustomValue(newValue.size as string)}
-              >
-                <PickerColumn name="size">
-                  {sizeOptions.map((size) => (
-                    <PickerItem key={size} value={size}>
-                      {size}
-                    </PickerItem>
-                  ))}
-                </PickerColumn>
-              </PickerGroup>
+              <TimePickerExample />
 
               <div className="pt-4x border-t border-hairline">
-                <p className="text-xs text-muted mb-2x">Features:</p>
+                <p className="text-xs text-muted mb-2x">Use cases:</p>
                 <ul className="text-xs text-muted space-y-1">
-                  <li>• Full control</li>
-                  <li>• Multi-column support</li>
-                  <li>• Custom styling</li>
-                  <li>• Event-driven API</li>
+                  <li>• Date/time pickers</li>
+                  <li>• Multi-value selection</li>
+                  <li>• Custom UIs</li>
+                  <li>• Full styling control</li>
                 </ul>
               </div>
             </div>

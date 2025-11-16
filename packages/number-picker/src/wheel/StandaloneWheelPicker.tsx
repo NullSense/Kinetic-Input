@@ -113,7 +113,7 @@ const StandaloneWheelPicker: React.FC<StandaloneWheelPickerProps> = ({
         <div
           className={`np-wheel-item ${state.selected || state.visuallySelected ? 'np-wheel-item-selected' : ''}`}
           style={{
-            color: state.selected
+            color: state.selected || state.visuallySelected
               ? option.accentColor ?? accentColor
               : option.accentColor ?? '#E7EDF2',
           }}

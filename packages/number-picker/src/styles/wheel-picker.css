@@ -1,60 +1,57 @@
-/* Standalone wheel picker styling */
+/* Standalone wheel picker - minimal, themeable styling */
 .np-wheel-picker {
+  /* User-customizable */
   --np-wheel-item-height: 48px;
   --np-wheel-font-family: 'Geist Mono', monospace;
   --np-wheel-font-size: 1.25rem;
   --np-wheel-color: #e7edf2;
   --np-wheel-accent-color: #3edcff;
   --np-wheel-unit-color: #8e77b5;
-  --np-wheel-unit-font-size: 0.85rem;
-  --np-wheel-gap: 0.35rem;
-  --np-wheel-padding-inline: 12px;
-  --np-wheel-ease: cubic-bezier(0.32, 0.94, 0.6, 1);
-  --np-wheel-active-scale: 1.04;
-  --np-wheel-active-weight: 600;
-  --np-wheel-transition: 0.2s;
   width: 100%;
 }
 
 .np-wheel-picker .np-wheel-container {
   position: relative;
   width: 100%;
+  /* Base protections */
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: pan-x pinch-zoom;
 }
 
-.np-wheel-picker :where(.np-wheel-item) {
+.np-wheel-picker .np-wheel-item {
   min-height: var(--np-wheel-item-height);
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: var(--np-wheel-gap);
-  padding-inline: var(--np-wheel-padding-inline);
-  text-align: center;
+  gap: 0.35rem;
+  padding-inline: 12px;
   font-family: var(--np-wheel-font-family);
   font-size: var(--np-wheel-font-size);
   font-variant-numeric: tabular-nums;
   font-feature-settings: 'tnum' 1;
   color: var(--np-wheel-color);
-  transition:
-    color var(--np-wheel-transition) var(--np-wheel-ease),
-    transform var(--np-wheel-transition) var(--np-wheel-ease);
+  cursor: default;
+  /* Hardcoded for consistency */
+  transition: color 0.2s cubic-bezier(0.32, 0.94, 0.6, 1),
+              transform 0.2s cubic-bezier(0.32, 0.94, 0.6, 1);
 }
 
 .np-wheel-picker .np-wheel-item-selected {
-  font-weight: var(--np-wheel-active-weight);
+  font-weight: 600;
   color: var(--np-wheel-accent-color);
-  transform: scale(var(--np-wheel-active-scale));
+  transform: scale(1.04);
 }
 
 .np-wheel-picker .np-wheel-unit {
-  font-size: var(--np-wheel-unit-font-size);
+  font-size: 0.85rem;
   color: var(--np-wheel-unit-color);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .np-wheel-picker :where(.np-wheel-item) {
+  .np-wheel-picker .np-wheel-item {
     transition: none;
   }
-
   .np-wheel-picker .np-wheel-item-selected {
     transform: none;
   }
