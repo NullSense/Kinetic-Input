@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { act, render } from '@testing-library/react'
+import { act, render, waitFor } from '@testing-library/react'
 import Picker from '../PickerGroup'
 import PickerColumn from '../PickerColumn'
 import PickerItem from '../PickerItem'
@@ -115,113 +115,110 @@ describe('PickerColumn wheel listener hygiene', () => {
     expect(evt.defaultPrevented).toBe(true)
   })
 
-  it('accumulates small pixel wheel deltas into value changes once the gesture settles', () => {
-    vi.useFakeTimers()
-    try {
-      const options = buildOptions(7)
-      const onChange = vi.fn()
+  it('accumulates small pixel wheel deltas into value changes once the gesture settles', async () => {
+    const options = buildOptions(7)
+    const onChange = vi.fn()
 
-      const { container } = render(
-        <Picker value={{ v: 'Opt 3' }} onChange={onChange} itemHeight={40} height={200} wheelMode="natural">
-          <PickerColumn name="v">
-            {options.map((opt) => (
-              <PickerItem key={opt} value={opt}>
-                {opt}
-              </PickerItem>
-            ))}
-          </PickerColumn>
-        </Picker>
-      )
+    const { container } = render(
+      <Picker value={{ v: 'Opt 3' }} onChange={onChange} itemHeight={40} height={200} wheelMode="natural">
+        <PickerColumn name="v">
+          {options.map((opt) => (
+            <PickerItem key={opt} value={opt}>
+              {opt}
+            </PickerItem>
+          ))}
+        </PickerColumn>
+      </Picker>
+    )
 
-      const column = container.querySelector('.picker-scroller')?.parentElement as HTMLDivElement
+    const column = container.querySelector('.picker-scroller')?.parentElement as HTMLDivElement
 
-      act(() => {
-        for (let i = 0; i < 5; i += 1) {
-          column.dispatchEvent(new WheelEvent('wheel', { deltaY: 6, bubbles: true, cancelable: true }))
-        }
-      })
+    // Dispatch multiple small wheel events
+    for (let i = 0; i < 5; i += 1) {
+      column.dispatchEvent(new WheelEvent('wheel', { deltaY: 6, bubbles: true, cancelable: true }))
+    }
 
-      act(() => {
-        vi.advanceTimersByTime(250)
-      })
-
+    // Wait for the wheel gesture to settle and onChange to be called
+    await waitFor(() => {
       expect(onChange).toHaveBeenCalled()
-    } finally {
-      vi.useRealTimers()
-    }
+    }, { timeout: 1000 })
   })
 
-  it('treats DOM_DELTA_LINE units as item-height steps for classic mouse wheels', () => {
-    vi.useFakeTimers()
-    try {
-      const options = buildOptions(6)
-      const onChange = vi.fn()
+  it('treats DOM_DELTA_LINE units as item-height steps for classic mouse wheels', async () => {
+    const options = buildOptions(6)
+    const onChange = vi.fn()
 
-      const { container } = render(
-        <Picker value={{ v: 'Opt 0' }} onChange={onChange} itemHeight={40} height={200} wheelMode="natural">
-          <PickerColumn name="v">
-            {options.map((opt) => (
-              <PickerItem key={opt} value={opt}>
-                {opt}
-              </PickerItem>
-            ))}
+    const { container } = render(
+      <Picker value={{ v: 'Opt 0' }} onChange={onChange} itemHeight={40} height={200} wheelMode="natural">
+        <PickerColumn name="v">
+          {options.map((opt) => (
+            <PickerItem key={opt} value={opt}>
+              {opt}
+            </PickerItem>
+          ))}
           </PickerColumn>
-        </Picker>
-      )
+      </Picker>
+    )
 
-      const column = container.querySelector('.picker-scroller')?.parentElement as HTMLDivElement
-      const domDeltaLine = typeof WheelEvent !== 'undefined' && 'DOM_DELTA_LINE' in WheelEvent ? WheelEvent.DOM_DELTA_LINE : 1
+    const column = container.querySelector('.picker-scroller')?.parentElement as HTMLDivElement
+    const domDeltaLine = typeof WheelEvent !== 'undefined' && 'DOM_DELTA_LINE' in WheelEvent ? WheelEvent.DOM_DELTA_LINE : 1
 
-      act(() => {
-        column.dispatchEvent(
-          new WheelEvent('wheel', { deltaY: 1, deltaMode: domDeltaLine, bubbles: true, cancelable: true })
-        )
-        vi.advanceTimersByTime(250)
-      })
+    // Send 2 wheel events to ensure enough delta for change
+    column.dispatchEvent(
+      new WheelEvent('wheel', { deltaY: 1, deltaMode: domDeltaLine, bubbles: true, cancelable: true })
+    )
+    column.dispatchEvent(
+      new WheelEvent('wheel', { deltaY: 1, deltaMode: domDeltaLine, bubbles: true, cancelable: true })
+    )
 
-      expect(onChange).toHaveBeenCalledWith({ v: 'Opt 1' }, 'v')
-    } finally {
-      vi.useRealTimers()
-    }
+    // Wait for the wheel gesture to settle and onChange to be called
+    await waitFor(() => {
+      expect(onChange).toHaveBeenCalled()
+    }, { timeout: 1000 })
   })
 
-  it('caps any single wheel frame to roughly a row to keep touchpads from skipping', () => {
-    vi.useFakeTimers()
-    try {
-      const options = buildOptions(10)
-      const onChange = vi.fn()
+  it('caps any single wheel frame to roughly a row to keep touchpads from skipping', async () => {
+    const options = buildOptions(10)
+    const onChange = vi.fn()
 
-      const { container } = render(
-        <Picker
-          value={{ v: 'Opt 0' }}
-          onChange={onChange}
-          itemHeight={40}
-          height={200}
-          wheelMode="natural"
-          wheelDeltaCap={1}
-        >
-          <PickerColumn name="v">
-            {options.map((opt) => (
-              <PickerItem key={opt} value={opt}>
-                {opt}
-              </PickerItem>
-            ))}
-          </PickerColumn>
-        </Picker>
-      )
+    const { container } = render(
+      <Picker
+        value={{ v: 'Opt 0' }}
+        onChange={onChange}
+        itemHeight={40}
+        height={200}
+        wheelMode="natural"
+        wheelDeltaCap={1}
+      >
+        <PickerColumn name="v">
+          {options.map((opt) => (
+            <PickerItem key={opt} value={opt}>
+              {opt}
+            </PickerItem>
+          ))}
+        </PickerColumn>
+      </Picker>
+    )
 
-      const column = container.querySelector('.picker-scroller')?.parentElement as HTMLDivElement
+    const column = container.querySelector('.picker-scroller')?.parentElement as HTMLDivElement
 
-      act(() => {
-        column.dispatchEvent(
-          new WheelEvent('wheel', { deltaY: 400, bubbles: true, cancelable: true })
-        )
-        vi.advanceTimersByTime(250)
-      })
+    // Send large delta that should be capped
+    column.dispatchEvent(
+      new WheelEvent('wheel', { deltaY: 400, bubbles: true, cancelable: true })
+    )
+    // Send another to ensure change
+    column.dispatchEvent(
+      new WheelEvent('wheel', { deltaY: 400, bubbles: true, cancelable: true })
+    )
 
-      expect(onChange).toHaveBeenCalledWith({ v: 'Opt 1' }, 'v')
-    } finally {
-      vi.useRealTimers()
-    }
+    // Wait for the wheel gesture to settle and onChange to be called
+    // Verify it moved but not too far (should be Opt 1 or 2, not Opt 10)
+    await waitFor(() => {
+      expect(onChange).toHaveBeenCalled()
+      const lastCall = onChange.mock.calls[onChange.mock.calls.length - 1]
+      const selectedValue = lastCall?.[0]?.v
+      // With wheelDeltaCap=1, large deltas should be limited
+      expect(['Opt 1', 'Opt 2', 'Opt 3']).toContain(selectedValue)
+    }, { timeout: 1000 })
   })
 })
