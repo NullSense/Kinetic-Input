@@ -117,13 +117,13 @@ export function usePickerPhysics({
   const snapEnabled = mergedSnapConfig.enabled;
   const snapPhysics = useSnapPhysics(mergedSnapConfig);
 
-  // Wheel-specific snap: strong magnetic feel like phone touch, but easier to scroll through rows
+  // Wheel-specific snap: strong magnetic feel with sticky center for precision
   const wheelSnapConfig = useMemo<SnapPhysicsConfig>(
     () => ({
       ...mergedSnapConfig,
-      pullStrength: 1.0,  // Strong magnetic pull (same as pointer for satisfying "thunk")
-      centerLock: 0.3,    // Less sticky center (vs 1.0) - allows easier scrolling through rows
-      velocityReducer: 0.1, // Minimal velocity scaling - keep snap engaged even while moving
+      pullStrength: 1.0,  // Strong pull (matches pointer) without blocking accumulation
+      centerLock: 0.5,    // Sticky center for precision landing (balanced between 0.3 and 1.0)
+      velocityReducer: 0.05, // Very minimal scaling - snap stays strong at all speeds
     }),
     [mergedSnapConfig],
   );
@@ -584,7 +584,10 @@ export function usePickerPhysics({
       const accumulated = wheelRemainderRef.current + delta;
       const boundedDelta = clamp(accumulated, -maxDelta, maxDelta);
       const wasCapped = Math.abs(accumulated) > Math.abs(boundedDelta);
-      if (wasCapped) wheelWasCappedRef.current = true;
+      // Only flag as spike if capping ratio is large (>3x = spike, not normal accel)
+      if (wasCapped && Math.abs(accumulated) / Math.abs(boundedDelta) > 3) {
+        wheelWasCappedRef.current = true;
+      }
       wheelRemainderRef.current = accumulated - boundedDelta;
 
       const currentTranslate = yRaw.get();
@@ -607,10 +610,8 @@ export function usePickerPhysics({
         nextTranslate = snapResult.mappedTranslate + snapTargetTranslate;
       }
 
-      // Track velocity ONLY for uncapped deltas (prevents false velocity from touchpad spikes)
-      if (!wasCapped) {
-        velocityTracker.addSample(rawTranslate);
-      }
+      // Track ALL deltas for accurate velocity (flicks need full velocity captured)
+      velocityTracker.addSample(rawTranslate);
 
       updateScrollerWhileMoving(nextTranslate);
     },
@@ -665,8 +666,9 @@ export function usePickerPhysics({
         const movementDelta = Math.abs(currentTranslate - startTranslate);
         const hasMoved = movementDelta > 2;
 
-        // Get velocity before settling (will be 0 for spikes since we don't track capped deltas)
-        const velocity = velocityTracker.getVelocity();
+        // Get velocity and disable projection for spikes (capping = spike, not flick)
+        const rawVelocity = velocityTracker.getVelocity();
+        const velocity = wheelWasCappedRef.current ? 0 : rawVelocity;
 
         settleFromY(currentTranslate, velocity, () => {
           snapPhysics.reset();
