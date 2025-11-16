@@ -132,7 +132,7 @@ export function CollapsibleNumberPickerPresenter({ viewModel }: CollapsibleNumbe
     const pickerSurfaceStyle = useMemo<CSSProperties>(
         () => ({
             pointerEvents: 'auto' as const,
-            // When open, lower z-index so PickerColumn pointer events are on top for single-gesture
+            // Higher z-index when closed to receive initial click, lower when open to allow PickerColumn drag
             zIndex: showPicker ? 5 : 15,
             cursor: showPicker ? 'grab' : 'pointer',
             // Set explicit height to match visible bounds (prevents extended hitbox)
@@ -152,10 +152,10 @@ export function CollapsibleNumberPickerPresenter({ viewModel }: CollapsibleNumbe
             borderStyle: 'solid',
             height: `${pickerWindowHeight}px`,
             transformOrigin: 'top',
-            // When open, higher z-index to be on top of picker-surface for single-gesture drag
+            // Lower z-index than picker-surface so picker-surface can receive initial click when closed
             zIndex: showPicker ? 10 : 0,
-            // CRITICAL: Disable pointer events when closed to prevent PickerColumn from capturing clicks
-            pointerEvents: showPicker ? ('auto' as const) : ('none' as const),
+            // Always auto - PickerColumn will conditionally capture based on isPickerOpen
+            pointerEvents: 'auto' as const,
         }),
         [pickerWindowHeight, theme.fadeColor, theme.highlightBorderColor, showPicker]
     );
