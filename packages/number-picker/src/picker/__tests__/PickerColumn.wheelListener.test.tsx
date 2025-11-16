@@ -184,4 +184,44 @@ describe('PickerColumn wheel listener hygiene', () => {
       vi.useRealTimers()
     }
   })
+
+  it('caps any single wheel frame to roughly a row to keep touchpads from skipping', () => {
+    vi.useFakeTimers()
+    try {
+      const options = buildOptions(10)
+      const onChange = vi.fn()
+
+      const { container } = render(
+        <Picker
+          value={{ v: 'Opt 0' }}
+          onChange={onChange}
+          itemHeight={40}
+          height={200}
+          wheelMode="natural"
+          wheelDeltaCap={1}
+        >
+          <PickerColumn name="v">
+            {options.map((opt) => (
+              <PickerItem key={opt} value={opt}>
+                {opt}
+              </PickerItem>
+            ))}
+          </PickerColumn>
+        </Picker>
+      )
+
+      const column = container.querySelector('.picker-scroller')?.parentElement as HTMLDivElement
+
+      act(() => {
+        column.dispatchEvent(
+          new WheelEvent('wheel', { deltaY: 400, bubbles: true, cancelable: true })
+        )
+        vi.advanceTimersByTime(250)
+      })
+
+      expect(onChange).toHaveBeenCalledWith({ v: 'Opt 1' }, 'v')
+    } finally {
+      vi.useRealTimers()
+    }
+  })
 })

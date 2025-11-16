@@ -50,6 +50,7 @@ const CollapsibleNumberPickerComponent: React.FC<CollapsibleNumberPickerProps> =
     feedbackConfig,
     wheelMode = 'inverted',
     wheelSensitivity = 1,
+    wheelDeltaCap = 1.25,
     visualTweaks,
     timingPreset,
     timingConfig,
@@ -235,6 +236,7 @@ const CollapsibleNumberPickerComponent: React.FC<CollapsibleNumberPickerProps> =
             snapConfig: pickerSnapConfig,
             wheelMode,
             wheelSensitivity,
+            wheelDeltaCap,
         }),
         [
             values,
@@ -250,6 +252,7 @@ const CollapsibleNumberPickerComponent: React.FC<CollapsibleNumberPickerProps> =
             pickerSnapConfig,
             wheelMode,
             wheelSensitivity,
+            wheelDeltaCap,
         ]
     );
 

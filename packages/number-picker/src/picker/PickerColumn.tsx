@@ -31,8 +31,15 @@ function PickerColumn({
   options: directOptions,
   ...restProps
 }: PickerColumnProps) {
-  const { height, itemHeight, wheelMode, wheelSensitivity, value: groupValue, optionGroups } =
-    usePickerData('Picker.Column');
+  const {
+    height,
+    itemHeight,
+    wheelMode,
+    wheelSensitivity,
+    wheelDeltaCap,
+    value: groupValue,
+    optionGroups,
+  } = usePickerData('Picker.Column');
 
   const value = useMemo(() => groupValue[key], [groupValue, key]);
   // Use direct options if provided (bypasses O(n²) registration), otherwise fall back to registered options
@@ -105,6 +112,7 @@ function PickerColumn({
     isPickerOpen,
     wheelMode,
     wheelSensitivity,
+    wheelDeltaCap,
     changeValue: pickerActions.change,
     onGesture,
     snapConfig,

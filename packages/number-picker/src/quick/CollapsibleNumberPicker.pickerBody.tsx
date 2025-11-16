@@ -22,6 +22,7 @@ export interface PickerBodyProps {
     snapConfig?: SnapPhysicsConfig;
     wheelMode?: 'off' | 'natural' | 'inverted';
     wheelSensitivity?: number;
+    wheelDeltaCap?: number;
 }
 
 /**
@@ -44,6 +45,7 @@ export const PickerBody = React.memo(function PickerBody({
     snapConfig,
     wheelMode = 'inverted',
     wheelSensitivity = 1,
+    wheelDeltaCap = 1.25,
 }: PickerBodyProps) {
     // Shared render function eliminates 10,000 function closures for scalability
     const sharedRender = useCallback(
@@ -76,6 +78,7 @@ export const PickerBody = React.memo(function PickerBody({
             onChange={handleValueChange}
             wheelMode={wheelMode}
             wheelSensitivity={wheelSensitivity}
+            wheelDeltaCap={wheelDeltaCap}
             height={pickerWindowHeight}
             itemHeight={itemHeightPx}
         >
