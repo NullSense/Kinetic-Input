@@ -14,7 +14,7 @@ import {
 
 const DEFAULT_HEIGHT = 216;
 const DEFAULT_ITEM_HEIGHT = 36;
-const DEFAULT_WHEEL_MODE = 'off';
+const DEFAULT_WHEEL_MODE = 'natural'; // Natural scroll by default - better UX
 const DEFAULT_WHEEL_SENSITIVITY = 1;
 const DEFAULT_WHEEL_DELTA_CAP = 1.25;
 

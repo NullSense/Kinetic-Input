@@ -27,6 +27,9 @@ export interface StandaloneWheelPickerProps {
   highlightColor?: string;
   enableSnapPhysics?: boolean;
   snapPhysicsConfig?: Partial<SnapPhysicsConfig>;
+  wheelMode?: 'off' | 'natural' | 'inverted';
+  wheelSensitivity?: number;
+  wheelDeltaCap?: number;
   renderItem?: (
     option: NormalizedPickerOption,
     state: { selected: boolean; visuallySelected: boolean }
@@ -59,6 +62,9 @@ const StandaloneWheelPicker: React.FC<StandaloneWheelPickerProps> = ({
   highlightColor,
   enableSnapPhysics = false,
   snapPhysicsConfig,
+  wheelMode,
+  wheelSensitivity,
+  wheelDeltaCap,
   renderItem,
 }) => {
   const normalizedOptions = useMemo<NormalizedPickerOption[]>(() => {
@@ -149,7 +155,15 @@ const StandaloneWheelPicker: React.FC<StandaloneWheelPickerProps> = ({
   return (
     <div className={`np-wheel-picker ${className}`} style={containerStyle}>
       <div className="np-wheel-container">
-        <PickerGroup value={pickerValue} onChange={handleValueChange} height={pickerHeight} itemHeight={itemHeight}>
+        <PickerGroup
+          value={pickerValue}
+          onChange={handleValueChange}
+          height={pickerHeight}
+          itemHeight={itemHeight}
+          wheelMode={wheelMode}
+          wheelSensitivity={wheelSensitivity}
+          wheelDeltaCap={wheelDeltaCap}
+        >
           <PickerGroup.Column name="value" snapConfig={mergedSnapConfig} options={pickerOptions} />
         </PickerGroup>
       </div>
