@@ -104,7 +104,7 @@ export function usePickerPhysics({
   // Create velocity tracker for pointer/wheel gestures
   const velocityTracker = useMemo(() => createVelocityTracker({
     sampleCount: 5,
-    maxSampleAge: 100,
+    maxSampleAge: 250, // Must exceed wheel idle timeout (200ms) to capture velocity
   }), []);
 
   const mergedSnapConfig = useMemo<SnapPhysicsConfig>(
@@ -563,7 +563,7 @@ export function usePickerPhysics({
 
       delta *= normalizedWheelSensitivity;
 
-      if (wheelMode === 'inverted') {
+      if (wheelMode === 'natural') {
         delta = -delta;
       }
 
@@ -575,7 +575,7 @@ export function usePickerPhysics({
       const currentTranslate = yRaw.get();
       const nextTranslate = currentTranslate + boundedDelta;
 
-      // Track wheel velocity using the raw translate value
+      // Track wheel velocity using raw delta (snap applied only on settle, not during active scroll)
       velocityTracker.addSample(nextTranslate);
 
       updateScrollerWhileMoving(nextTranslate);
@@ -583,8 +583,7 @@ export function usePickerPhysics({
     [
       height,
       itemHeight,
-      lastIndex,
-      maxTranslate,
+      normalizedWheelDeltaCap,
       normalizedWheelSensitivity,
       updateScrollerWhileMoving,
       velocityTracker,

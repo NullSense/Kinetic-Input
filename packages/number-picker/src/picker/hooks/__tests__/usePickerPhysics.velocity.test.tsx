@@ -243,7 +243,7 @@ describe('usePickerPhysics velocity wiring', () => {
     expect(projectionCall?.[2].projectionSeconds).toBeCloseTo(0.08, 5);
   });
 
-  it('keeps wheel micro-scroll deltas intact instead of snapping to full rows', () => {
+  it('keeps wheel micro-scroll deltas intact (snap only on settle, not during active scroll)', () => {
     const options = makeOptions(7);
     const { result } = renderHook(() =>
       usePickerPhysics({ ...baseConfig, options, selectedIndex: 3 })
@@ -259,6 +259,7 @@ describe('usePickerPhysics velocity wiring', () => {
       result.current.handleWheel(wheelEvent);
     });
 
+    // Snap physics should NOT be applied during active wheel scrolling (only on settle)
     expect(snapSpies.calculate).not.toHaveBeenCalled();
   });
 
@@ -278,7 +279,8 @@ describe('usePickerPhysics velocity wiring', () => {
       result.current.handleWheel(wheelEvent);
     });
 
+    // For natural mode, positive deltaY is negated, so translate moves in negative direction
     const lastSample = trackerSpies.addSample.mock.calls.at(-1)?.[0];
-    expect(lastSample).toBeCloseTo(4, 5);
+    expect(lastSample).toBeCloseTo(-4, 5);
   });
 });
