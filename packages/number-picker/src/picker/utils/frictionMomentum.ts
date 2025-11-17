@@ -171,21 +171,26 @@ export function animateMomentumWithFriction(
 
   /**
    * Check if should transition to snap phase
+   *
+   * CRITICAL: Only snap when velocity is low. Do NOT check distance threshold
+   * while velocity is high, as this causes premature snapping when passing
+   * near snap points, resulting in "go past then back" bounce-back behavior.
    */
   const shouldSnap = (currentPos: number, currentVelocity: number): {
     should: boolean;
     reason?: string;
   } => {
     const absVelocity = Math.abs(currentVelocity);
+
+    // Primary condition: Snap when velocity has decayed sufficiently
     if (absVelocity < config.snapVelocityThreshold) {
       return { should: true, reason: 'velocity threshold' };
     }
 
-    const snapTarget = snapFunction(currentPos);
-    const distanceToSnap = Math.abs(currentPos - snapTarget);
-    if (distanceToSnap < config.snapDistanceThreshold) {
-      return { should: true, reason: 'distance threshold' };
-    }
+    // REMOVED: Distance threshold check
+    // Previous bug: Checked distance every frame, causing snap while moving fast
+    // Example: Moving at -800 px/s, pass within 5px of snap point → premature snap → bounce
+    // Fix: Let friction run its course, only snap when velocity is naturally low
 
     return { should: false };
   };
