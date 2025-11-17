@@ -390,7 +390,7 @@ export function CodeSnippets() {
                   backgroundColor: 'transparent',
                   outline: 'none',
                 }}
-                textareaClassName="focus:outline-none focus:ring-2 focus:ring-accent/50"
+                textareaClassName="focus:outline-hidden focus:ring-2 focus:ring-accent/50"
               />
             </div>
 

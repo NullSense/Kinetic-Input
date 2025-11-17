@@ -1,78 +1,166 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
 
-:root {
-  /* Core palette from DESIGN_SYSTEM_V2.4 */
-  --bg: #0A0B0D;
-  --fg: #E7EDF2;
-  --muted: #9DB1BE;
-  --hairline: #15181B;
+@theme {
+  --color-bg: #0a0b0d;
+  --color-fg: #e7edf2;
+  --color-muted: #9db1be;
+  --color-hairline: #15181b;
+  --color-accent: #3edcff;
+  --color-secondary: #8e77b5;
+  --color-success: #31e889;
+  --color-danger: #e03e3e;
+  --color-warning: #ffb84d;
+  --color-pending: #ffb84d;
+  --color-complete: #4ade80;
 
-  /* Brand */
-  --accent: #3EDCFF;
-  --secondary: #8E77B5;
+  --font-display: Anta, sans-serif;
+  --font-sans: Archivo, system-ui, sans-serif;
+  --font-mono: Geist Mono, monospace;
 
-  /* Semantic */
-  --success: #31E889;
-  --danger: #E03E3E;
-  --warning: #FFB84D;
+  --spacing-1x: 8px;
+  --spacing-2x: 16px;
+  --spacing-3x: 24px;
+  --spacing-4x: 32px;
+  --spacing-6x: 48px;
+  --spacing-8x: 64px;
 
-  /* Animation timings */
-  --duration-instant: 100ms;
-  --duration-fast: 200ms;
-  --duration-medium: 300ms;
-  --duration-slow: 500ms;
+  --animate-fade-in: fadeIn 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  --animate-slide-up: slideUp 200ms cubic-bezier(0, 0, 0.2, 1);
+  --animate-scale-in: scaleIn 200ms cubic-bezier(0.4, 0, 0.2, 1);
 
-  --easing-standard: cubic-bezier(0.4, 0, 0.2, 1);
-  --easing-enter: cubic-bezier(0, 0, 0.2, 1);
-  --easing-exit: cubic-bezier(0.4, 0, 1, 1);
+  --transition-duration-instant: 100ms;
+  --transition-duration-fast: 200ms;
+  --transition-duration-medium: 300ms;
+  --transition-duration-slow: 500ms;
+
+  --z-index-base: 0;
+  --z-index-dropdown: 50;
+  --z-index-modal: 60;
+  --z-index-drawer: 65;
+  --z-index-dialog: 70;
+  --z-index-toast: 80;
+
+  @keyframes fadeIn {
+    0% {
+      opacity: 0;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
+  @keyframes slideUp {
+    0% {
+      transform: translateY(20px);
+      opacity: 0;
+    }
+    100% {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+  @keyframes scaleIn {
+    0% {
+      transform: scale(0.9);
+      opacity: 0;
+    }
+    100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
 }
 
-html {
-  scroll-behavior: smooth;
+/*
+  The default border color has changed to `currentcolor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentcolor);
+  }
 }
 
-body {
-  color: var(--fg);
-  background: var(--bg);
-  font-family: 'Archivo', system-ui, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+@utility text-balance {
+  /* Cyber-Editorial Brutalism utilities */
+  text-wrap: balance;
+}
+
+@utility glass-subtle {
+  /* Minimal glassmorphism (when absolutely necessary) */
+  background: rgba(10, 11, 13, 0.8);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--hairline);
+}
+
+@utility hairline-divider {
+  /* Hairline rules */
+  height: 1px;
+  background: var(--hairline);
+}
+
+@utility hover-accent {
+  /* Interactive states (subtle, not flashy) */
+  transition: color var(--duration-instant) var(--easing-standard);
+
+  &:hover {
+    color: var(--accent);
+  }
+}
+
+@utility focus-accent {
+  /* Focus indicators */
+  &:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
 }
 
 @layer utilities {
-  /* Cyber-Editorial Brutalism utilities */
-  .text-balance {
-    text-wrap: balance;
+  :root {
+    /* Core palette from DESIGN_SYSTEM_V2.4 */
+    --bg: #0a0b0d;
+    --fg: #e7edf2;
+    --muted: #9db1be;
+    --hairline: #15181b;
+
+    /* Brand */
+    --accent: #3edcff;
+    --secondary: #8e77b5;
+
+    /* Semantic */
+    --success: #31e889;
+    --danger: #e03e3e;
+    --warning: #ffb84d;
+
+    /* Animation timings */
+    --duration-instant: 100ms;
+    --duration-fast: 200ms;
+    --duration-medium: 300ms;
+    --duration-slow: 500ms;
+
+    --easing-standard: cubic-bezier(0.4, 0, 0.2, 1);
+    --easing-enter: cubic-bezier(0, 0, 0.2, 1);
+    --easing-exit: cubic-bezier(0.4, 0, 1, 1);
   }
 
-  /* Minimal glassmorphism (when absolutely necessary) */
-  .glass-subtle {
-    background: rgba(10, 11, 13, 0.8);
-    backdrop-filter: blur(10px);
-    border: 1px solid var(--hairline);
+  html {
+    scroll-behavior: smooth;
   }
 
-  /* Hairline rules */
-  .hairline-divider {
-    height: 1px;
-    background: var(--hairline);
-  }
-
-  /* Interactive states (subtle, not flashy) */
-  .hover-accent {
-    transition: color var(--duration-instant) var(--easing-standard);
-  }
-
-  .hover-accent:hover {
-    color: var(--accent);
-  }
-
-  /* Focus indicators */
-  .focus-accent:focus-visible {
-    outline: 2px solid var(--accent);
-    outline-offset: 2px;
+  body {
+    color: var(--fg);
+    background: var(--bg);
+    font-family: 'Archivo', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 }
 

@@ -226,7 +226,7 @@ export const CollapsibleNumberPickerPresenter = React.memo(function CollapsibleN
                 {showPicker && showBackdrop && <div className="picker-backdrop" onClick={onBackdropClick} />}
 
                 <div
-                    className="absolute top-0 left-0 right-0 overflow-hidden focus:outline-none picker-surface"
+                    className="absolute top-0 left-0 right-0 overflow-hidden focus:outline-hidden picker-surface"
                     style={pickerSurfaceStyle}
                     id={controlId}
                     ref={interactiveRef}

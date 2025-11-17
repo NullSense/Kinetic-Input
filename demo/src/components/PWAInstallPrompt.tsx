@@ -90,7 +90,7 @@ export function PWAInstallPrompt() {
       >
         <div className="glass-subtle p-4x border-accent/30">
           <div className="flex items-start gap-3x">
-            <div className="flex-shrink-0">
+            <div className="shrink-0">
               <Smartphone className="w-5 h-5 text-accent" strokeWidth={2} />
             </div>
             <div className="flex-1">
@@ -118,7 +118,7 @@ export function PWAInstallPrompt() {
             </div>
             <button
               onClick={handleDismiss}
-              className="flex-shrink-0 p-1 hover:opacity-70 transition-opacity duration-instant focus-accent"
+              className="shrink-0 p-1 hover:opacity-70 transition-opacity duration-instant focus-accent"
               aria-label="Close"
             >
               <X className="w-4 h-4 text-muted" strokeWidth={2} />

@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CollapsibleNumberPicker } from '@tensil/kinetic-input';
-import { Palette, X, Code2, Copy, Check } from 'lucide-react';
+import { Palette, X, Code2 } from 'lucide-react';
 import { DEMO_PICKERS } from '../config/pickerDefaults';
+import { CodeBlock } from './CodeBlock';
 
 type Preset = {
   id: string;
@@ -302,13 +303,6 @@ const gamingTheme = buildTheme({
 export function PresetsGallery() {
   const [selectedPreset, setSelectedPreset] = useState<Preset | null>(null);
   const [presetValue, setPresetValue] = useState(DEMO_PICKERS.weight.initialValue);
-  const [copied, setCopied] = useState(false);
-
-  const copyCode = (code: string) => {
-    navigator.clipboard.writeText(code);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
 
   return (
     <section id="presets" className="py-16 px-4x bg-hairline/30">
@@ -358,9 +352,9 @@ export function PresetsGallery() {
 
               {/* Preview Swatch */}
               <div className="flex gap-2">
-                <div className={`w-8 h-8 rounded ${preset.theme.bg} ${preset.theme.border} border-2`} />
-                <div className={`w-8 h-8 rounded ${preset.theme.fg.replace('text-', 'bg-')}`} />
-                <div className={`w-8 h-8 rounded ${preset.theme.accent.replace('text-', 'bg-')}`} />
+                <div className={`w-8 h-8 rounded-sm ${preset.theme.bg} ${preset.theme.border} border-2`} />
+                <div className={`w-8 h-8 rounded-sm ${preset.theme.fg.replace('text-', 'bg-')}`} />
+                <div className={`w-8 h-8 rounded-sm ${preset.theme.accent.replace('text-', 'bg-')}`} />
               </div>
             </motion.button>
           ))}
@@ -374,7 +368,7 @@ export function PresetsGallery() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="fixed inset-0 z-modal bg-bg/90 backdrop-blur-sm flex items-center justify-center p-4x"
+              className="fixed inset-0 z-modal bg-bg/90 backdrop-blur-xs flex items-center justify-center p-4x"
               onClick={() => setSelectedPreset(null)}
             >
               <motion.div
@@ -384,9 +378,10 @@ export function PresetsGallery() {
                 transition={{ duration: 0.2 }}
                 onClick={(e) => e.stopPropagation()}
                 className={`
-                  relative max-w-md w-full p-8x
+                  relative max-w-2xl w-full p-8x
                   ${selectedPreset.theme.bg} ${selectedPreset.theme.fg}
                   ${selectedPreset.theme.border} border-2
+                  max-h-[90vh] overflow-y-auto
                 `}
               >
                 {/* Close Button */}
@@ -426,31 +421,15 @@ export function PresetsGallery() {
 
                 {/* Code Snippet */}
                 <div className="mt-6x">
-                  <div className="flex items-center justify-between mb-2x">
-                    <div className="flex items-center gap-2">
-                      <Code2 className="w-4 h-4 opacity-70" strokeWidth={2} />
-                      <span className="text-sm font-medium uppercase opacity-70">Configuration</span>
-                    </div>
-                    <button
-                      onClick={() => copyCode(selectedPreset.codeSnippet)}
-                      className="flex items-center gap-1x px-2x py-1x text-xs font-medium opacity-70 hover:opacity-100 transition-opacity duration-instant focus-accent"
-                    >
-                      {copied ? (
-                        <>
-                          <Check className="w-3 h-3" strokeWidth={2} />
-                          <span>Copied!</span>
-                        </>
-                      ) : (
-                        <>
-                          <Copy className="w-3 h-3" strokeWidth={2} />
-                          <span>Copy</span>
-                        </>
-                      )}
-                    </button>
+                  <div className="flex items-center gap-2 mb-2x">
+                    <Code2 className="w-4 h-4 opacity-70" strokeWidth={2} />
+                    <span className="text-sm font-medium uppercase opacity-70">Configuration</span>
                   </div>
-                  <pre className="text-xs opacity-70 overflow-x-auto p-3x bg-black/10 font-mono whitespace-pre-wrap break-words">
-                    {selectedPreset.codeSnippet}
-                  </pre>
+                  <CodeBlock
+                    code={selectedPreset.codeSnippet}
+                    language="tsx"
+                    showCopy={true}
+                  />
                 </div>
 
                 <div className="mt-6x pt-6x border-t opacity-50">
