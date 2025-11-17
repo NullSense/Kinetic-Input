@@ -7,6 +7,8 @@
  * @module gestures/velocityTracker
  */
 
+import { debugPickerLog } from '../../utils/debug';
+
 export interface VelocityTrackerConfig {
   /**
    * Number of recent samples to keep for velocity calculation
@@ -84,12 +86,16 @@ export function createVelocityTracker(config: VelocityTrackerConfig = {}) {
       return 0;
     }
 
+    // Use RELATIVE timestamps from first sample to avoid floating point precision issues
+    // Epoch timestamps are huge numbers (1700000000000+), squaring them causes precision loss
+    const timeOffset = recentSamples[0].timestamp;
+
     // Use linear regression for better noise resistance
     const n = recentSamples.length;
     let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
 
     recentSamples.forEach((sample) => {
-      const x = sample.timestamp;
+      const x = sample.timestamp - timeOffset; // Relative time in ms (0, 16, 32, ...)
       const y = sample.position;
       sumX += x;
       sumY += y;
@@ -107,7 +113,21 @@ export function createVelocityTracker(config: VelocityTrackerConfig = {}) {
     const slope = (n * sumXY - sumX * sumY) / denominator;
 
     // Convert from px/ms to px/s
-    return slope * 1000;
+    const velocity = slope * 1000;
+
+    debugPickerLog('VELOCITY CALCULATED', {
+      sampleCount: n,
+      timeSpan: (recentSamples[n-1].timestamp - recentSamples[0].timestamp) + 'ms',
+      positionDelta: (recentSamples[n-1].position - recentSamples[0].position).toFixed(1) + 'px',
+      slope: slope.toFixed(3) + ' px/ms',
+      velocity: velocity.toFixed(1) + ' px/s',
+      samples: recentSamples.map(s => ({
+        relTime: (s.timestamp - timeOffset) + 'ms',
+        pos: s.position.toFixed(1) + 'px'
+      }))
+    });
+
+    return velocity;
   };
 
   /**

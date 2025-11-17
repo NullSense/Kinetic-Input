@@ -284,4 +284,69 @@ describe('usePickerPhysics velocity wiring', () => {
     // The velocity tracker gets samples, but wheel settling always uses velocity=0
     expect(trackerSpies.addSample).toHaveBeenCalled();
   });
+
+  it('multi-gesture mode: fast swipe projects further than slow swipe (CRITICAL)', () => {
+    // This test verifies the user's reported issue: "even in multi mode, fast and slow swipes travel identical distances"
+    const options = makeOptions(50); // Large list to avoid boundary clamping
+
+    const { result } = renderHook(() =>
+      usePickerPhysics({
+        ...baseConfig,
+        options,
+        selectedIndex: 25, // Middle of list
+        isPickerOpen: true, // ALREADY OPEN = multi-gesture mode
+      })
+    );
+
+    const columnNode = {
+      setPointerCapture: vi.fn(),
+      releasePointerCapture: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      getBoundingClientRect: () => ({ top: 0, bottom: 200, height: 200, width: 100, left: 0, right: 100, x: 0, y: 0, toJSON: () => {} }),
+    } as unknown as HTMLDivElement;
+
+    act(() => {
+      result.current.columnRef.current = columnNode;
+    });
+
+    // Scenario 1: SLOW swipe (200 px/s velocity)
+    velocityState.value = 200;
+    releaseMomentumMock.projectReleaseTranslate.mockClear();
+
+    act(() => {
+      result.current.handlePointerDown({ pointerId: 1, pointerType: 'touch', clientY: 100, currentTarget: columnNode, target: columnNode } as any);
+      result.current.handlePointerMove({ pointerId: 1, pointerType: 'touch', clientY: 80, currentTarget: columnNode, target: columnNode } as any);
+      result.current.handlePointerUp({ pointerId: 1, pointerType: 'touch', clientY: 80, currentTarget: columnNode, target: columnNode } as any);
+    });
+
+    const slowProjectionCall = releaseMomentumMock.projectReleaseTranslate.mock.calls[0];
+    expect(slowProjectionCall).toBeDefined();
+    const slowVelocityUsed = slowProjectionCall[1]; // Second arg is velocity
+
+    // Scenario 2: FAST swipe (3000 px/s velocity)
+    velocityState.value = 3000;
+    releaseMomentumMock.projectReleaseTranslate.mockClear();
+
+    act(() => {
+      result.current.handlePointerDown({ pointerId: 2, pointerType: 'touch', clientY: 100, currentTarget: columnNode, target: columnNode } as any);
+      result.current.handlePointerMove({ pointerId: 2, pointerType: 'touch', clientY: 80, currentTarget: columnNode, target: columnNode } as any);
+      result.current.handlePointerUp({ pointerId: 2, pointerType: 'touch', clientY: 80, currentTarget: columnNode, target: columnNode } as any);
+    });
+
+    const fastProjectionCall = releaseMomentumMock.projectReleaseTranslate.mock.calls[0];
+    expect(fastProjectionCall).toBeDefined();
+    const fastVelocityUsed = fastProjectionCall[1]; // Second arg is velocity
+
+    // CRITICAL ASSERTION: Fast velocity should be significantly higher than slow velocity
+    expect(Math.abs(fastVelocityUsed)).toBeGreaterThan(Math.abs(slowVelocityUsed) * 5);
+
+    // Verify velocities are not zero (momentum is enabled)
+    expect(Math.abs(slowVelocityUsed)).toBeGreaterThan(0);
+    expect(Math.abs(fastVelocityUsed)).toBeGreaterThan(0);
+
+    // Verify projectReleaseTranslate was called with the actual velocities
+    expect(slowVelocityUsed).toBe(200); // Full velocity in multi-gesture
+    expect(fastVelocityUsed).toBe(3000); // Full velocity in multi-gesture
+  });
 });
