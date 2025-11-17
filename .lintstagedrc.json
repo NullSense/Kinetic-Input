@@ -1,0 +1,6 @@
+{
+  "*.{ts,tsx}": [
+    "oxlint --fix",
+    "vitest related --run --reporter=verbose"
+  ]
+}

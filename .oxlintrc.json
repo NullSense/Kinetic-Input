@@ -42,6 +42,7 @@
     "typescript/no-explicit-any": "error",
     "typescript/no-unused-vars": "error",
     "typescript/prefer-as-const": "error",
+    "typescript/consistent-type-imports": "error",
 
     // React Hooks rules
     "react-hooks/exhaustive-deps": "warn",
@@ -64,7 +65,17 @@
     // General code quality
     "no-console": "off",
     "no-debugger": "warn",
-    "no-alert": "warn"
+    "no-alert": "warn",
+
+    // Dead code detection
+    "no-unused-vars": "error",
+    "no-duplicate-imports": "error",
+    "no-restricted-imports": ["error", {
+      "patterns": [{
+        "group": ["**/utils/releaseMomentum*"],
+        "message": "releaseMomentum was removed, use frictionMomentum instead"
+      }]
+    }]
   },
 
   "env": {
