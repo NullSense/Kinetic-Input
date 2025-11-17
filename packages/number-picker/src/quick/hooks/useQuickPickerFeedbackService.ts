@@ -1,6 +1,5 @@
 import { useMemo } from 'react';
-import { TIMING_PRESETS } from '../../config/timing';
-import type { TimingConfig, TimingPreset } from '../../config/timing';
+import { TIMING_PRESETS, type TimingConfig, type TimingPreset } from '../../config/timing';
 import type { QuickPickerFeedbackConfig } from '../types';
 import { usePickerFeedback } from './usePickerFeedback';
 

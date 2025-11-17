@@ -1,5 +1,4 @@
-import type React from 'react';
-import {
+import React, {
   useCallback,
   useEffect,
   useMemo,
@@ -383,10 +382,11 @@ export function usePickerPhysics({
       }
 
       // Start friction-based momentum animation
-      // Scale velocity to 35% for controlled flick speed
+      // Scale velocity to 25% for controlled, precise flick speed
+      // Lower scaling provides more predictable momentum behavior
       const controls = animateMomentumWithFriction({
         control: yRaw,
-        initialVelocity: velocity * 0.35,
+        initialVelocity: velocity * 0.25,
         bounds: {
           min: minTranslate,
           max: maxTranslate,
@@ -621,18 +621,19 @@ export function usePickerPhysics({
         velocityTracker.reset();
       };
 
-      // Apply damped momentum in single-gesture mode to prevent overshoot
-      // Full momentum in multi-gesture mode (picker already open)
-      const singleGestureDamping = 0.6; // 60% of velocity for touch-to-open-and-drag
+      // Single-gesture mode (open-and-drag): NO momentum for precise value selection
+      // Multi-gesture mode (picker already open): Full momentum for fluid scrolling
+      // This architectural decision ensures users can precisely select values when
+      // opening the picker, while maintaining the kinetic feel during normal scrolling.
       const velocityForSettle = wasOpenOnPointerDownRef.current
-        ? velocity
-        : velocity * singleGestureDamping;
+        ? velocity    // Multi-gesture: use full velocity for momentum
+        : 0;          // Single-gesture: no momentum, snap directly to nearest value
 
       debugPickerLog('VELOCITY', {
         measured: velocity.toFixed(0) + ' px/s',
         used: velocityForSettle.toFixed(0) + ' px/s',
         mode: wasOpenOnPointerDownRef.current ? 'multi-gesture' : 'single-gesture',
-        damping: wasOpenOnPointerDownRef.current ? 1.0 : singleGestureDamping,
+        behavior: wasOpenOnPointerDownRef.current ? 'momentum' : 'direct-snap',
       });
 
       settleFromY(currentTranslate, velocityForSettle, () => finalize(hasMoved));
@@ -881,5 +882,7 @@ export function usePickerPhysics({
     handleWheel,
     handleClick,
     handleDoubleClick,
+    // Exposed for external interruption (e.g., keyboard navigation, wheel events)
+    interruptMomentum: stopActiveAnimation,
   };
 }

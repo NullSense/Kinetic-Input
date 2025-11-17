@@ -1,7 +1,4 @@
 import {
-  CSSProperties,
-  HTMLProps,
-  ReactNode,
   createContext,
   useCallback,
   useContext,
@@ -9,6 +6,9 @@ import {
   useMemo,
   useReducer,
   useRef,
+  type CSSProperties,
+  type HTMLProps,
+  type ReactNode,
   type KeyboardEvent,
 } from 'react';
 

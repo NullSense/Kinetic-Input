@@ -1,5 +1,4 @@
-import { useMemo } from 'react';
-import type { ReactNode } from 'react';
+import { useMemo, type ReactNode } from 'react';
 import type { CollapsibleNumberPickerTheme } from '../types';
 import type {
     AriaProps,

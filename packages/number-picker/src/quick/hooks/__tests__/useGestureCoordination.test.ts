@@ -13,6 +13,7 @@ const createMachineMock = () => ({
     handlePointerDown: vi.fn(),
     handlePointerUp: vi.fn(),
     handleMomentumEnd: vi.fn(),
+    handleExternalClose: vi.fn(),
     resetIdleTimer: vi.fn(),
     forceClose: vi.fn(),
 });

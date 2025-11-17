@@ -432,25 +432,124 @@ npm run dev:demo     # Run demo at http://localhost:3001
 
 The demo app lives in `demo/` and showcases all features with an interactive code playground.
 
+## Project Structure
+
+This is an **npm workspaces monorepo** with unified tooling and configuration:
+
+```
+kinetic-input/                     # Root workspace
+├── packages/
+│   └── number-picker/             # Core library (publishable npm package)
+│       ├── src/                   # Source code
+│       ├── dist/                  # Build output (gitignored)
+│       ├── package.json           # Package dependencies & scripts
+│       ├── tsconfig.json          # TypeScript config (extends root)
+│       ├── tsup.config.ts         # Build config (ESM bundles)
+│       └── vitest.config.ts       # Test config
+├── demo/                          # Demo application (Vite + React)
+│   ├── src/                       # Demo source
+│   ├── dist/                      # Build output (gitignored)
+│   ├── package.json               # Demo dependencies & scripts
+│   ├── vite.config.ts             # Vite config with HMR for library
+│   └── tsconfig.json              # TypeScript config (extends root)
+├── package.json                   # Root workspace orchestration
+├── tsconfig.json                  # Base TypeScript config
+├── .oxlintrc.json                 # Unified linting rules
+├── .lintstagedrc.json             # Pre-commit linting
+└── .husky/                        # Git hooks
+
+```
+
+### Configuration Philosophy
+
+**Unified at root level** (single source of truth):
+- ✅ Linting (oxlint) - Same rules for library & demo
+- ✅ Type checking (TypeScript base config) - Shared compiler options
+- ✅ Git hooks (husky) - Pre-commit quality gates
+- ✅ Dev dependencies - Shared testing & linting tools
+
+**Separate per workspace** (domain-specific):
+- 📦 Build tools - `tsup` for library, `Vite` for demo app
+- 📦 Runtime dependencies - Demo uses Tailwind, library doesn't
+- 📦 Scripts - Each workspace has its own dev/build workflows
+
+This structure enables:
+- **Consistency** - Same lint & type rules across all code
+- **Efficiency** - Shared `node_modules` for faster installs
+- **Flexibility** - Each workspace optimized for its purpose
+- **Portability** - Library can be easily extracted if needed
+
 ## Development
 
-This monorepo structure:
+### Quick Start
 
+```bash
+# Install all workspace dependencies
+npm install
+
+# Start demo with live library reloading
+npm run dev:demo
+
+# Open http://localhost:3001
 ```
-kinetic-input/
-├── packages/number-picker/    # The library (@tensil/number-picker)
-└── demo/                       # Interactive demo website
-```
+
+### Common Commands
 
 | Command | Description |
 | ------- | ----------- |
-| `npm install` | Install all workspace dependencies |
-| `npm run build` | Build the library package |
-| `npm run dev:demo` | Run demo with HMR (watches library changes) |
+| `npm run dev` | Alias for `dev:demo` - start demo |
+| `npm run build` | Build library package only |
 | `npm run build:demo` | Build demo for production |
+| `npm run build:all` | Build both library and demo |
+| `npm test` | Run all tests |
+| `npm run lint` | Lint all code with oxlint |
+| `npm run lint:fix` | Auto-fix linting issues |
 | `npm run typecheck` | Type check all workspaces |
+| `npm run validate` | Full check (typecheck + lint + test) |
 
-Changes in `packages/number-picker/src` hot-reload in the demo via Vite workspace configuration.
+### Development Workflow
+
+**Working on the library:**
+```bash
+# Edit files in packages/number-picker/src/
+# Tests run automatically via git hooks
+npm test                    # Run all tests manually
+npm run test:ui             # Open Vitest UI for TDD
+```
+
+**Working on the demo:**
+```bash
+npm run dev:demo            # Start with HMR
+# Edit files in demo/src/
+# Changes hot-reload automatically
+```
+
+**Library changes reflect in demo instantly** via Vite workspace configuration (no rebuild needed during development).
+
+### Testing
+
+Tests are in the library package only (demo is a showcase, not production code):
+
+```bash
+npm test                    # Run all tests
+npm run test:ui             # Interactive UI
+npm run test:coverage       # Coverage report
+```
+
+All tests must pass before commits (enforced by git hooks).
+
+### Code Quality
+
+Pre-commit hooks automatically:
+- ✅ Lint staged files with oxlint
+- ✅ Type check all workspaces (manual: `npm run typecheck`)
+- ✅ Run tests on changed files (manual: `npm test`)
+
+```bash
+npm run lint                # Check all files
+npm run lint:fix            # Auto-fix issues
+npm run lint:dead-code      # Find unused exports
+```
 
 ## License
 

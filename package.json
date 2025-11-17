@@ -11,6 +11,8 @@
   "scripts": {
     "build": "npm run build --workspace=packages/number-picker",
     "build:demo": "npm run build --workspace=demo",
+    "build:all": "npm run build && npm run build:demo",
+    "dev": "npm run dev:demo",
     "dev:demo": "npm run dev --workspace=demo",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "lint": "oxlint .",
@@ -21,6 +23,7 @@
     "test:ui": "npm run test:ui --workspace=packages/number-picker",
     "test:coverage": "npm run test:coverage --workspace=packages/number-picker",
     "validate": "npm run typecheck && npm run lint && npm run lint:dead-code && npm test",
+    "ci": "npm run validate",
     "postinstall": "husky || true"
   },
   "keywords": [

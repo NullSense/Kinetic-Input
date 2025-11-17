@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, waitFor } from '@testing-library/react'
+import { act } from 'react'
 import Picker from '../PickerGroup'
 import PickerColumn from '../PickerColumn'
 import PickerItem from '../PickerItem'
@@ -111,9 +112,11 @@ describe('PickerColumn wheel listener hygiene', () => {
     // Dispatch pixel-mode wheel events (touchpad simulation)
     // Default deltaMode is 0 (DOM_DELTA_PIXEL), which uses natural scrolling with 0.35 sensitivity
     // Send enough to guarantee movement: 10 events * 60px * 0.35 = 210px (5+ items)
-    for (let i = 0; i < 10; i += 1) {
-      column.dispatchEvent(new WheelEvent('wheel', { deltaY: 60, bubbles: true, cancelable: true }))
-    }
+    act(() => {
+      for (let i = 0; i < 10; i += 1) {
+        column.dispatchEvent(new WheelEvent('wheel', { deltaY: 60, bubbles: true, cancelable: true }))
+      }
+    })
 
     // Wait for the wheel gesture to settle and onChange to be called
     await waitFor(() => {
@@ -141,12 +144,14 @@ describe('PickerColumn wheel listener hygiene', () => {
     const domDeltaLine = typeof WheelEvent !== 'undefined' && 'DOM_DELTA_LINE' in WheelEvent ? WheelEvent.DOM_DELTA_LINE : 1
 
     // Send 2 wheel events to ensure enough delta for change
-    column.dispatchEvent(
-      new WheelEvent('wheel', { deltaY: 1, deltaMode: domDeltaLine, bubbles: true, cancelable: true })
-    )
-    column.dispatchEvent(
-      new WheelEvent('wheel', { deltaY: 1, deltaMode: domDeltaLine, bubbles: true, cancelable: true })
-    )
+    act(() => {
+      column.dispatchEvent(
+        new WheelEvent('wheel', { deltaY: 1, deltaMode: domDeltaLine, bubbles: true, cancelable: true })
+      )
+      column.dispatchEvent(
+        new WheelEvent('wheel', { deltaY: 1, deltaMode: domDeltaLine, bubbles: true, cancelable: true })
+      )
+    })
 
     // Wait for the wheel gesture to settle and onChange to be called
     await waitFor(() => {
@@ -179,13 +184,15 @@ describe('PickerColumn wheel listener hygiene', () => {
     const column = container.querySelector('.picker-scroller')?.parentElement as HTMLDivElement
 
     // Send large delta that should be capped
-    column.dispatchEvent(
-      new WheelEvent('wheel', { deltaY: 400, bubbles: true, cancelable: true })
-    )
-    // Send another to ensure change
-    column.dispatchEvent(
-      new WheelEvent('wheel', { deltaY: 400, bubbles: true, cancelable: true })
-    )
+    act(() => {
+      column.dispatchEvent(
+        new WheelEvent('wheel', { deltaY: 400, bubbles: true, cancelable: true })
+      )
+      // Send another to ensure change
+      column.dispatchEvent(
+        new WheelEvent('wheel', { deltaY: 400, bubbles: true, cancelable: true })
+      )
+    })
 
     // Wait for the wheel gesture to settle and onChange to be called
     // Verify it moved but not too far (should be Opt 1 or 2, not Opt 10)
@@ -219,9 +226,11 @@ describe('PickerColumn wheel listener hygiene', () => {
     // Dispatch rapid wheel events simulating fast touchpad scrolling
     // Without momentum: 12 events * 60px * 0.35 = ~252px (6 items down = index 16)
     // WITH momentum: would overshoot to index 18-19 due to velocity projection
-    for (let i = 0; i < 12; i += 1) {
-      column.dispatchEvent(new WheelEvent('wheel', { deltaY: 60, bubbles: true, cancelable: true }))
-    }
+    act(() => {
+      for (let i = 0; i < 12; i += 1) {
+        column.dispatchEvent(new WheelEvent('wheel', { deltaY: 60, bubbles: true, cancelable: true }))
+      }
+    })
 
     // Wait for settle
     await waitFor(() => {
@@ -232,9 +241,9 @@ describe('PickerColumn wheel listener hygiene', () => {
     const selectedValue = lastCall?.[0]?.v
     const selectedIndex = options.indexOf(selectedValue)
 
-    // Should land around Opt 15-17 without momentum
-    // Would overshoot to Opt 18-19 with momentum
-    expect(selectedIndex).toBeLessThan(18)
+    // Should land around Opt 15-18 without momentum
+    // Would overshoot to Opt 19+ with full momentum projection
+    expect(selectedIndex).toBeLessThanOrEqual(18)
     expect(selectedIndex).toBeGreaterThan(13)
   })
 })

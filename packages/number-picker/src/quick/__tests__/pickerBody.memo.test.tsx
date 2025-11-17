@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import CollapsibleNumberPicker from '../CollapsibleNumberPicker'
+import type { DEFAULT_THEME } from '../theme'
 
 function setup({ value = 10, unit = 'kg' as string | undefined } = {}) {
   return render(
@@ -49,7 +50,7 @@ describe('PickerBody memoization and CSS variable unit styling', () => {
         value={10}
         onChange={vi.fn()}
         unit={'kg'}
-        theme={{ unitColor: '#ff00aa' } as Partial<typeof import('../types').DEFAULT_THEME>}
+        theme={{ unitColor: '#ff00aa' } as Partial<typeof DEFAULT_THEME>}
         min={0}
         max={1000}
         step={1}

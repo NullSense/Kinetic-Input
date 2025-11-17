@@ -1,5 +1,4 @@
-import { useCallback } from 'react';
-import type { MutableRefObject } from 'react';
+import { useCallback, type MutableRefObject } from 'react';
 import { useKeyboardControls } from './useKeyboardControls';
 import type { usePickerStateMachine } from './usePickerStateMachine.xstate';
 

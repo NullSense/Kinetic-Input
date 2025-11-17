@@ -1,4 +1,4 @@
-import React, { useMemo, useCallback, CSSProperties } from 'react';
+import React, { useMemo, useCallback, type CSSProperties } from 'react';
 import PickerGroup, { type PickerOption as PickerGroupOption } from '../picker';
 import type { SnapPhysicsConfig } from '../picker/types/snapPhysics';
 import {

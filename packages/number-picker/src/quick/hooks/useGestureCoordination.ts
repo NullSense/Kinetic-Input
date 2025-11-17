@@ -1,5 +1,4 @@
-import type React from 'react';
-import { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { debugLog } from '../../utils/debug';
 import { BOUNDARY_SETTLE_DELAY, WHEEL_CLOSE_DELAY } from '../../config/ui';
 import type { usePickerStateMachine } from './usePickerStateMachine.xstate';

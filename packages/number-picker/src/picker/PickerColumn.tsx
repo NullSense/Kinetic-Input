@@ -1,4 +1,4 @@
-import { CSSProperties, HTMLProps, useCallback, useMemo } from 'react';
+import { useCallback, useMemo, type CSSProperties, type HTMLProps } from 'react';
 import { motion, useMotionTemplate } from 'framer-motion';
 import { usePickerActions, usePickerData, type PickerOption } from './PickerGroup';
 import { PickerConfigProvider } from './context';
@@ -104,6 +104,7 @@ function PickerColumn({
     handlePointerLeave,
     handleClick,
     handleDoubleClick,
+    interruptMomentum,
   } = usePickerPhysics({
     key,
     options,
@@ -168,11 +169,13 @@ function PickerColumn({
       if (targetIndex !== selectedIndex) {
         const targetOption = options[targetIndex];
         if (targetOption) {
+          // Interrupt any active momentum animation before keyboard navigation
+          interruptMomentum();
           pickerActions.change(key, targetOption.value);
         }
       }
     },
-    [options, selectedIndex, key, pickerActions],
+    [options, selectedIndex, key, pickerActions, interruptMomentum],
   );
 
   // Pre-compute base item style (shared by all 250 items) to avoid recreating it in the loop
