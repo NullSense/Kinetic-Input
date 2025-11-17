@@ -129,12 +129,6 @@ export const MOMENTUM_PHYSICS = {
   snapVelocityThreshold: 50,
 
   /**
-   * Distance threshold in pixels - if within this distance of snap point, trigger snap early
-   * Prevents "slow crawl" to final position
-   */
-  snapDistanceThreshold: 5,
-
-  /**
    * Maximum time in milliseconds to run friction animation before forcing snap
    * Prevents infinite animation from floating point precision issues
    */

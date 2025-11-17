@@ -29,7 +29,6 @@ import { useSnapPhysics } from './useSnapPhysics';
 import { useVirtualWindow } from './useVirtualWindow';
 import { useSnappedIndexStore } from '../useSnappedIndexStore';
 import { clamp, clampIndex, indexFromY, yFromIndex } from '../utils/math';
-import { projectReleaseTranslate } from '../utils/releaseMomentum';
 import { animationDebugger, debugSnapLog, debugPickerLog } from '../../utils/debug';
 import { animateMomentumWithFriction, type FrictionMomentumControls } from '../utils/frictionMomentum';
 import {
@@ -379,26 +378,6 @@ export function usePickerPhysics({
       mergedSnapConfig.rangeScaleVelocityCap,
       mergedSnapConfig.rangeScaleVelocityBoost,
       mergedSnapConfig.velocityThreshold,
-      minTranslate,
-    ],
-  );
-
-  // Wheel-specific projection: gentler to avoid over-projection from touchpad acceleration
-  const wheelReleaseProjectionConfig = useMemo(
-    () => ({
-      projectionSeconds: wheelSnapConfig.rangeScaleIntensity ?? 0,
-      velocityCap: wheelSnapConfig.rangeScaleVelocityCap,
-      velocityThreshold: wheelSnapConfig.velocityThreshold,
-      velocityBoost: wheelSnapConfig.rangeScaleVelocityBoost,
-      minTranslate,
-      maxTranslate,
-    }),
-    [
-      maxTranslate,
-      wheelSnapConfig.rangeScaleIntensity,
-      wheelSnapConfig.rangeScaleVelocityCap,
-      wheelSnapConfig.rangeScaleVelocityBoost,
-      wheelSnapConfig.velocityThreshold,
       minTranslate,
     ],
   );
