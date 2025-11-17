@@ -1,9 +1,8 @@
 import React, { useMemo, useCallback } from 'react';
-import { PickerGroup } from '../picker';
+import { PickerGroup, type PickerOption } from '../picker';
 import type { CollapsibleNumberPickerRenderItemState } from './types';
 import type { SnapPhysicsConfig } from '../picker/types/snapPhysics';
 import type { PickerGestureHandler } from '../picker/gestures';
-import type { PickerOption } from '../picker';
 
 // Shared empty props object to avoid 10,000 allocations for large datasets
 const EMPTY_PROPS = {};

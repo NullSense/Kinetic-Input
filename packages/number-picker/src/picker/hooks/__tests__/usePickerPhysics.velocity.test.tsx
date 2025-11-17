@@ -2,7 +2,6 @@ import { act, renderHook } from '@testing-library/react';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import type React from 'react';
 import { usePickerPhysics } from '../usePickerPhysics';
-import { DEFAULT_SNAP_PHYSICS } from '../../../config/physics';
 
 const snapSpies = vi.hoisted(() => ({
   calculate: vi.fn(() => ({ mappedTranslate: 0, inSnapZone: false })),
@@ -20,7 +19,9 @@ const trackerSpies = vi.hoisted(() => ({
 
 const frictionMomentumMock = vi.hoisted(() => ({
   animateMomentumWithFriction: vi.fn(() => ({
-    cancel: vi.fn(),
+    stop: vi.fn(),
+    getVelocity: vi.fn(() => 0),
+    isFrictionPhase: vi.fn(() => true),
   })),
 }));
 
@@ -29,7 +30,7 @@ vi.mock('../useSnapPhysics', () => ({
 }));
 
 vi.mock('../../gestures', async () => {
-  const actual = await vi.importActual<typeof import('../../gestures')>('../../gestures');
+  const actual = await vi.importActual('../../gestures');
   return {
     ...actual,
     createVelocityTracker: vi.fn(() => trackerSpies),
@@ -256,9 +257,9 @@ describe('usePickerPhysics velocity wiring', () => {
     frictionMomentumMock.animateMomentumWithFriction.mockClear();
 
     act(() => {
-      result.current.handlePointerDown({ pointerId: 1, pointerType: 'touch', clientY: 100, currentTarget: columnNode, target: columnNode } as any);
-      result.current.handlePointerMove({ pointerId: 1, pointerType: 'touch', clientY: 80, currentTarget: columnNode, target: columnNode } as any);
-      result.current.handlePointerUp({ pointerId: 1, pointerType: 'touch', clientY: 80, currentTarget: columnNode, target: columnNode } as any);
+      result.current.handlePointerDown({ pointerId: 1, pointerType: 'touch', clientY: 100, currentTarget: columnNode, target: columnNode } as unknown as React.PointerEvent<HTMLDivElement>);
+      result.current.handlePointerMove({ pointerId: 1, pointerType: 'touch', clientY: 80, currentTarget: columnNode, target: columnNode } as unknown as React.PointerEvent<HTMLDivElement>);
+      result.current.handlePointerUp({ pointerId: 1, pointerType: 'touch', clientY: 80, currentTarget: columnNode, target: columnNode } as unknown as React.PointerEvent<HTMLDivElement>);
     });
 
     const slowMomentumCall = frictionMomentumMock.animateMomentumWithFriction.mock.calls[0];
@@ -270,9 +271,9 @@ describe('usePickerPhysics velocity wiring', () => {
     frictionMomentumMock.animateMomentumWithFriction.mockClear();
 
     act(() => {
-      result.current.handlePointerDown({ pointerId: 2, pointerType: 'touch', clientY: 100, currentTarget: columnNode, target: columnNode } as any);
-      result.current.handlePointerMove({ pointerId: 2, pointerType: 'touch', clientY: 80, currentTarget: columnNode, target: columnNode } as any);
-      result.current.handlePointerUp({ pointerId: 2, pointerType: 'touch', clientY: 80, currentTarget: columnNode, target: columnNode } as any);
+      result.current.handlePointerDown({ pointerId: 2, pointerType: 'touch', clientY: 100, currentTarget: columnNode, target: columnNode } as unknown as React.PointerEvent<HTMLDivElement>);
+      result.current.handlePointerMove({ pointerId: 2, pointerType: 'touch', clientY: 80, currentTarget: columnNode, target: columnNode } as unknown as React.PointerEvent<HTMLDivElement>);
+      result.current.handlePointerUp({ pointerId: 2, pointerType: 'touch', clientY: 80, currentTarget: columnNode, target: columnNode } as unknown as React.PointerEvent<HTMLDivElement>);
     });
 
     const fastMomentumCall = frictionMomentumMock.animateMomentumWithFriction.mock.calls[0];

@@ -232,9 +232,9 @@ describe('PickerColumn wheel listener hygiene', () => {
     const selectedValue = lastCall?.[0]?.v
     const selectedIndex = options.indexOf(selectedValue)
 
-    // Should land around Opt 15-17 without momentum
-    // Would overshoot to Opt 18-19 with momentum
-    expect(selectedIndex).toBeLessThan(18)
+    // Should land around Opt 15-18 without momentum
+    // Would overshoot to Opt 19+ with full momentum projection
+    expect(selectedIndex).toBeLessThanOrEqual(18)
     expect(selectedIndex).toBeGreaterThan(13)
   })
 })

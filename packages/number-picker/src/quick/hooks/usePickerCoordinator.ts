@@ -1,5 +1,4 @@
-import { useCallback, useEffect, useRef } from 'react';
-import type React from 'react';
+import { useCallback, useEffect, useRef, type React } from 'react';
 import {
     CLICK_OUTSIDE_DELAY,
     HIGHLIGHT_TAP_MOVEMENT_THRESHOLD,

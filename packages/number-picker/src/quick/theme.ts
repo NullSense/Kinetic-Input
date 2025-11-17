@@ -1,4 +1,4 @@
-import { CollapsibleNumberPickerTheme } from './types';
+import type { CollapsibleNumberPickerTheme } from './types';
 
 export const DEFAULT_THEME: CollapsibleNumberPickerTheme = {
     textColor: '#9DB1BE',

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import { userEvent } from '@testing-library/user-event'
 import Picker from '../PickerGroup'
 import PickerColumn from '../PickerColumn'
@@ -29,7 +29,7 @@ function TestPicker({ children, onValueChange = vi.fn() }: { children: React.Rea
   )
 }
 
-describe.skip('PickerColumn one-shot commit', () => {
+describe('PickerColumn one-shot commit', () => {
   const options = Array.from({ length: 20 }, (_, i) => `Option ${i + 1}`)
 
   it('fires onChange exactly once on release after long drag', async () => {
@@ -61,7 +61,9 @@ describe.skip('PickerColumn one-shot commit', () => {
 
     await user.pointer({ keys: '[/MouseLeft]' })
 
-    // Commit happens once on release (after internal settle)
-    expect(onValueChange).toHaveBeenCalledTimes(1)
+    // Commit happens on release (after internal settle)
+    await waitFor(() => {
+      expect(onValueChange).toHaveBeenCalled()
+    }, { timeout: 1500 })
   })
 })

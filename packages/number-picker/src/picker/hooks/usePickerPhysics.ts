@@ -1,9 +1,9 @@
-import type React from 'react';
 import {
   useCallback,
   useEffect,
   useMemo,
   useRef,
+  type React,
 } from 'react';
 import {
   animate,

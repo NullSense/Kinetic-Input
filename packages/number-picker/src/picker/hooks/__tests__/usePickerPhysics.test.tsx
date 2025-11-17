@@ -40,7 +40,7 @@ const animateMock = vi.hoisted(() =>
 
 // Mock framer-motion's animate function
 vi.mock('framer-motion', async () => {
-  const actual = await vi.importActual<typeof import('framer-motion')>('framer-motion');
+  const actual = await vi.importActual('framer-motion');
   return {
     ...actual,
     animate: animateMock,

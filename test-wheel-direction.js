@@ -10,7 +10,6 @@ const DOM_DELTA_MODE = {
 };
 
 const itemHeight = 40;
-const height = 280;
 const maxTranslate = 200;
 
 function indexFromY(translateY, rowHeight, maxTranslate) {

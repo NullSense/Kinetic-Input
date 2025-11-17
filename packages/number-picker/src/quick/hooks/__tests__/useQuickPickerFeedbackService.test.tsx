@@ -1,6 +1,5 @@
 import { renderHook } from '@testing-library/react';
-import { describe, expect, it, vi, beforeEach } from 'vitest';
-import type { Mock } from 'vitest';
+import { describe, expect, it, vi, beforeEach, type Mock } from 'vitest';
 import { useQuickPickerFeedbackService } from '../useQuickPickerFeedbackService';
 import { TIMING_PRESETS } from '../../../config/timing';
 import { usePickerFeedback } from '../usePickerFeedback';
