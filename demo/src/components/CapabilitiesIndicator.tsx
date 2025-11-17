@@ -49,9 +49,10 @@ const checkAudio = async () => {
  * - Expandable for details
  */
 export function CapabilitiesIndicator() {
-  const [isMobile, setIsMobile] = useState<boolean | null>(null);
-  const [hapticsSupported, setHapticsSupported] = useState<boolean | null>(null);
-  const [audioAllowed, setAudioAllowed] = useState<boolean | null>(null);
+  // Initialize with default values so component renders immediately
+  const [isMobile, setIsMobile] = useState<boolean>(false);
+  const [hapticsSupported, setHapticsSupported] = useState<boolean>(false);
+  const [audioAllowed, setAudioAllowed] = useState<boolean>(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
 
@@ -131,10 +132,6 @@ export function CapabilitiesIndicator() {
       console.error('Audio test failed:', error);
     }
   };
-
-  if (isMobile === null || hapticsSupported === null || audioAllowed === null) {
-    return null;
-  }
 
   const capabilities = [
     { name: 'haptics', supported: hapticsSupported, relevant: isMobile },

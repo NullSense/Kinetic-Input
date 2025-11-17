@@ -1,13 +1,14 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CollapsibleNumberPicker } from '@tensil/kinetic-input';
-import { Palette, X } from 'lucide-react';
+import { Palette, X, Code2, Copy, Check } from 'lucide-react';
 import { DEMO_PICKERS } from '../config/pickerDefaults';
 
 type Preset = {
   id: string;
   name: string;
   description: string;
+  codeSnippet: string;
   theme: {
     bg: string;
     fg: string;
@@ -34,6 +35,25 @@ const presets: Preset[] = [
     id: 'ios',
     name: 'iOS Native',
     description: 'Apple HIG-inspired design',
+    codeSnippet: `import { buildTheme } from '@tensil/kinetic-input';
+
+const iosTheme = buildTheme({
+  activeTextColor: '#3b82f6',
+  textColor: '#64748b',
+  closedBorderColor: 'rgba(59, 130, 246, 0.5)',
+  closedBackgroundColor: 'rgba(241, 245, 249, 0.8)',
+  labelColor: '#64748b',
+  highlightBorderColor: 'rgba(59, 130, 246, 0.5)',
+  fadeColor: '#f1f5f9',
+});
+
+<CollapsibleNumberPicker
+  value={weight}
+  onChange={setWeight}
+  label="WEIGHT"
+  unit="kg"
+  theme={iosTheme}
+/>`,
     theme: {
       bg: 'bg-slate-100',
       fg: 'text-slate-900',
@@ -58,6 +78,25 @@ const presets: Preset[] = [
     id: 'material',
     name: 'Material Design',
     description: 'Google Material 3',
+    codeSnippet: `import { buildTheme } from '@tensil/kinetic-input';
+
+const materialTheme = buildTheme({
+  activeTextColor: '#4f46e5',
+  textColor: '#6366f1',
+  closedBorderColor: 'rgba(79, 70, 229, 0.5)',
+  closedBackgroundColor: 'rgba(238, 242, 255, 0.8)',
+  labelColor: '#6366f1',
+  highlightBorderColor: 'rgba(79, 70, 229, 0.5)',
+  fadeColor: '#eef2ff',
+});
+
+<CollapsibleNumberPicker
+  value={weight}
+  onChange={setWeight}
+  label="WEIGHT"
+  unit="kg"
+  theme={materialTheme}
+/>`,
     theme: {
       bg: 'bg-indigo-50',
       fg: 'text-indigo-950',
@@ -82,6 +121,25 @@ const presets: Preset[] = [
     id: 'brutalist',
     name: 'Brutalist',
     description: 'Bold & high contrast',
+    codeSnippet: `import { buildTheme } from '@tensil/kinetic-input';
+
+const brutalistTheme = buildTheme({
+  activeTextColor: '#000000',
+  textColor: '#000000',
+  closedBorderColor: '#000000',
+  closedBackgroundColor: 'rgba(250, 204, 21, 0.9)',
+  labelColor: '#000000',
+  highlightBorderColor: '#000000',
+  fadeColor: '#facc15',
+});
+
+<CollapsibleNumberPicker
+  value={weight}
+  onChange={setWeight}
+  label="WEIGHT"
+  unit="kg"
+  theme={brutalistTheme}
+/>`,
     theme: {
       bg: 'bg-yellow-400',
       fg: 'text-black',
@@ -106,6 +164,25 @@ const presets: Preset[] = [
     id: 'neon',
     name: 'Neon Nights',
     description: 'Cyberpunk aesthetic',
+    codeSnippet: `import { buildTheme } from '@tensil/kinetic-input';
+
+const neonTheme = buildTheme({
+  activeTextColor: '#ec4899',
+  textColor: '#22d3ee',
+  closedBorderColor: 'rgba(236, 72, 153, 0.8)',
+  closedBackgroundColor: 'rgba(59, 7, 100, 0.8)',
+  labelColor: '#22d3ee',
+  highlightBorderColor: 'rgba(236, 72, 153, 0.8)',
+  fadeColor: '#3b0764',
+});
+
+<CollapsibleNumberPicker
+  value={weight}
+  onChange={setWeight}
+  label="WEIGHT"
+  unit="kg"
+  theme={neonTheme}
+/>`,
     theme: {
       bg: 'bg-purple-950',
       fg: 'text-cyan-400',
@@ -130,6 +207,25 @@ const presets: Preset[] = [
     id: 'monochrome',
     name: 'Monochrome',
     description: 'Pure black & white',
+    codeSnippet: `import { buildTheme } from '@tensil/kinetic-input';
+
+const monochromeTheme = buildTheme({
+  activeTextColor: '#1f2937',
+  textColor: '#6b7280',
+  closedBorderColor: 'rgba(156, 163, 175, 0.6)',
+  closedBackgroundColor: 'rgba(255, 255, 255, 0.9)',
+  labelColor: '#6b7280',
+  highlightBorderColor: 'rgba(156, 163, 175, 0.6)',
+  fadeColor: '#ffffff',
+});
+
+<CollapsibleNumberPicker
+  value={weight}
+  onChange={setWeight}
+  label="WEIGHT"
+  unit="kg"
+  theme={monochromeTheme}
+/>`,
     theme: {
       bg: 'bg-white',
       fg: 'text-black',
@@ -154,6 +250,25 @@ const presets: Preset[] = [
     id: 'gaming',
     name: 'RGB Gaming',
     description: 'Gamer aesthetic',
+    codeSnippet: `import { buildTheme } from '@tensil/kinetic-input';
+
+const gamingTheme = buildTheme({
+  activeTextColor: '#22c55e',
+  textColor: '#4ade80',
+  closedBorderColor: 'rgba(34, 197, 94, 0.8)',
+  closedBackgroundColor: 'rgba(15, 23, 42, 0.9)',
+  labelColor: '#4ade80',
+  highlightBorderColor: 'rgba(34, 197, 94, 0.8)',
+  fadeColor: '#0f172a',
+});
+
+<CollapsibleNumberPicker
+  value={weight}
+  onChange={setWeight}
+  label="WEIGHT"
+  unit="kg"
+  theme={gamingTheme}
+/>`,
     theme: {
       bg: 'bg-slate-900',
       fg: 'text-green-400',
@@ -187,6 +302,13 @@ const presets: Preset[] = [
 export function PresetsGallery() {
   const [selectedPreset, setSelectedPreset] = useState<Preset | null>(null);
   const [presetValue, setPresetValue] = useState(DEMO_PICKERS.weight.initialValue);
+  const [copied, setCopied] = useState(false);
+
+  const copyCode = (code: string) => {
+    navigator.clipboard.writeText(code);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   return (
     <section id="presets" className="py-16 px-4x bg-hairline/30">
@@ -300,6 +422,35 @@ export function PresetsGallery() {
                     onChange={setPresetValue}
                     theme={selectedPreset.pickerTheme}
                   />
+                </div>
+
+                {/* Code Snippet */}
+                <div className="mt-6x">
+                  <div className="flex items-center justify-between mb-2x">
+                    <div className="flex items-center gap-2">
+                      <Code2 className="w-4 h-4 opacity-70" strokeWidth={2} />
+                      <span className="text-sm font-medium uppercase opacity-70">Configuration</span>
+                    </div>
+                    <button
+                      onClick={() => copyCode(selectedPreset.codeSnippet)}
+                      className="flex items-center gap-1x px-2x py-1x text-xs font-medium opacity-70 hover:opacity-100 transition-opacity duration-instant focus-accent"
+                    >
+                      {copied ? (
+                        <>
+                          <Check className="w-3 h-3" strokeWidth={2} />
+                          <span>Copied!</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-3 h-3" strokeWidth={2} />
+                          <span>Copy</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                  <pre className="text-xs opacity-70 overflow-x-auto p-3x bg-black/10 font-mono whitespace-pre-wrap break-words">
+                    {selectedPreset.codeSnippet}
+                  </pre>
                 </div>
 
                 <div className="mt-6x pt-6x border-t opacity-50">

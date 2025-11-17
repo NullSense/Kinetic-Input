@@ -18,8 +18,9 @@ const snippets: Snippet[] = [
   {
     id: 'quickstart',
     title: 'Quick Start',
-    description: 'Minimal setup',
+    description: 'Minimal setup - just value, onChange, and label',
     code: `import { CollapsibleNumberPicker } from '@tensil/kinetic-input';
+import '@tensil/kinetic-input/styles/all.css';
 
 function WeightInput() {
   const [weight, setWeight] = useState(70);
@@ -39,26 +40,28 @@ function WeightInput() {
   {
     id: 'basic',
     title: 'With Physics & Feedback',
-    description: 'Full experience enabled',
+    description: 'Magnetic snap, haptics, and audio (enabled by default)',
     code: `<CollapsibleNumberPicker
   value={reps}
   onChange={setReps}
-  min={0}
-  max={200}
+  min={1}
+  max={50}
   label="REPS"
   unit="reps"
 
-  // Physics & Feedback (enabled by default)
-  enableSnapPhysics
-  enableHaptics
-  enableAudioFeedback
+  // Physics & Feedback (all enabled by default)
+  enableSnapPhysics={true}
+  enableHaptics={true}
+  enableAudioFeedback={true}
 />`,
   },
   {
     id: 'theming',
     title: 'Custom Theme',
-    description: 'Match your design system',
-    code: `const customTheme = {
+    description: 'Match your design system with buildTheme',
+    code: `import { buildTheme } from '@tensil/kinetic-input';
+
+const customTheme = buildTheme({
   activeTextColor: '#3b82f6',
   textColor: '#64748b',
   closedBorderColor: 'rgba(59,130,246,0.5)',
@@ -66,7 +69,7 @@ function WeightInput() {
   labelColor: '#64748b',
   highlightBorderColor: 'rgba(59,130,246,0.5)',
   fadeColor: '#f1f5f9',
-};
+});
 
 <CollapsibleNumberPicker
   value={weight}
@@ -81,26 +84,31 @@ function WeightInput() {
   {
     id: 'advanced',
     title: 'Advanced Configuration',
-    description: 'Custom physics tuning',
+    description: 'Fine-tune snap physics and wheel behavior',
     code: `<CollapsibleNumberPicker
   value={distance}
   onChange={setDistance}
   min={0}
-  max={200}
-  step={1}
+  max={100}
+  step={0.5}
   label="DISTANCE"
   unit="km"
 
-  // Custom physics
-  enableSnapPhysics
+  // Fine-tune magnetic snap physics
+  enableSnapPhysics={true}
   snapPhysicsConfig={{
-    snapRange: 0.3,
-    pullStrength: 0.6,
+    snapRange: 1.4,        // Magnetic zone size
+    pullStrength: 1.4,     // Attraction strength
+    centerLock: 1,         // Center precision
   }}
 
+  // Wheel sensitivity
+  wheelSensitivity={1}
+  wheelDeltaCap={1.25}
+
   // Feedback
-  enableHaptics
-  enableAudioFeedback
+  enableHaptics={true}
+  enableAudioFeedback={true}
 />`,
   },
 ];

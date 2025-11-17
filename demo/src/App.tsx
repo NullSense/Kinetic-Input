@@ -4,6 +4,7 @@ import { CodeSnippets } from './components/CodeSnippets';
 import { ComponentShowcase } from './components/ComponentShowcase';
 import { PresetsGallery } from './components/PresetsGallery';
 import { Footer } from './components/Footer';
+import { PWAUpdatePrompt } from './components/PWAUpdatePrompt';
 
 function App() {
   return (
@@ -18,6 +19,9 @@ function App() {
       </main>
 
       <Footer />
+
+      {/* PWA Update Prompt */}
+      <PWAUpdatePrompt />
     </>
   );
 }
