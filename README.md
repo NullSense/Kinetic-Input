@@ -27,6 +27,25 @@ Peer dependencies you must provide in your host app:
 - `framer-motion`
 - `lucide-react`
 
+## CSS Import (Required)
+
+Import the styles in your app's entry point (e.g., `main.tsx` or `App.tsx`):
+
+**Option 1: Convenience bundle (recommended)**
+```tsx
+import '@tensil/kinetic-input/styles/all.css'
+```
+
+**Option 2: Granular imports (for optimization)**
+```tsx
+// Pick only what you need:
+import '@tensil/kinetic-input/styles/picker.css'  // Base (required for all)
+import '@tensil/kinetic-input/styles/quick.css'   // CollapsibleNumberPicker
+import '@tensil/kinetic-input/styles/wheel.css'   // StandaloneWheelPicker
+```
+
+The convenience bundle includes all styles (~6KB gzipped). Use granular imports if you only need specific components.
+
 ## Usage
 
 ### CollapsibleNumberPicker
