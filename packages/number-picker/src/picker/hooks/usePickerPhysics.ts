@@ -105,8 +105,8 @@ export function usePickerPhysics({
 
   // Create velocity tracker for pointer/wheel gestures
   const velocityTracker = useMemo(() => createVelocityTracker({
-    sampleCount: 5,
-    maxSampleAge: 250, // Must exceed wheel idle timeout (200ms) to capture velocity
+    sampleCount: 8, // Increased from 5 for better mobile accuracy
+    maxSampleAge: 150, // Reduced from 250ms for more responsive velocity calculation
   }), []);
 
   const mergedSnapConfig = useMemo<SnapPhysicsConfig>(
