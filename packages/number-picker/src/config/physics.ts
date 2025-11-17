@@ -99,3 +99,45 @@ export const SNAP_PHYSICS = {
 
 // Backwards compatibility export
 export const DEFAULT_SNAP_PHYSICS = SNAP_PHYSICS.DEFAULT;
+
+// ============ Momentum Physics Constants ============
+
+/**
+ * Friction-based momentum physics for natural deceleration (iOS-like)
+ *
+ * Based on iOS UIScrollView physics and industry standards:
+ * - iOS normal deceleration: 0.998 per millisecond
+ * - Apple PastryKit time constant: 325ms
+ * - Creates "prize wheel spinning down" feel
+ */
+export const MOMENTUM_PHYSICS = {
+  /**
+   * Deceleration rate applied per millisecond (exponential decay)
+   * iOS standard values:
+   * - normal: 0.998 (less friction, more native feel)
+   * - fast: 0.99 (more friction, less native feel)
+   *
+   * At 60fps (16.67ms/frame): velocity *= 0.998^16.67 = velocity *= 0.967 per frame
+   */
+  decelerationRate: 0.998,
+
+  /**
+   * Velocity threshold in px/s below which we stop friction and snap to nearest item
+   * Lower = snaps earlier (more precise), Higher = longer momentum phase (more fluid)
+   */
+  snapVelocityThreshold: 50,
+
+  /**
+   * Distance threshold in pixels - if within this distance of snap point, trigger snap early
+   * Prevents "slow crawl" to final position
+   */
+  snapDistanceThreshold: 5,
+
+  /**
+   * Maximum time in milliseconds to run friction animation before forcing snap
+   * Prevents infinite animation from floating point precision issues
+   */
+  maxDuration: 3000,
+} as const;
+
+export type MomentumPhysicsConfig = typeof MOMENTUM_PHYSICS;

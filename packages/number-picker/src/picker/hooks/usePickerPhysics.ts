@@ -23,6 +23,7 @@ import {
   MINIMUM_MOVEMENT_PIXELS,
   DOM_DELTA_MODE,
   OVERSCROLL_DAMPING_EXPONENT,
+  MOMENTUM_PHYSICS,
 } from '../../config/physics';
 import { useSnapPhysics } from './useSnapPhysics';
 import { useVirtualWindow } from './useVirtualWindow';
@@ -30,6 +31,7 @@ import { useSnappedIndexStore } from '../useSnappedIndexStore';
 import { clamp, clampIndex, indexFromY, yFromIndex } from '../utils/math';
 import { projectReleaseTranslate } from '../utils/releaseMomentum';
 import { animationDebugger, debugSnapLog, debugPickerLog } from '../../utils/debug';
+import { animateMomentumWithFriction, type FrictionMomentumControls } from '../utils/frictionMomentum';
 import {
   createGestureEmitter,
   createVelocityTracker,
@@ -172,6 +174,7 @@ export function usePickerPhysics({
   const skipClickRef = useRef(false);
   const pointerTypeRef = useRef<'mouse' | 'pen' | 'touch' | ''>('');
   const activeAnimationRef = useRef<AnimationPlaybackControls | null>(null);
+  const activeFrictionMomentumRef = useRef<FrictionMomentumControls | null>(null);
   const activeAnimationIdRef = useRef<symbol | null>(null);
   const activeTargetIndexRef = useRef<number | null>(null);
   const lastIsPickerOpenRef = useRef(isPickerOpen);
@@ -265,6 +268,13 @@ export function usePickerPhysics({
   }, [commitValueAtIndex, itemHeight, lastIndex, maxTranslate, yRaw]);
 
   const stopActiveAnimation = useCallback(() => {
+    // Stop friction momentum animation if running
+    if (activeFrictionMomentumRef.current) {
+      activeFrictionMomentumRef.current.stop();
+      activeFrictionMomentumRef.current = null;
+    }
+
+    // Stop spring animation if running
     if (!activeAnimationRef.current) {
       return;
     }
@@ -394,13 +404,81 @@ export function usePickerPhysics({
   );
 
   const settleFromY = useCallback(
-    (currentY: number, velocity: number, onComplete?: () => void, config = releaseProjectionConfig) => {
-      const projected = projectReleaseTranslate(currentY, velocity, config);
-      const clampedY = clamp(projected, minTranslate, maxTranslate);
-      const index = clampIndex(indexFromY(clampedY, itemHeight, maxTranslate), lastIndex);
-      settleToIndex(index, onComplete);
+    (currentY: number, velocity: number, onComplete?: () => void) => {
+      // Stop any active animation before starting new one
+      stopActiveAnimation();
+
+      debugPickerLog('SETTLE FROM Y', {
+        currentY: currentY.toFixed(1),
+        velocity: velocity.toFixed(1) + ' px/s',
+        minTranslate,
+        maxTranslate,
+      });
+
+      // If velocity is negligible, just snap to nearest item immediately
+      if (Math.abs(velocity) < 10) {
+        const index = clampIndex(indexFromY(currentY, itemHeight, maxTranslate), lastIndex);
+        settleToIndex(index, onComplete);
+        return;
+      }
+
+      // Start friction-based momentum animation
+      const controls = animateMomentumWithFriction({
+        control: yRaw,
+        initialVelocity: velocity,
+        bounds: {
+          min: minTranslate,
+          max: maxTranslate,
+        },
+        snapFunction: (position) => {
+          // Calculate which item index this position corresponds to
+          const index = clampIndex(indexFromY(position, itemHeight, maxTranslate), lastIndex);
+          // Return the exact Y position for that index
+          return yFromIndex(index, itemHeight, maxTranslate, lastIndex);
+        },
+        config: MOMENTUM_PHYSICS,
+        onComplete: () => {
+          // Calculate final index from yRaw position
+          const finalY = yRaw.get();
+          const finalIndex = clampIndex(indexFromY(finalY, itemHeight, maxTranslate), lastIndex);
+
+          debugPickerLog('FRICTION MOMENTUM COMPLETE', {
+            finalY: finalY.toFixed(1),
+            finalIndex,
+          });
+
+          // Commit the value
+          commitValueAtIndex(finalIndex);
+          activeTargetIndexRef.current = null;
+          activeFrictionMomentumRef.current = null;
+
+          onComplete?.();
+        },
+        snapSpring: {
+          stiffness: 300,
+          damping: 34,
+          restDelta: 0.5,
+          restSpeed: 10,
+        },
+      });
+
+      // Store controls for potential interruption
+      activeFrictionMomentumRef.current = controls;
+
+      // Track target for debugging (will be set when snap phase starts)
+      const estimatedIndex = clampIndex(indexFromY(currentY, itemHeight, maxTranslate), lastIndex);
+      activeTargetIndexRef.current = estimatedIndex;
     },
-    [itemHeight, lastIndex, maxTranslate, minTranslate, releaseProjectionConfig, settleToIndex],
+    [
+      commitValueAtIndex,
+      itemHeight,
+      lastIndex,
+      maxTranslate,
+      minTranslate,
+      settleToIndex,
+      stopActiveAnimation,
+      yRaw,
+    ],
   );
 
   // Track all captured pointer IDs for proper cleanup
