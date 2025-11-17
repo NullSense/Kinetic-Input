@@ -725,14 +725,13 @@ export function usePickerPhysics({
       delta *= normalizedWheelSensitivity;
 
       // Auto-detect scrolling direction based on input device
-      // Touchpad (DOM_DELTA_MODE.PIXEL): natural scrolling (like smartphones)
-      // Mouse wheel (DOM_DELTA_MODE.LINE): inverted scrolling (traditional)
       if (event.deltaMode === DOM_DELTA_MODE.PIXEL) {
+        // Touchpad (DOM_DELTA_MODE.PIXEL): natural scrolling (like smartphones)
         // Touchpads provide fine-grained pixel deltas, so reduce sensitivity
         // to prevent scrolling too fast (0.35 = roughly 1:1 pixel movement)
-        delta = -delta * 0.35;
+        delta = delta * 0.35;
       }
-      // DOM_DELTA_MODE.LINE (mouse wheel) keeps delta as-is (inverted)
+      // LINE mode (mouse wheel) uses delta as-is after sensitivity scaling
 
       const maxDelta = itemHeight * normalizedWheelDeltaCap;
       const accumulated = wheelRemainderRef.current + delta;
@@ -745,7 +744,9 @@ export function usePickerPhysics({
       wheelRemainderRef.current = accumulated - boundedDelta;
 
       const currentTranslate = yRaw.get();
-      const rawTranslate = currentTranslate + boundedDelta;
+      // Subtract delta because coordinate system: higher index = lower translateY
+      // Positive wheel delta (scroll down) → subtract → lower translateY → higher index
+      const rawTranslate = currentTranslate - boundedDelta;
 
       // Apply strong snap physics for satisfying magnetic "thunk" feel (like phone touch)
       const nearestIndex = indexFromY(rawTranslate, itemHeight, maxTranslate);
