@@ -229,6 +229,52 @@ describe('usePickerPhysics velocity wiring', () => {
     expect(trackerSpies.addSample).toHaveBeenCalled();
   });
 
+  it('single-gesture mode: NEVER uses momentum for precise value selection (CRITICAL)', () => {
+    // When opening the picker and dragging in one gesture (touch-to-open-and-drag),
+    // momentum should be DISABLED to allow precise value selection.
+    // This is the architectural decision: single-gesture = precision, multi-gesture = fluidity
+    const options = makeOptions(50); // Large list to avoid boundary clamping
+
+    const { result } = renderHook(() =>
+      usePickerPhysics({
+        ...baseConfig,
+        options,
+        selectedIndex: 25, // Middle of list
+        isPickerOpen: false, // CLOSED = single-gesture mode when user drags
+      })
+    );
+
+    const columnNode = {
+      setPointerCapture: vi.fn(),
+      releasePointerCapture: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      getBoundingClientRect: () => ({ top: 0, bottom: 200, height: 200, width: 100, left: 0, right: 100, x: 0, y: 0, toJSON: () => {} }),
+    } as unknown as HTMLDivElement;
+
+    act(() => {
+      result.current.columnRef.current = columnNode;
+    });
+
+    // Simulate FAST swipe with high velocity (3000 px/s)
+    // Even with high velocity, single-gesture mode should NOT use momentum
+    velocityState.value = 3000;
+    frictionMomentumMock.animateMomentumWithFriction.mockClear();
+
+    act(() => {
+      result.current.handlePointerDown({ pointerId: 1, pointerType: 'touch', clientY: 100, currentTarget: columnNode, target: columnNode } as unknown as React.PointerEvent<HTMLDivElement>);
+      result.current.handlePointerMove({ pointerId: 1, pointerType: 'touch', clientY: 60, currentTarget: columnNode, target: columnNode } as unknown as React.PointerEvent<HTMLDivElement>);
+      result.current.handlePointerUp({ pointerId: 1, pointerType: 'touch', clientY: 60, currentTarget: columnNode, target: columnNode } as unknown as React.PointerEvent<HTMLDivElement>);
+    });
+
+    // CRITICAL ASSERTION: Momentum should NOT be triggered (velocity = 0 means direct snap)
+    // settleFromY with velocity < 10 takes the direct snap path, not friction momentum
+    expect(frictionMomentumMock.animateMomentumWithFriction).not.toHaveBeenCalled();
+
+    // This ensures users can precisely select values when opening the picker,
+    // without overshooting due to momentum physics
+  });
+
   it('multi-gesture mode: fast swipe projects further than slow swipe (CRITICAL)', () => {
     // This test verifies the user's reported issue: "even in multi mode, fast and slow swipes travel identical distances"
     const options = makeOptions(50); // Large list to avoid boundary clamping
