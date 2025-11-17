@@ -116,11 +116,11 @@ export const MOMENTUM_PHYSICS = {
    * iOS standard values:
    * - normal: 0.998 (less friction, more native feel)
    * - fast: 0.99 (more friction, less native feel)
-   * - current: 0.997 (balanced friction for smooth flicks)
+   * - current: 0.998 (iOS-like smooth friction)
    *
-   * At 60fps (16.67ms/frame): velocity *= 0.997^16.67 = velocity *= 0.951 per frame
+   * At 60fps (16.67ms/frame): velocity *= 0.998^16.67 = velocity *= 0.967 per frame
    */
-  decelerationRate: 0.997,
+  decelerationRate: 0.998,
 
   /**
    * Velocity threshold in px/s below which we stop friction and snap to nearest item
