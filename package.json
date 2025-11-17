@@ -21,7 +21,7 @@
     "test:ui": "npm run test:ui --workspace=packages/number-picker",
     "test:coverage": "npm run test:coverage --workspace=packages/number-picker",
     "validate": "npm run typecheck && npm run lint && npm run lint:dead-code && npm test",
-    "prepare": "husky"
+    "postinstall": "husky || true"
   },
   "keywords": [
     "react",

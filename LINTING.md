@@ -38,6 +38,11 @@ This installs:
 - `husky@^9.1.7` - Git hooks
 - `lint-staged@^15.2.11` - Staged file linting
 
+**Note**: The `postinstall` script runs `husky || true` which:
+- ✅ Initializes git hooks in local development
+- ✅ Silently succeeds in CI/Vercel (where hooks aren't needed)
+- ✅ Prevents CI build failures
+
 ---
 
 ## Available Scripts
