@@ -1,45 +1,79 @@
 import { useEffect, useState } from 'react';
 import { useRegisterSW } from 'virtual:pwa-register/react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { RefreshCw, X } from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
 
 /**
- * PWA Update Prompt
+ * PWA Update Handler
  *
- * Aggressive update strategy:
+ * Aggressive update strategy with proper edge case handling:
  * - Checks on page load (automatic)
  * - Checks every 5 minutes while app is active
  * - Checks when user returns to tab (visibility change)
+ * - Checks on window focus
  * - Auto-updates with skipWaiting + clientsClaim
- * - Shows brief notification when update completes
+ * - Automatically reloads page when update is ready
+ * - Shows brief "Updating..." notification before reload
+ *
+ * Edge cases handled:
+ * - Skip checks when service worker is installing
+ * - Skip checks when offline
+ * - Use no-cache headers to avoid stale service worker
  */
 export function PWAUpdatePrompt() {
-  const [showPrompt, setShowPrompt] = useState(false);
+  const [showUpdating, setShowUpdating] = useState(false);
 
   const {
-    offlineReady: [offlineReady, setOfflineReady],
-    needRefresh: [needRefresh, setNeedRefresh],
+    needRefresh: [needRefresh],
     updateServiceWorker,
   } = useRegisterSW({
-    onRegistered(r) {
-      if (r) {
-        // Check every 5 minutes (aggressive)
-        setInterval(() => {
-          r.update();
-        }, 5 * 60 * 1000);
+    onRegisteredSW(swUrl, r) {
+      if (!r) return;
 
-        // Check when user returns to tab
-        document.addEventListener('visibilitychange', () => {
-          if (!document.hidden) {
-            r.update();
+      // Robust periodic update check with edge case handling
+      const checkForUpdates = async () => {
+        // Skip if service worker is already installing
+        if (r.installing) return;
+
+        // Skip if navigator is not available
+        if (!navigator) return;
+
+        // Skip if user is offline
+        if ('connection' in navigator && !navigator.onLine) return;
+
+        try {
+          // Fetch service worker with no-cache to avoid stale versions
+          const resp = await fetch(swUrl, {
+            cache: 'no-store',
+            headers: {
+              'cache': 'no-store',
+              'cache-control': 'no-cache',
+            },
+          });
+
+          // Only update if server responded successfully
+          if (resp?.status === 200) {
+            await r.update();
           }
-        });
+        } catch (error) {
+          console.error('Update check failed:', error);
+        }
+      };
 
-        // Check on focus
-        window.addEventListener('focus', () => {
-          r.update();
-        });
-      }
+      // Check every 5 minutes (aggressive for demo app)
+      setInterval(checkForUpdates, 5 * 60 * 1000);
+
+      // Check when user returns to tab
+      document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) {
+          checkForUpdates();
+        }
+      });
+
+      // Check on window focus
+      window.addEventListener('focus', () => {
+        checkForUpdates();
+      });
     },
     onRegisterError(error) {
       console.error('SW registration error', error);
@@ -48,66 +82,33 @@ export function PWAUpdatePrompt() {
 
   useEffect(() => {
     if (needRefresh) {
-      setShowPrompt(true);
+      // Show brief "Updating..." message
+      setShowUpdating(true);
+
+      // Auto-reload after 1 second (gives user visual feedback)
+      setTimeout(() => {
+        updateServiceWorker(true);
+      }, 1000);
     }
-  }, [needRefresh]);
-
-  const close = () => {
-    setOfflineReady(false);
-    setNeedRefresh(false);
-    setShowPrompt(false);
-  };
-
-  const handleUpdate = () => {
-    updateServiceWorker(true);
-  };
+  }, [needRefresh, updateServiceWorker]);
 
   return (
     <AnimatePresence>
-      {showPrompt && (
+      {showUpdating && (
         <motion.div
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 50 }}
-          transition={{ duration: 0.3 }}
-          className="fixed bottom-4x right-4x z-modal max-w-sm"
+          transition={{ duration: 0.2 }}
+          className="fixed bottom-4x right-4x z-modal"
         >
           <div className="glass-subtle p-4x border-accent/30">
-            <div className="flex items-start gap-3x">
-              <div className="flex-shrink-0">
-                <RefreshCw className="w-5 h-5 text-accent" strokeWidth={2} />
+            <div className="flex items-center gap-3x">
+              <RefreshCw className="w-5 h-5 text-accent animate-spin" strokeWidth={2} />
+              <div>
+                <p className="text-sm font-semibold text-fg">Updating app...</p>
+                <p className="text-xs text-muted">This will only take a moment</p>
               </div>
-              <div className="flex-1">
-                <h3 className="text-sm font-semibold text-fg mb-1x">
-                  New version available!
-                </h3>
-                <p className="text-xs text-muted mb-3x">
-                  {offlineReady
-                    ? 'App ready to work offline'
-                    : 'Click reload to update to the latest version'}
-                </p>
-                <div className="flex gap-2x">
-                  <button
-                    onClick={handleUpdate}
-                    className="flex-1 px-3x py-2x bg-accent/20 hover:bg-accent/30 border border-accent/30 transition-colors duration-fast focus-accent text-accent font-medium text-xs"
-                  >
-                    Reload
-                  </button>
-                  <button
-                    onClick={close}
-                    className="px-3x py-2x bg-hairline hover:bg-hairline/70 border border-hairline transition-colors duration-fast focus-accent text-muted font-medium text-xs"
-                  >
-                    Later
-                  </button>
-                </div>
-              </div>
-              <button
-                onClick={close}
-                className="flex-shrink-0 p-1 hover:opacity-70 transition-opacity duration-instant focus-accent"
-                aria-label="Close"
-              >
-                <X className="w-4 h-4 text-muted" strokeWidth={2} />
-              </button>
             </div>
           </div>
         </motion.div>
