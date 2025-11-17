@@ -51,7 +51,7 @@ The convenience bundle includes all styles (~6KB gzipped). Use granular imports 
 ### CollapsibleNumberPicker
 
 ```tsx
-import CollapsibleNumberPicker from '@tensil/number-picker'
+import CollapsibleNumberPicker from '@tensil/kinetic-input'
 
 export function WeightField() {
   const [weight, setWeight] = useState(70)
@@ -377,17 +377,11 @@ location.reload();
 
 **Programmatically:**
 ```typescript
-import { enableAllDebugNamespaces } from '@tensil/kinetic-input/utils';
-
-if (import.meta.env.DEV) {
-  enableAllDebugNamespaces();
+// Debug utilities are available via browser console only
+// Set window.__QNI_DEBUG__ = true and other debug flags before your app loads
+if (typeof window !== 'undefined' && import.meta.env.DEV) {
+  window.__QNI_DEBUG__ = true;
 }
-```
-
-**Disable all:**
-```typescript
-import { disableAllDebugNamespaces } from '@tensil/kinetic-input/utils';
-disableAllDebugNamespaces();
 ```
 
 ## Advanced Configuration
@@ -398,8 +392,8 @@ Control auto-close behavior with presets:
 
 ```tsx
 <CollapsibleNumberPicker
-  timingPreset="fast"    // 100ms pointer, 600ms wheel, 1s idle
-  // or "balanced" (default), "slow", "accessible"
+  timingPreset="fast"    // Quick auto-close timing
+  // Available: "instant", "fast", "balanced" (default), "patient"
 />
 ```
 

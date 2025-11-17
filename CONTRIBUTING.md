@@ -46,10 +46,9 @@ npm install
 
 ```bash
 # From project root
-cd demo
-npm run dev
+npm run dev:demo
 
-# Open http://localhost:5173
+# Open http://localhost:3001
 ```
 
 The demo provides an interactive playground for testing components with:
