@@ -28,6 +28,7 @@ type Preset = {
     highlightFillColor: string;
     fadeColor: string;
     textColor: string;
+    unitColor: string;
   };
 };
 
@@ -64,6 +65,7 @@ const iosTheme = buildTheme({
     pickerTheme: {
       activeTextColor: '#3b82f6', // blue-500
       textColor: '#64748b', // slate-500 for non-selected rows
+      unitColor: '#94a3b8', // slate-400 for units
       closedBorderColor: 'rgba(59, 130, 246, 0.5)',
       closedBackgroundColor: 'rgba(241, 245, 249, 0.8)', // slate-100 semi-transparent
       closedBackgroundColorEmpty: 'rgba(226, 232, 240, 0.6)', // slate-200
@@ -107,6 +109,7 @@ const materialTheme = buildTheme({
     pickerTheme: {
       activeTextColor: '#4f46e5', // indigo-600
       textColor: '#6366f1', // indigo-500 for non-selected rows
+      unitColor: '#a5b4fc', // indigo-300 for units
       closedBorderColor: 'rgba(79, 70, 229, 0.5)',
       closedBackgroundColor: 'rgba(238, 242, 255, 0.8)', // indigo-50 semi-transparent
       closedBackgroundColorEmpty: 'rgba(224, 231, 255, 0.6)', // indigo-100
@@ -150,6 +153,7 @@ const brutalistTheme = buildTheme({
     pickerTheme: {
       activeTextColor: '#000000',
       textColor: '#000000', // black for all rows
+      unitColor: '#000000', // black for units (high contrast)
       closedBorderColor: '#000000',
       closedBackgroundColor: 'rgba(250, 204, 21, 0.9)', // yellow-400 semi-transparent
       closedBackgroundColorEmpty: 'rgba(250, 204, 21, 0.6)',
@@ -193,6 +197,7 @@ const neonTheme = buildTheme({
     pickerTheme: {
       activeTextColor: '#ec4899', // pink-500
       textColor: '#22d3ee', // cyan-400 for non-selected rows
+      unitColor: '#a855f7', // purple-500 for cyberpunk units
       closedBorderColor: 'rgba(236, 72, 153, 0.8)',
       closedBackgroundColor: 'rgba(59, 7, 100, 0.8)', // purple-950 semi-transparent
       closedBackgroundColorEmpty: 'rgba(59, 7, 100, 0.5)',
@@ -236,6 +241,7 @@ const monochromeTheme = buildTheme({
     pickerTheme: {
       activeTextColor: '#1f2937', // gray-800
       textColor: '#6b7280', // gray-500 for non-selected rows
+      unitColor: '#9ca3af', // gray-400 for units
       closedBorderColor: 'rgba(156, 163, 175, 0.6)', // gray-400
       closedBackgroundColor: 'rgba(255, 255, 255, 0.9)',
       closedBackgroundColorEmpty: 'rgba(249, 250, 251, 0.8)', // gray-50
@@ -279,6 +285,7 @@ const gamingTheme = buildTheme({
     pickerTheme: {
       activeTextColor: '#22c55e', // green-500
       textColor: '#4ade80', // green-400 for non-selected rows
+      unitColor: '#86efac', // green-300 for units (bright)
       closedBorderColor: 'rgba(34, 197, 94, 0.8)',
       closedBackgroundColor: 'rgba(15, 23, 42, 0.9)', // slate-900 semi-transparent
       closedBackgroundColorEmpty: 'rgba(15, 23, 42, 0.6)',
