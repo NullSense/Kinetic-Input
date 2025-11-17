@@ -20,7 +20,6 @@ export interface PickerBodyProps {
     onGesture: PickerGestureHandler;
     showPicker: boolean;
     snapConfig?: SnapPhysicsConfig;
-    wheelMode?: 'off' | 'natural' | 'inverted';
     wheelSensitivity?: number;
     wheelDeltaCap?: number;
 }
@@ -43,7 +42,6 @@ export const PickerBody = React.memo(function PickerBody({
     onGesture,
     showPicker,
     snapConfig,
-    wheelMode = 'inverted',
     wheelSensitivity = 1,
     wheelDeltaCap = 1.25,
 }: PickerBodyProps) {
@@ -76,7 +74,6 @@ export const PickerBody = React.memo(function PickerBody({
         <PickerGroup
             value={selectedValue}
             onChange={handleValueChange}
-            wheelMode={wheelMode}
             wheelSensitivity={wheelSensitivity}
             wheelDeltaCap={wheelDeltaCap}
             height={pickerWindowHeight}

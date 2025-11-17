@@ -75,7 +75,6 @@ export interface CollapsibleNumberPickerProps {
     enableHaptics?: boolean;
     enableAudioFeedback?: boolean;
     feedbackConfig?: QuickPickerFeedbackConfig;
-    wheelMode?: 'off' | 'natural' | 'inverted';
     wheelSensitivity?: number;
     wheelDeltaCap?: number;
     timingPreset?: TimingPreset;

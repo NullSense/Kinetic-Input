@@ -35,7 +35,6 @@ interface UseQuickPickerOrchestrationArgs {
     highlightMovementThreshold?: number;
     timing: TimingConfig;
     playConfirmationIfChanged?: () => void;
-    wheelMode?: 'off' | 'natural' | 'inverted';
 }
 
 interface UseQuickPickerOrchestrationResult {

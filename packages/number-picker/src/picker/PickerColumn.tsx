@@ -34,7 +34,6 @@ function PickerColumn({
   const {
     height,
     itemHeight,
-    wheelMode,
     wheelSensitivity,
     wheelDeltaCap,
     value: groupValue,
@@ -112,7 +111,6 @@ function PickerColumn({
     itemHeight,
     height,
     isPickerOpen,
-    wheelMode,
     wheelSensitivity,
     wheelDeltaCap,
     changeValue: pickerActions.change,

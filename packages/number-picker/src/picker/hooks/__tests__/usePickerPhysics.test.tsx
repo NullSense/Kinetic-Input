@@ -1,5 +1,5 @@
 import type React from 'react';
-import { act, renderHook, waitFor } from '@testing-library/react';
+import { act, cleanup, renderHook, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import type { MotionValue } from 'framer-motion';
 import { usePickerPhysics } from '../usePickerPhysics';
@@ -72,6 +72,7 @@ const makeOptions = (count: number): Option[] =>
 
 describe('usePickerPhysics', () => {
   beforeEach(() => {
+    cleanup();
     pendingAnimations.splice(0, pendingAnimations.length);
     animateMock.mockClear();
   });
@@ -81,7 +82,6 @@ describe('usePickerPhysics', () => {
     itemHeight: 40,
     height: 200,
     isPickerOpen: true,
-    wheelMode: 'off' as const,
     wheelSensitivity: 1,
     wheelDeltaCap: 1.25,
     changeValue: vi.fn(),

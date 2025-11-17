@@ -12,7 +12,7 @@ export const SNAP_PHYSICS = {
     enabled: true,
     snapRange: 1.4,
     enterThreshold: 0.8,
-    exitThreshold: 0.58,
+    exitThreshold: 0.68,
     velocityThreshold: 300,
     velocityScaling: true,
     pullStrength: 1.4,

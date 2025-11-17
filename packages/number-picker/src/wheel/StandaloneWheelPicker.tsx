@@ -27,7 +27,6 @@ export interface StandaloneWheelPickerProps {
   highlightColor?: string;
   enableSnapPhysics?: boolean;
   snapPhysicsConfig?: Partial<SnapPhysicsConfig>;
-  wheelMode?: 'off' | 'natural' | 'inverted';
   wheelSensitivity?: number;
   wheelDeltaCap?: number;
   renderItem?: (
@@ -62,7 +61,6 @@ const StandaloneWheelPicker: React.FC<StandaloneWheelPickerProps> = ({
   highlightColor,
   enableSnapPhysics = false,
   snapPhysicsConfig,
-  wheelMode,
   wheelSensitivity,
   wheelDeltaCap,
   renderItem,
@@ -160,7 +158,6 @@ const StandaloneWheelPicker: React.FC<StandaloneWheelPickerProps> = ({
           onChange={handleValueChange}
           height={pickerHeight}
           itemHeight={itemHeight}
-          wheelMode={wheelMode}
           wheelSensitivity={wheelSensitivity}
           wheelDeltaCap={wheelDeltaCap}
         >

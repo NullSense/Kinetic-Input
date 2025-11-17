@@ -69,7 +69,6 @@ describe('usePickerPhysics velocity wiring', () => {
     itemHeight: 40,
     height: 200,
     isPickerOpen: true,
-    wheelMode: 'natural' as const,
     wheelSensitivity: 1,
     wheelDeltaCap: 1.25,
     changeValue: vi.fn(),
@@ -111,7 +110,7 @@ describe('usePickerPhysics velocity wiring', () => {
     expect(lastCall?.[0].velocityY).toBe(640);
   });
 
-  it('projects wheel release distance using the measured velocity after the idle timeout', () => {
+  it('wheel scrolling never uses momentum - always velocity 0', () => {
     vi.useFakeTimers();
     const options = makeOptions(10);
     const { result } = renderHook(() =>
@@ -124,6 +123,7 @@ describe('usePickerPhysics velocity wiring', () => {
       preventDefault: vi.fn(),
     } as unknown as WheelEvent;
 
+    // Even if velocity tracker reports high velocity, wheel should ignore it
     velocityState.value = -320;
     act(() => {
       result.current.handleWheel(wheelEvent);
@@ -133,8 +133,9 @@ describe('usePickerPhysics velocity wiring', () => {
       vi.advanceTimersByTime(250);
     });
 
+    // Wheel scrolling should ALWAYS pass velocity = 0 (no momentum/flicking)
     const projectionCall = releaseMomentumMock.projectReleaseTranslate.mock.calls.at(-1);
-    expect(projectionCall?.[1]).toBe(-320);
+    expect(projectionCall?.[1]).toBe(0);
     vi.useRealTimers();
   });
 
@@ -263,7 +264,7 @@ describe('usePickerPhysics velocity wiring', () => {
     expect(snapSpies.calculate).toHaveBeenCalled();
   });
 
-  it('samples wheel translate using raw motion values so velocity is accurate', () => {
+  it('wheel events still track velocity internally but never use it for momentum', () => {
     const options = makeOptions(5);
     const { result } = renderHook(() =>
       usePickerPhysics({ ...baseConfig, options, selectedIndex: 2 })
@@ -279,8 +280,8 @@ describe('usePickerPhysics velocity wiring', () => {
       result.current.handleWheel(wheelEvent);
     });
 
-    // For natural mode, positive deltaY is negated, so translate moves in negative direction
-    const lastSample = trackerSpies.addSample.mock.calls.at(-1)?.[0];
-    expect(lastSample).toBeCloseTo(-4, 5);
+    // Velocity is tracked (for potential debugging/metrics) but never used
+    // The velocity tracker gets samples, but wheel settling always uses velocity=0
+    expect(trackerSpies.addSample).toHaveBeenCalled();
   });
 });

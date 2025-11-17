@@ -14,7 +14,6 @@ import {
 
 const DEFAULT_HEIGHT = 216;
 const DEFAULT_ITEM_HEIGHT = 36;
-const DEFAULT_WHEEL_MODE = 'natural'; // Natural scroll by default - better UX
 const DEFAULT_WHEEL_SENSITIVITY = 1;
 const DEFAULT_WHEEL_DELTA_CAP = 1.25;
 
@@ -36,7 +35,6 @@ export interface PickerGroupRootProps<TType extends PickerValue>
   onChange: (value: TType, key: string) => void;
   height?: number;
   itemHeight?: number;
-  wheelMode?: 'off' | 'natural' | 'inverted';
   wheelSensitivity?: number;
   wheelDeltaCap?: number;
   showHighlightLines?: boolean;
@@ -45,7 +43,6 @@ export interface PickerGroupRootProps<TType extends PickerValue>
 const PickerGroupDataContext = createContext<{
   height: number;
   itemHeight: number;
-  wheelMode: 'off' | 'natural' | 'inverted';
   wheelSensitivity: number;
   wheelDeltaCap: number;
   value: PickerValue;
@@ -121,7 +118,6 @@ function PickerGroupRoot<TType extends PickerValue>(props: PickerGroupRootProps<
     onChange,
     height = DEFAULT_HEIGHT,
     itemHeight = DEFAULT_ITEM_HEIGHT,
-    wheelMode = DEFAULT_WHEEL_MODE,
     wheelSensitivity = DEFAULT_WHEEL_SENSITIVITY,
     wheelDeltaCap = DEFAULT_WHEEL_DELTA_CAP,
     showHighlightLines = true,
@@ -156,8 +152,8 @@ function PickerGroupRoot<TType extends PickerValue>(props: PickerGroupRootProps<
   const [optionGroups, dispatch] = useReducer(pickerGroupReducer, {});
 
   const pickerGroupData = useMemo(
-    () => ({ height, itemHeight, wheelMode, wheelSensitivity, wheelDeltaCap, value, optionGroups }),
-    [height, itemHeight, optionGroups, value, wheelDeltaCap, wheelMode, wheelSensitivity],
+    () => ({ height, itemHeight, wheelSensitivity, wheelDeltaCap, value, optionGroups }),
+    [height, itemHeight, optionGroups, value, wheelDeltaCap, wheelSensitivity],
   );
 
   const valueRef = useRef(value);
@@ -297,14 +293,8 @@ function PickerGroupRoot<TType extends PickerValue>(props: PickerGroupRootProps<
     }
   }, []);
 
-  // Prevent page scroll when wheeling over picker
-  // - When wheelMode='off': prevent default to stop page scroll (picker doesn't scroll)
-  // - When wheelMode enabled: column's native listener handles preventDefault
-  const handleWheel = useCallback((e: React.WheelEvent<HTMLDivElement>) => {
-    if (wheelMode === 'off' && !e.ctrlKey) {
-      e.preventDefault();
-    }
-  }, [wheelMode]);
+  // Wheel event handling is managed by column's native listener
+  // which always prevents default to avoid page scrolling
 
   return (
     <div
@@ -312,7 +302,6 @@ function PickerGroupRoot<TType extends PickerValue>(props: PickerGroupRootProps<
       className="picker-surface"
       style={mergedContainerStyle}
       onKeyDownCapture={handleContainerKeyDown}
-      onWheel={handleWheel}
       onTouchMove={(e) => {
         e.preventDefault();
         e.stopPropagation();

@@ -52,7 +52,6 @@ function WeightInput() {
   enableSnapPhysics
   enableHaptics
   enableAudioFeedback
-  wheelMode="inverted"
 />`,
   },
   {
@@ -102,7 +101,6 @@ function WeightInput() {
   // Feedback
   enableHaptics
   enableAudioFeedback
-  wheelMode="inverted"
 />`,
   },
 ];

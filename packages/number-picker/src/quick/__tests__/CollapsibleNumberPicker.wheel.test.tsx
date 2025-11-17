@@ -10,30 +10,10 @@ describe('CollapsibleNumberPicker wheel orchestration', () => {
     onChange: () => {},
   } as const;
 
-  it('does not intercept wheel gestures when wheelMode is off', () => {
-    const { getByTestId } = render(
-      <CollapsibleNumberPicker {...baseProps} wheelMode="off" />,
-    );
+  // wheelMode='off' no longer exists - wheel scrolling is always enabled with auto-detection
 
-    const wrapper = getByTestId('qni-wrapper');
-    const surface = getByTestId('picker-surface');
-
-    expect(surface.getAttribute('data-state')).toBe('closed');
-
-    const evt = new WheelEvent('wheel', { deltaY: 120, bubbles: true, cancelable: true });
-
-    act(() => {
-      wrapper.dispatchEvent(evt);
-    });
-
-    expect(evt.defaultPrevented).toBe(false);
-    expect(surface.getAttribute('data-state')).toBe('closed');
-  });
-
-  it('opens the picker and captures the wheel when wheelMode allows scrolling', () => {
-    const { getByTestId } = render(
-      <CollapsibleNumberPicker {...baseProps} wheelMode="inverted" />,
-    );
+  it('opens the picker and captures wheel events (auto-detection always enabled)', () => {
+    const { getByTestId } = render(<CollapsibleNumberPicker {...baseProps} />);
 
     const wrapper = getByTestId('qni-wrapper');
     const surface = getByTestId('picker-surface');

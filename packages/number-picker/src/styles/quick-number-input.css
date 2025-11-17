@@ -71,15 +71,15 @@
 .quick-number-input-root .picker-item.picker-item-active {
   color: var(--qni-color-active);
   text-shadow: 0 0 0.5px currentColor, 0.5px 0 0.5px currentColor;
-  transform: scale(1.14);
+  transform: scale(var(--qni-active-scale));
   letter-spacing: 0.02em;
 }
 
 .quick-number-input-root .picker-item.picker-item-selected:not(.picker-item-active) {
   color: var(--qni-color-muted);
   text-shadow: 0 0 0.4px currentColor;
-  transform: scale(1.04);
-  opacity: 0.82;
+  transform: scale(var(--qni-selected-scale));
+  opacity: var(--qni-selected-opacity);
 }
 
 .quick-number-input-root .picker-item[data-padding='true'] {

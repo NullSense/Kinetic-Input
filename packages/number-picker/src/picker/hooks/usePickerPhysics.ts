@@ -34,6 +34,7 @@ const MAX_OVERSCROLL = 80;
 const OPENING_DRAG_THRESHOLD = 6;
 const CLICK_STEP_THRESHOLD_RATIO = 0.3;
 const TOUCH_TAP_THRESHOLD_RATIO = 0.1;
+const DOM_DELTA_PIXEL = 0x00;
 const DOM_DELTA_LINE = 0x01;
 const DOM_DELTA_PAGE = 0x02;
 
@@ -50,7 +51,6 @@ export interface PickerColumnInteractionsConfig {
   itemHeight: number;
   height: number;
   isPickerOpen: boolean;
-  wheelMode: 'off' | 'natural' | 'inverted';
   wheelSensitivity: number;
   wheelDeltaCap: number;
   changeValue: (key: string, value: string | number) => boolean;
@@ -95,7 +95,6 @@ export function usePickerPhysics({
   itemHeight,
   height,
   isPickerOpen,
-  wheelMode,
   wheelSensitivity,
   wheelDeltaCap,
   changeValue,
@@ -147,7 +146,6 @@ export function usePickerPhysics({
   const yRaw = useMotionValue(0);
   const ySnap = useMotionValue(0);
 
-  const wheelEnabled = wheelMode !== 'off';
   const normalizedWheelSensitivity = useMemo(() => clampWheelSensitivity(wheelSensitivity), [wheelSensitivity]);
   const normalizedWheelDeltaCap = useMemo(() => clampWheelDeltaCap(wheelDeltaCap), [wheelDeltaCap]);
 
@@ -633,9 +631,6 @@ export function usePickerPhysics({
 
   const handleWheeling = useCallback(
     (event: WheelEvent) => {
-      if (!wheelEnabled) {
-        return;
-      }
       let delta = event.deltaY;
 
       if (event.deltaMode === DOM_DELTA_LINE) {
@@ -646,9 +641,15 @@ export function usePickerPhysics({
 
       delta *= normalizedWheelSensitivity;
 
-      if (wheelMode === 'natural') {
-        delta = -delta;
+      // Auto-detect scrolling direction based on input device
+      // Touchpad (DOM_DELTA_PIXEL): natural scrolling (like smartphones)
+      // Mouse wheel (DOM_DELTA_LINE): inverted scrolling (traditional)
+      if (event.deltaMode === DOM_DELTA_PIXEL) {
+        // Touchpads provide fine-grained pixel deltas, so reduce sensitivity
+        // to prevent scrolling too fast (0.35 = roughly 1:1 pixel movement)
+        delta = -delta * 0.35;
       }
+      // DOM_DELTA_LINE (mouse wheel) keeps delta as-is (inverted)
 
       const maxDelta = itemHeight * normalizedWheelDeltaCap;
       const accumulated = wheelRemainderRef.current + delta;
@@ -695,8 +696,6 @@ export function usePickerPhysics({
       snapEnabled,
       updateScrollerWhileMoving,
       velocityTracker,
-      wheelEnabled,
-      wheelMode,
       wheelSnapPhysics,
       yRaw,
     ],
@@ -704,7 +703,7 @@ export function usePickerPhysics({
 
   const handleWheel = useCallback(
     (event: WheelEvent) => {
-      if (!wheelEnabled || event.ctrlKey) {
+      if (event.ctrlKey) {
         return;
       }
       event.preventDefault();
@@ -736,11 +735,11 @@ export function usePickerPhysics({
         const movementDelta = Math.abs(currentTranslate - startTranslate);
         const hasMoved = movementDelta > 2;
 
-        // Get velocity and disable projection for spikes (capping = spike, not flick)
-        const rawVelocity = velocityTracker.getVelocity();
-        const velocity = wheelWasCappedRef.current ? 0 : rawVelocity;
+        // Wheel scrolling should NEVER use momentum/flicking - always velocity = 0
+        // Only pointer/touch gestures should have momentum physics
+        const velocity = 0;
 
-        // Use wheel-specific projection config (gentler than pointer)
+        // Settle to nearest snap point without momentum projection
         settleFromY(currentTranslate, velocity, () => {
           snapPhysics.reset();
           emitter.dragEnd(hasMoved, velocity);
@@ -752,7 +751,7 @@ export function usePickerPhysics({
         }, wheelReleaseProjectionConfig);
       }, 200);
     },
-    [emitter, handleWheeling, settleFromY, snapPhysics, velocityTracker, wheelEnabled, wheelReleaseProjectionConfig, wheelSnapPhysics, yRaw],
+    [emitter, handleWheeling, settleFromY, snapPhysics, velocityTracker, wheelReleaseProjectionConfig, wheelSnapPhysics, yRaw],
   );
 
   useEffect(() => {
@@ -765,7 +764,7 @@ export function usePickerPhysics({
 
   useEffect(() => {
     const node = columnRef.current;
-    if (!node || !wheelEnabled) return undefined;
+    if (!node) return undefined;
 
     const wheelListener = (event: WheelEvent) => {
       handleWheel(event);
@@ -776,7 +775,7 @@ export function usePickerPhysics({
     return () => {
       node.removeEventListener('wheel', wheelListener, wheelListenerOptions);
     };
-  }, [handleWheel, wheelEnabled]);
+  }, [handleWheel]);
 
   useEffect(
     () => () => {

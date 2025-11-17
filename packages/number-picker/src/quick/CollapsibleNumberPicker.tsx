@@ -48,7 +48,6 @@ const CollapsibleNumberPickerComponent: React.FC<CollapsibleNumberPickerProps> =
     enableHaptics = true,
     enableAudioFeedback = true,
     feedbackConfig,
-    wheelMode = 'inverted',
     wheelSensitivity = 1,
     wheelDeltaCap = 1.25,
     visualTweaks,
@@ -159,7 +158,6 @@ const CollapsibleNumberPickerComponent: React.FC<CollapsibleNumberPickerProps> =
         selectedValue,
         timing,
         playConfirmationIfChanged,
-        wheelMode,
     });
 
     useEffect(() => {
@@ -235,7 +233,6 @@ const CollapsibleNumberPickerComponent: React.FC<CollapsibleNumberPickerProps> =
             onGesture: onGestureWithFeedback,
             showPicker,
             snapConfig: pickerSnapConfig,
-            wheelMode,
             wheelSensitivity,
             wheelDeltaCap,
         }),
@@ -251,7 +248,6 @@ const CollapsibleNumberPickerComponent: React.FC<CollapsibleNumberPickerProps> =
             onGestureWithFeedback,
             showPicker,
             pickerSnapConfig,
-            wheelMode,
             wheelSensitivity,
             wheelDeltaCap,
         ]

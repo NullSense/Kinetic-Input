@@ -38,38 +38,13 @@ describe('PickerColumn wheel listener hygiene', () => {
     expect(true).toBe(true)
   })
 
-  it('lets wheel events bubble when wheelMode is off', () => {
-    const options = buildOptions(5)
-    const onChange = vi.fn()
-
-    const { container } = render(
-      <Picker value={{ v: 'Opt 2' }} onChange={onChange} itemHeight={40} height={200} wheelMode="off">
-        <PickerColumn name="v">
-          {options.map((opt) => (
-            <PickerItem key={opt} value={opt}>
-              {opt}
-            </PickerItem>
-          ))}
-        </PickerColumn>
-      </Picker>
-    )
-
-    const column = container.querySelector('.picker-scroller')?.parentElement as HTMLDivElement
-    const evt = new WheelEvent('wheel', { deltaY: 12, bubbles: true, cancelable: true })
-
-    const dispatchResult = column.dispatchEvent(evt)
-
-    expect(dispatchResult).toBe(true)
-    expect(evt.defaultPrevented).toBe(false)
-    expect(onChange).not.toHaveBeenCalled()
-  })
 
   it('ignores pinch-zoom wheel events even when wheel scrolling is enabled', () => {
     const options = buildOptions(5)
     const onChange = vi.fn()
 
     const { container } = render(
-      <Picker value={{ v: 'Opt 2' }} onChange={onChange} itemHeight={40} height={200} wheelMode="inverted">
+      <Picker value={{ v: 'Opt 2' }} onChange={onChange} itemHeight={40} height={200}>
         <PickerColumn name="v">
           {options.map((opt) => (
             <PickerItem key={opt} value={opt}>
@@ -95,7 +70,7 @@ describe('PickerColumn wheel listener hygiene', () => {
     const onChange = vi.fn()
 
     const { container } = render(
-      <Picker value={{ v: 'Opt 2' }} onChange={onChange} itemHeight={40} height={200} wheelMode="natural">
+      <Picker value={{ v: 'Opt 2' }} onChange={onChange} itemHeight={40} height={200}>
         <PickerColumn name="v">
           {options.map((opt) => (
             <PickerItem key={opt} value={opt}>
@@ -120,7 +95,7 @@ describe('PickerColumn wheel listener hygiene', () => {
     const onChange = vi.fn()
 
     const { container } = render(
-      <Picker value={{ v: 'Opt 3' }} onChange={onChange} itemHeight={40} height={200} wheelMode="natural">
+      <Picker value={{ v: 'Opt 2' }} onChange={onChange} itemHeight={40} height={200}>
         <PickerColumn name="v">
           {options.map((opt) => (
             <PickerItem key={opt} value={opt}>
@@ -133,15 +108,17 @@ describe('PickerColumn wheel listener hygiene', () => {
 
     const column = container.querySelector('.picker-scroller')?.parentElement as HTMLDivElement
 
-    // Dispatch multiple small wheel events
-    for (let i = 0; i < 5; i += 1) {
-      column.dispatchEvent(new WheelEvent('wheel', { deltaY: 6, bubbles: true, cancelable: true }))
+    // Dispatch pixel-mode wheel events (touchpad simulation)
+    // Default deltaMode is 0 (DOM_DELTA_PIXEL), which uses natural scrolling with 0.35 sensitivity
+    // Send enough to guarantee movement: 10 events * 60px * 0.35 = 210px (5+ items)
+    for (let i = 0; i < 10; i += 1) {
+      column.dispatchEvent(new WheelEvent('wheel', { deltaY: 60, bubbles: true, cancelable: true }))
     }
 
     // Wait for the wheel gesture to settle and onChange to be called
     await waitFor(() => {
       expect(onChange).toHaveBeenCalled()
-    }, { timeout: 1000 })
+    }, { timeout: 1500 })
   })
 
   it('treats DOM_DELTA_LINE units as item-height steps for classic mouse wheels', async () => {
@@ -149,14 +126,14 @@ describe('PickerColumn wheel listener hygiene', () => {
     const onChange = vi.fn()
 
     const { container } = render(
-      <Picker value={{ v: 'Opt 0' }} onChange={onChange} itemHeight={40} height={200} wheelMode="natural">
+      <Picker value={{ v: 'Opt 2' }} onChange={onChange} itemHeight={40} height={200}>
         <PickerColumn name="v">
           {options.map((opt) => (
             <PickerItem key={opt} value={opt}>
               {opt}
             </PickerItem>
           ))}
-          </PickerColumn>
+        </PickerColumn>
       </Picker>
     )
 
@@ -187,7 +164,6 @@ describe('PickerColumn wheel listener hygiene', () => {
         onChange={onChange}
         itemHeight={40}
         height={200}
-        wheelMode="natural"
         wheelDeltaCap={1}
       >
         <PickerColumn name="v">
@@ -220,5 +196,45 @@ describe('PickerColumn wheel listener hygiene', () => {
       // With wheelDeltaCap=1, large deltas should be limited
       expect(['Opt 1', 'Opt 2', 'Opt 3']).toContain(selectedValue)
     }, { timeout: 1000 })
+  })
+
+  it('wheel scrolling never uses momentum/flicking - only snaps to nearest value', async () => {
+    const options = buildOptions(20)
+    const onChange = vi.fn()
+
+    const { container } = render(
+      <Picker value={{ v: 'Opt 10' }} onChange={onChange} itemHeight={40} height={200}>
+        <PickerColumn name="v">
+          {options.map((opt) => (
+            <PickerItem key={opt} value={opt}>
+              {opt}
+            </PickerItem>
+          ))}
+        </PickerColumn>
+      </Picker>
+    )
+
+    const column = container.querySelector('.picker-scroller')?.parentElement as HTMLDivElement
+
+    // Dispatch rapid wheel events simulating fast touchpad scrolling
+    // Without momentum: 12 events * 60px * 0.35 = ~252px (6 items down = index 16)
+    // WITH momentum: would overshoot to index 18-19 due to velocity projection
+    for (let i = 0; i < 12; i += 1) {
+      column.dispatchEvent(new WheelEvent('wheel', { deltaY: 60, bubbles: true, cancelable: true }))
+    }
+
+    // Wait for settle
+    await waitFor(() => {
+      expect(onChange).toHaveBeenCalled()
+    }, { timeout: 1500 })
+
+    const lastCall = onChange.mock.calls[onChange.mock.calls.length - 1]
+    const selectedValue = lastCall?.[0]?.v
+    const selectedIndex = options.indexOf(selectedValue)
+
+    // Should land around Opt 15-17 without momentum
+    // Would overshoot to Opt 18-19 with momentum
+    expect(selectedIndex).toBeLessThan(18)
+    expect(selectedIndex).toBeGreaterThan(13)
   })
 })
