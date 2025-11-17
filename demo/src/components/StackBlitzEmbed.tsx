@@ -3,9 +3,10 @@ import sdk from '@stackblitz/sdk';
 
 interface StackBlitzEmbedProps {
   /**
-   * Project files to embed
+   * Simple code string (will be converted to App.tsx) OR full project files
    */
-  files: Record<string, string>;
+  code?: string;
+  files?: Record<string, string>;
 
   /**
    * Title of the StackBlitz project
@@ -20,7 +21,7 @@ interface StackBlitzEmbedProps {
   /**
    * Template type (default: 'create-react-app')
    */
-  template?: 'create-react-app' | 'react-ts' | 'typescript' | 'javascript';
+  template?: 'create-react-app' | 'typescript' | 'javascript';
 
   /**
    * Height of the embed (default: '500px')
@@ -57,10 +58,11 @@ interface StackBlitzEmbedProps {
  * - No need for separate syntax highlighting library
  */
 export function StackBlitzEmbed({
+  code,
   files,
   title = 'Kinetic Input Example',
   description = 'Interactive example',
-  template = 'react-ts',
+  template = 'create-react-app',
   height = '500px',
   hideNavigation = false,
   hideDevTools = false,
@@ -72,6 +74,41 @@ export function StackBlitzEmbed({
   useEffect(() => {
     if (!containerRef.current) return;
 
+    // Convert code string to files object if needed
+    const projectFiles = files || {
+      'src/App.tsx': code || '',
+      'src/index.tsx': `import React from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './App';
+import '@tensil/kinetic-input/styles/all.css';
+
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);`,
+      'package.json': JSON.stringify({
+        name: 'kinetic-input-example',
+        version: '1.0.0',
+        dependencies: {
+          'react': '^19.0.0',
+          'react-dom': '^19.0.0',
+          '@tensil/kinetic-input': 'latest',
+        },
+      }, null, 2),
+      'index.html': `<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>${title}</title>
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>`,
+    };
+
     // Embed StackBlitz project
     sdk.embedProject(
       containerRef.current,
@@ -79,18 +116,18 @@ export function StackBlitzEmbed({
         title,
         description,
         template,
-        files,
+        files: projectFiles,
       },
       {
         height: parseInt(height) || 500,
         hideNavigation,
         hideDevTools,
-        openFile,
+        openFile: openFile || 'src/App.tsx',
         view,
         theme: 'dark', // Match our design system
       }
     );
-  }, [files, title, description, template, height, hideNavigation, hideDevTools, openFile, view]);
+  }, [code, files, title, description, template, height, hideNavigation, hideDevTools, openFile, view]);
 
   return (
     <div
