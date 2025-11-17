@@ -831,10 +831,10 @@ export function usePickerPhysics({
           wheelRemainderRef.current = 0;
           wheelWasCappedRef.current = false;
           velocityTracker.reset();
-        }, wheelReleaseProjectionConfig);
+        });
       }, 200);
     },
-    [emitter, handleWheeling, settleFromY, snapPhysics, velocityTracker, wheelReleaseProjectionConfig, wheelSnapPhysics, yRaw],
+    [emitter, handleWheeling, settleFromY, snapPhysics, velocityTracker, wheelSnapPhysics, yRaw],
   );
 
   useEffect(() => {

@@ -69,7 +69,6 @@ export const usePickerCoordinator = ({
     highlightMovementThreshold = HIGHLIGHT_TAP_MOVEMENT_THRESHOLD,
     timing,
     playConfirmationIfChanged,
-    wheelMode = 'inverted',
 }: UseQuickPickerOrchestrationArgs): UseQuickPickerOrchestrationResult => {
     const {
         showPicker,
@@ -158,7 +157,6 @@ export const usePickerCoordinator = ({
         stateMachine,
         selectedValue,
         wheelIdleTimeout: timing.wheelIdleTimeout,
-        wheelMode,
         openedViaRef,
         currentGestureSource,
         isOpeningInteraction,

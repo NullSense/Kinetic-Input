@@ -10,8 +10,6 @@ type GestureSource = 'pointer' | 'wheel' | 'keyboard' | null;
 
 type PickerValue = { value: string };
 
-type WheelMode = 'off' | 'natural' | 'inverted';
-
 interface UsePickerGesturesArgs {
     showPicker: boolean;
     wrapperRef: React.RefObject<HTMLDivElement | null>;
@@ -19,7 +17,6 @@ interface UsePickerGesturesArgs {
     stateMachine: PickerMachineApi;
     selectedValue: PickerValue;
     wheelIdleTimeout?: number;
-    wheelMode?: WheelMode;
     openedViaRef: React.MutableRefObject<GestureSource>;
     currentGestureSource: React.MutableRefObject<GestureSource>;
     isOpeningInteraction: React.MutableRefObject<boolean>;
@@ -46,13 +43,13 @@ export const useGestureCoordination = ({
     stateMachine,
     selectedValue,
     wheelIdleTimeout,
-    wheelMode = 'inverted',
     openedViaRef,
     currentGestureSource,
     isOpeningInteraction,
     deferGestureCloseRef,
 }: UsePickerGesturesArgs): UsePickerGesturesResult => {
-    const wheelEnabled = wheelMode !== 'off';
+    // Wheel input is always enabled (inverted scroll mode)
+    const wheelEnabled = true;
     const showPickerRef = useRef(showPicker);
     useEffect(() => {
         showPickerRef.current = showPicker;
