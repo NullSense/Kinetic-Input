@@ -37,7 +37,11 @@
     "type": "git",
     "url": "https://github.com/NullSense/Kinetic-Input.git"
   },
-  "author": "",
+  "homepage": "https://github.com/NullSense/Kinetic-Input#readme",
+  "bugs": {
+    "url": "https://github.com/NullSense/Kinetic-Input/issues"
+  },
+  "author": "NullSense",
   "license": "MIT",
   "devDependencies": {
     "@testing-library/jest-dom": "^6.9.1",

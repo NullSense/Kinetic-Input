@@ -24,8 +24,10 @@ yarn add @tensil/kinetic-input
 Peer dependencies you must provide in your host app:
 
 - `react` / `react-dom` (18 or 19)
-- `framer-motion`
-- `lucide-react`
+- `framer-motion` (^11.0.0)
+- `lucide-react` (^0.546.0)
+- `xstate` (^5.0.0)
+- `@xstate/react` (^6.0.0)
 
 ## CSS Import (Required)
 
@@ -140,7 +142,7 @@ export function SessionPicker({ value, onChange }) {
 | `wheelSensitivity` | `number` | `1` | Mouse wheel scroll speed multiplier |
 | `wheelDeltaCap` | `number` | `1.25` | Maximum wheel delta per event (prevents jumps) |
 | `enableHaptics` | `boolean` | `true` | Vibration feedback on selection (mobile) |
-| `enableAudioFeedback` | `boolean` | `false` | Audio clicks on selection |
+| `enableAudioFeedback` | `boolean` | `true` | Audio clicks on selection |
 
 ### Theming
 

@@ -3,6 +3,10 @@
   "version": "0.1.1",
   "private": false,
   "description": "High-performance React number picker components with momentum scrolling, smart auto-close, and full theming support",
+  "author": "NullSense",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -75,14 +79,27 @@
     "typescript": "~5.8.3"
   },
   "keywords": [
-    "picker",
     "react",
-    "scrubber",
+    "react-component",
+    "number-picker",
     "number-input",
+    "scrubber",
     "wheel-picker",
+    "mobile-picker",
     "touch",
     "momentum",
-    "mobile"
+    "momentum-scrolling",
+    "kinetic",
+    "kinetic-scrolling",
+    "ios-picker",
+    "mobile",
+    "xstate",
+    "framer-motion",
+    "typescript",
+    "collapsible",
+    "modal",
+    "ui-component",
+    "form-input"
   ],
   "repository": {
     "type": "git",
@@ -94,5 +111,9 @@
     "url": "https://github.com/NullSense/Kinetic-Input/issues"
   },
   "license": "MIT",
-  "type": "module"
+  "type": "module",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  }
 }

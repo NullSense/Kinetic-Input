@@ -14,7 +14,7 @@ All component docs now live in this README.
 **This package is in active development (v0.x).** We're publishing early to gather real-world feedback and validate the API design.
 
 **What this means:**
-- ✅ **Production-ready code**: All 40 unit tests passing, comprehensive documentation, no known bugs
+- ✅ **Production-ready code**: All tests passing, comprehensive documentation, no known bugs
 - ⚠️ **API may change**: Breaking changes can occur between minor versions (0.1 → 0.2) until we reach v1.0
 - 🐛 **Report issues**: Found a bug or have feedback? [Open an issue](https://github.com/NullSense/Kinetic-Input/issues)
 
@@ -31,8 +31,10 @@ yarn add @tensil/kinetic-input
 Peer dependencies you must provide in your host app:
 
 - `react` / `react-dom` (18 or 19)
-- `framer-motion`
-- `lucide-react`
+- `framer-motion` (^11.0.0)
+- `lucide-react` (^0.546.0)
+- `xstate` (^5.0.0)
+- `@xstate/react` (^6.0.0)
 
 ## CSS Import (Required)
 

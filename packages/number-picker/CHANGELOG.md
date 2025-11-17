@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- Initial public release of `@tensil/number-picker`
+- Initial public release of `@tensil/kinetic-input`
 - `QuickNumberInput` component with momentum scrolling
 - `WheelPicker` component for list/range selection
 - Smart auto-close timing (150ms pointer, 800ms wheel, 1.5s idle)
@@ -47,7 +47,7 @@ Before publishing a new version:
 4. Build: `npm run build`
 5. Verify dist output
 6. Commit changes: `git commit -am "Release vX.Y.Z"`
-7. Tag release: `git tag @tensil/number-picker@X.Y.Z`
+7. Tag release: `git tag @tensil/kinetic-input@X.Y.Z`
 8. Push: `git push && git push --tags`
 9. Publish: `npm publish --access public`
 10. Create GitHub release with changelog

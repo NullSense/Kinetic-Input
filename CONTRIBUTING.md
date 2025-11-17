@@ -30,15 +30,7 @@ Thank you for your interest in contributing to Kinetic Input! This guide will he
 git clone https://github.com/NullSense/Kinetic-Input.git
 cd Kinetic-Input
 
-# Install dependencies (monorepo root)
-npm install
-
-# Install package dependencies
-cd packages/number-picker
-npm install
-
-# Install demo dependencies
-cd ../../demo
+# Install all dependencies (handles monorepo workspaces)
 npm install
 ```
 
