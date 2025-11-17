@@ -76,6 +76,7 @@ export interface PickerColumnInteractionsResult {
   handleWheel: (event: WheelEvent) => void;
   handleClick: (event: React.MouseEvent<HTMLDivElement>) => void;
   handleDoubleClick: (event: React.MouseEvent<HTMLDivElement>) => void;
+  interruptMomentum: () => void;
 }
 
 /**
@@ -755,6 +756,10 @@ export function usePickerPhysics({
       event.preventDefault();
 
       if (wheelStartTranslateRef.current === null) {
+        // Interrupt any active momentum animation before wheel scrolling starts
+        // This ensures wheel behaves like keyboard arrow keys (immediate interruption)
+        stopActiveAnimation();
+
         wheelStartTranslateRef.current = yRaw.get();
 
         // Reset velocity tracker for new wheel gesture
