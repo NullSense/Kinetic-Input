@@ -2,127 +2,101 @@ import { useEffect, useRef } from 'react';
 import sdk from '@stackblitz/sdk';
 
 interface StackBlitzEmbedProps {
-  title: string;
-  description: string;
-  code: string;
+  /**
+   * Project files to embed
+   */
+  files: Record<string, string>;
+
+  /**
+   * Title of the StackBlitz project
+   */
+  title?: string;
+
+  /**
+   * Description of the project
+   */
+  description?: string;
+
+  /**
+   * Template type (default: 'create-react-app')
+   */
+  template?: 'create-react-app' | 'react-ts' | 'typescript' | 'javascript';
+
+  /**
+   * Height of the embed (default: '500px')
+   */
   height?: string;
+
+  /**
+   * Hide certain UI elements
+   */
+  hideNavigation?: boolean;
+  hideDevTools?: boolean;
+
+  /**
+   * File to open by default
+   */
   openFile?: string;
+
+  /**
+   * View mode: 'default' shows both editor and preview, 'preview' shows only preview
+   */
+  view?: 'default' | 'preview' | 'editor';
 }
 
 /**
- * StackBlitz Embedded Editor
+ * StackBlitz Embed Component
  *
- * Creates an interactive, editable code example with live preview.
- * Users can modify the code and see results immediately.
+ * Creates an interactive, editable code sandbox using StackBlitz SDK.
+ * Perfect for live examples that users can modify and see results instantly.
  *
- * @param title - Project title
- * @param description - Project description
- * @param code - Component code to display
- * @param height - Height of the embed (default: 500px)
- * @param openFile - Which file to open by default (default: src/App.tsx)
+ * Features:
+ * - Live code editing with syntax highlighting (handled by StackBlitz)
+ * - Instant preview
+ * - Shareable URLs
+ * - No need for separate syntax highlighting library
  */
 export function StackBlitzEmbed({
-  title,
-  description,
-  code,
+  files,
+  title = 'Kinetic Input Example',
+  description = 'Interactive example',
+  template = 'react-ts',
   height = '500px',
-  openFile = 'src/App.tsx',
+  hideNavigation = false,
+  hideDevTools = false,
+  openFile,
+  view = 'default',
 }: StackBlitzEmbedProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!containerRef.current) return;
 
-    // Create StackBlitz project
+    // Embed StackBlitz project
     sdk.embedProject(
       containerRef.current,
       {
         title,
         description,
-        template: 'node',
-        files: {
-          'package.json': `{
-  "name": "${title.toLowerCase().replace(/\s+/g, '-')}",
-  "version": "1.0.0",
-  "private": true,
-  "dependencies": {
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "@tensil/kinetic-input": "^0.1.1",
-    "framer-motion": "^11.11.11",
-    "@xstate/react": "^6.0.0",
-    "xstate": "^5.0.0",
-    "lucide-react": "^0.546.0"
-  },
-  "scripts": {
-    "dev": "vite",
-    "build": "vite build"
-  },
-  "devDependencies": {
-    "@vitejs/plugin-react": "^5.1.1",
-    "vite": "^6.4.1",
-    "typescript": "^5.9.3"
-  }
-}`,
-          'vite.config.ts': `import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
-
-export default defineConfig({
-  plugins: [react()],
-});`,
-          'index.html': `<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>${title}</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
-</html>`,
-          'src/main.tsx': `import { StrictMode } from 'react';
-import { createRoot } from 'react-dom/client';
-import App from './App';
-import '@tensil/kinetic-input/styles/all.css';
-import './index.css';
-
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <App />
-  </StrictMode>
-);`,
-          'src/App.tsx': code,
-          'src/index.css': `body {
-  margin: 0;
-  padding: 2rem;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-  background: #0a0b0d;
-  color: #e7edf2;
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-#root {
-  width: 100%;
-  max-width: 400px;
-}`,
-        },
+        template,
+        files,
       },
       {
-        height,
+        height: parseInt(height) || 500,
+        hideNavigation,
+        hideDevTools,
         openFile,
-        view: 'preview',
-        hideNavigation: false,
-        hideDevTools: false,
-        forceEmbedLayout: true,
-        clickToLoad: false,
+        view,
+        theme: 'dark', // Match our design system
       }
     );
-  }, [title, description, code, height, openFile]);
+  }, [files, title, description, template, height, hideNavigation, hideDevTools, openFile, view]);
 
-  return <div ref={containerRef} style={{ height, width: '100%', borderRadius: '4px', overflow: 'hidden' }} />;
+  return (
+    <div
+      ref={containerRef}
+      style={{ height, width: '100%' }}
+      className="rounded-sm overflow-hidden border border-hairline"
+    />
+  );
 }
