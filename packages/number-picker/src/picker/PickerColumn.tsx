@@ -1,5 +1,5 @@
 import { useCallback, useMemo, type CSSProperties, type HTMLProps } from 'react';
-import { motion, useMotionTemplate } from 'framer-motion';
+import { m, useMotionTemplate } from 'framer-motion';
 import { usePickerActions, usePickerData, type PickerOption } from './PickerGroup';
 import { PickerConfigProvider } from './context';
 import type { SnapPhysicsConfig } from './types/snapPhysics';
@@ -276,7 +276,7 @@ function PickerColumn({
           <div style={{ ...highlightBorderStyle, top: 0 }} />
           <div style={{ ...highlightBorderStyle, bottom: 0 }} />
         </div>
-        <motion.div
+        <m.div
           className="picker-scroller"
           style={{
             willChange: 'transform',
@@ -323,7 +323,7 @@ function PickerColumn({
               );
             })}
           </div>
-        </motion.div>
+        </m.div>
         {children}
       </div>
     </PickerConfigProvider>

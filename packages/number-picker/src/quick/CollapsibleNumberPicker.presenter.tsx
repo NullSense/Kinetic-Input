@@ -1,6 +1,6 @@
 import React, { useMemo, type CSSProperties } from 'react';
-import { motion } from 'framer-motion';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { LazyMotion, domAnimation, m } from 'framer-motion';
+import { ChevronDown, ChevronUp } from './icons';
 import { PickerBody, type PickerBodyProps } from './CollapsibleNumberPicker.pickerBody';
 import type { CollapsibleNumberPickerTheme } from './types';
 
@@ -167,7 +167,8 @@ export const CollapsibleNumberPickerPresenter = React.memo(function CollapsibleN
     );
 
     return (
-        <div className="quick-number-input-root space-y-2" style={cssVariables}>
+        <LazyMotion features={domAnimation} strict>
+            <div className="quick-number-input-root space-y-2" style={cssVariables}>
             <div className="flex items-center gap-2">
                 <label
                     className="font-archivo text-sm uppercase tracking-wider"
@@ -250,7 +251,7 @@ export const CollapsibleNumberPickerPresenter = React.memo(function CollapsibleN
                     onPointerDown={onPointerDown}
                     onKeyDown={onKeyDown}
                 >
-                    <motion.div
+                    <m.div
                         aria-hidden={!showPicker}
                         animate={{
                             opacity: showPicker ? 1 : 0,
@@ -277,7 +278,7 @@ export const CollapsibleNumberPickerPresenter = React.memo(function CollapsibleN
                                 <PickerBody {...pickerBodyProps} />
                             </div>
                         </div>
-                    </motion.div>
+                    </m.div>
                 </div>
             </div>
 
@@ -286,6 +287,7 @@ export const CollapsibleNumberPickerPresenter = React.memo(function CollapsibleN
                     {helperText}
                 </p>
             )}
-        </div>
+            </div>
+        </LazyMotion>
     );
 });

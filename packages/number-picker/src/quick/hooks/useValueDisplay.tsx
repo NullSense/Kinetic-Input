@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { motion } from 'framer-motion';
+import { m } from 'framer-motion';
 import type { CollapsibleNumberPickerProps, CollapsibleNumberPickerRenderValueContext } from '../types';
 
 interface ValueDisplayTheme {
@@ -103,7 +103,7 @@ export const useValueDisplay = ({
 
   const defaultValueNode = useMemo(
     () => (
-      <motion.span
+      <m.span
         key={formattedDisplayValue}
         data-testid="quick-number-display"
         animate={{ filter: ['brightness(1)', 'brightness(1.8)', 'brightness(1)'] }}
@@ -112,7 +112,7 @@ export const useValueDisplay = ({
         style={valueDisplayStyle}
       >
         {formattedDisplayValue}
-      </motion.span>
+      </m.span>
     ),
     [formattedDisplayValue, valueDisplayStyle]
   );
