@@ -71,7 +71,7 @@ Magnetic attraction to center item:
 - **Pull Strength**: Configurable magnetic force (default: 1.4)
 - **Velocity Scaling**: Reduces snap strength during fast scrolling
 
-See [`config/physics.ts`](./packages/number-picker/src/config/physics.ts) for tunable constants.
+See `packages/number-picker/src/config/physics.ts` for tunable constants.
 
 ### Gesture Coordination
 
@@ -184,7 +184,7 @@ The picker lifecycle is modeled as a finite state machine:
 
 ### Timing Presets
 
-Located in [`config/timing.ts`](./packages/number-picker/src/config/timing.ts):
+Located in `packages/number-picker/src/config/timing.ts`:
 
 - **QUICK**: 150ms settle, 800ms wheel idle, 3000ms close
 - **DEFAULT**: 150ms settle, 800ms wheel idle, 4000ms close
@@ -358,7 +358,7 @@ wheelRemainder -= quantized
 
 ## Debug System
 
-Production-safe opt-in debugging system in [`utils/debug.ts`](./packages/number-picker/src/utils/debug.ts).
+Production-safe opt-in debugging system in `packages/number-picker/src/utils/debug.ts`.
 
 ### Debug Namespaces
 

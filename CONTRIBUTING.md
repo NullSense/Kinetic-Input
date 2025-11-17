@@ -1,4 +1,4 @@
-# Contributing to Kinetic Input
+# Contributing to @tensil/kinetic-input
 
 Thank you for your interest in contributing to Kinetic Input! This guide will help you get started.
 
@@ -428,10 +428,10 @@ We follow [Semantic Versioning](https://semver.org/):
 - **Minor** (0.1.0): New features (backwards compatible)
 - **Patch** (0.0.1): Bug fixes (backwards compatible)
 
-### Beta Releases
+### Current Status
 
-Current version is `0.1.0` (beta). During beta:
-- Breaking changes are allowed
+Current version is `0.1.1` (published to npm as `@tensil/kinetic-input`). During v0.x:
+- Breaking changes may occur between minor versions
 - Version increments: `0.1.x → 0.2.0`
 - Each release updates CHANGELOG.md
 
