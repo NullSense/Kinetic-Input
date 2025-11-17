@@ -15,9 +15,13 @@
     "typecheck": "npm run typecheck --workspaces --if-present",
     "lint": "oxlint .",
     "lint:fix": "oxlint --fix .",
+    "lint:dead-code": "knip",
+    "lint:dead-code:production": "knip --production",
     "test": "npm run test --workspace=packages/number-picker",
     "test:ui": "npm run test:ui --workspace=packages/number-picker",
-    "test:coverage": "npm run test:coverage --workspace=packages/number-picker"
+    "test:coverage": "npm run test:coverage --workspace=packages/number-picker",
+    "validate": "npm run typecheck && npm run lint && npm run lint:dead-code && npm test",
+    "postinstall": "husky || true"
   },
   "keywords": [
     "react",
@@ -39,7 +43,10 @@
     "@vitejs/plugin-react": "^5.1.1",
     "@vitest/ui": "^4.0.9",
     "happy-dom": "^20.0.10",
+    "husky": "^9.1.7",
     "jsdom": "^27.2.0",
+    "knip": "^5.43.0",
+    "lint-staged": "^15.2.11",
     "oxlint": "^1.28.0",
     "vitest": "^4.0.9"
   }

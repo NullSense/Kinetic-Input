@@ -5,6 +5,7 @@ interface DebugWindow extends Window {
   __QNI_STATE_DEBUG__?: boolean;
   __QNI_WHEEL_DEBUG__?: boolean;
   __QNI_ANIMATION_DEBUG__?: boolean;
+  __QNI_PICKER_DEBUG__?: boolean;
   __animationDebugger?: unknown;
   [key: string]: unknown; // Allow indexing by string
 }
@@ -164,6 +165,10 @@ export const DEBUG_ANIMATION = logger.register('Animation', () =>
   resolveDebugFlag('__QNI_ANIMATION_DEBUG__')
 );
 
+export const DEBUG_PICKER = logger.register('PickerPhysics', () =>
+  resolveDebugFlag('__QNI_PICKER_DEBUG__')
+);
+
 // ============ Convenience Exports ============
 
 /**
@@ -205,6 +210,14 @@ export const debugWheelLog = (...args: unknown[]) => logger.log(DEBUG_WHEEL_PICK
  * @example debugAnimationLog('Animation started', { animationId: 'abc123', target: 100 });
  */
 export const debugAnimationLog = (...args: unknown[]) => logger.log(DEBUG_ANIMATION, ...args);
+
+/**
+ * Picker physics debug logging (production: no-op, tree-shaken)
+ *
+ * Enable in dev: window.__QNI_PICKER_DEBUG__ = true
+ * @example debugPickerLog('Pointer down', { pointerId: 1, clientY: 100 });
+ */
+export const debugPickerLog = (...args: unknown[]) => logger.log(DEBUG_PICKER, ...args);
 
 // ============ Smart Event Debugger Framework ============
 

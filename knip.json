@@ -1,0 +1,52 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+
+  "entry": [
+    "packages/number-picker/src/index.ts",
+    "packages/number-picker/src/picker/index.ts",
+    "packages/number-picker/src/quick/index.ts",
+    "packages/number-picker/src/wheel/index.ts",
+    "demo/src/main.tsx"
+  ],
+
+  "project": [
+    "packages/**/*.{ts,tsx}",
+    "demo/**/*.{ts,tsx}"
+  ],
+
+  "ignore": [
+    "**/__tests__/**",
+    "**/*.test.{ts,tsx}",
+    "**/*.spec.{ts,tsx}",
+    "**/dist/**",
+    "**/build/**",
+    "**/coverage/**",
+    "**/.turbo/**",
+    "**/node_modules/**"
+  ],
+
+  "ignoreDependencies": [
+    // Peer dependencies that aren't directly imported
+    "@xstate/react",
+    "lucide-react",
+
+    // Dev tools
+    "vitest",
+    "@vitest/ui",
+    "@testing-library/react",
+    "@testing-library/jest-dom",
+    "@testing-library/user-event",
+    "happy-dom",
+    "jsdom"
+  ],
+
+  "ignoreExportsUsedInFile": true,
+
+  "oxlint": {
+    "config": ".oxlintrc.json"
+  },
+
+  "vitest": {
+    "config": ["packages/number-picker/vitest.config.ts"]
+  }
+}

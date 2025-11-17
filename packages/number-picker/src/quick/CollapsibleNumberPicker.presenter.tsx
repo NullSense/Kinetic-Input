@@ -132,7 +132,8 @@ export function CollapsibleNumberPickerPresenter({ viewModel }: CollapsibleNumbe
     const pickerSurfaceStyle = useMemo<CSSProperties>(
         () => ({
             pointerEvents: 'auto' as const,
-            zIndex: 10,
+            // Higher z-index when closed to receive initial click, lower when open to allow PickerColumn drag
+            zIndex: showPicker ? 5 : 15,
             cursor: showPicker ? 'grab' : 'pointer',
             // Set explicit height to match visible bounds (prevents extended hitbox)
             height: showPicker ? `${pickerWindowHeight}px` : `${collapsedHeight}px`,
@@ -151,8 +152,12 @@ export function CollapsibleNumberPickerPresenter({ viewModel }: CollapsibleNumbe
             borderStyle: 'solid',
             height: `${pickerWindowHeight}px`,
             transformOrigin: 'top',
+            // Lower z-index than picker-surface so picker-surface can receive initial click when closed
+            zIndex: showPicker ? 10 : 0,
+            // Always auto - PickerColumn will conditionally capture based on isPickerOpen
+            pointerEvents: 'auto' as const,
         }),
-        [pickerWindowHeight, theme.fadeColor, theme.highlightBorderColor]
+        [pickerWindowHeight, theme.fadeColor, theme.highlightBorderColor, showPicker]
     );
 
     const pickerWindowStyle = useMemo<CSSProperties>(
@@ -186,15 +191,17 @@ export function CollapsibleNumberPickerPresenter({ viewModel }: CollapsibleNumbe
                 )}
             </div>
 
-            <div className="relative min-h-[3rem] md:min-h-[3.5rem]" ref={wrapperRef}>
+            <div className="relative" style={{ height: `${collapsedHeight}px` }} ref={wrapperRef} data-testid="qni-wrapper">
                 <div
+                    className="absolute top-0 left-0 right-0"
                     data-testid="qni-closed"
                     aria-hidden={showPicker}
                     style={closedDisplayStyle}
                 >
                     <div
-                        className="w-full h-12 md:h-14 px-4 transition-all flex items-center justify-center relative"
+                        className="w-full px-4 transition-all flex items-center justify-center relative"
                         style={{
+                            height: `${collapsedHeight}px`,
                             borderWidth: 2,
                             borderStyle: 'solid',
                             borderColor: closedHasValue ? theme.closedBorderColor : theme.closedBorderColorEmpty,
@@ -218,9 +225,7 @@ export function CollapsibleNumberPickerPresenter({ viewModel }: CollapsibleNumbe
                 {showPicker && showBackdrop && <div className="picker-backdrop" onClick={onBackdropClick} />}
 
                 <div
-                    className={`absolute top-0 left-0 right-0 overflow-hidden focus:outline-none ${
-                        !showPicker ? 'h-12 md:h-14' : ''
-                    } picker-surface`}
+                    className="absolute top-0 left-0 right-0 overflow-hidden focus:outline-none picker-surface"
                     style={pickerSurfaceStyle}
                     id={controlId}
                     ref={interactiveRef}
@@ -251,7 +256,7 @@ export function CollapsibleNumberPickerPresenter({ viewModel }: CollapsibleNumbe
                             scaleY: showPicker ? 1 : collapsedHeight / pickerWindowHeight,
                         }}
                         transition={{ duration: 0.2 }}
-                        className={`overflow-hidden ${!showPicker ? 'h-12 md:h-14' : ''}`}
+                        className="overflow-hidden"
                         style={motionDivStyle}
                     >
                         <div

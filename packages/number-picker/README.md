@@ -125,10 +125,26 @@ export function SessionPicker({ value, onChange }) {
 | `helperText` | `ReactNode` | - | Optional caption below the input |
 | `enableSnapPhysics` | `boolean` | `false` | Experimental magnetic snap for slow drags |
 | `snapPhysicsConfig` | `Partial<SnapPhysicsConfig>` | defaults | Override snap parameters |
-| `wheelMode` | `'natural' \| 'inverted' \| 'off'` | `'inverted'` | Mouse wheel scroll direction (inverted: down=increment) |
+| `wheelMode` | `'natural' \| 'inverted' \| 'off'` | `'inverted'` | Mouse wheel/touchpad mode. `'natural'` respects OS direction, `'inverted'` mimics iOS pickers, and `'off'` removes the wheel listeners entirely so the host page keeps scrolling. |
+| `wheelSensitivity` | `number` | `1` | Multiplier for wheel/touchpad deltas. Raise it (>1) to make slow trackpads move further per gesture, lower it (<1) to tame hypersensitive hardware. |
+| `wheelDeltaCap` | `number` | `1.25` | Upper bound (in rows) per wheel frame to keep single touchpad spikes from skipping multiple rows. Any excess delta is carried over to the next frame so fast scrubs still feel responsive. |
 | `enableHaptics` | `boolean` | `true` | Vibration feedback on selection (mobile) |
 | `enableAudioFeedback` | `boolean` | `true` | Audio clicks on selection |
 | `feedbackConfig` | `QuickPickerFeedbackConfig` | - | Override audio/haptic adapters, patterns, or disable features per instance |
+
+#### Wheel & touchpad behavior
+
+- `wheelMode="off"` now removes the wheel listeners entirely so embedded pickers no longer block the page scroll or synthetic scroll containers. Use this when the quick picker sits next to scrollable content.
+- When wheel input is enabled (`'natural'` or `'inverted'`) we still call `preventDefault` to keep focus inside the picker, but pinch-to-zoom gestures (which surface as `ctrlKey` + wheel on macOS trackpads) now pass through untouched so browser zoom shortcuts keep working.
+- Pick `wheelMode="natural"` when you want OS-style scrolling (positive delta = scroll down) and `wheelMode="inverted"` to mimic the native iOS picker where scrolling down increments the value. Both modes will automatically open the picker on first wheel input.
+- Tune `wheelSensitivity` on `CollapsibleNumberPicker` or `PickerGroup` to match your hardware. The default `1` keeps deltas 1:1 with incoming pixels/lines, >1 amplifies tiny trackpad deltas, and <1 slows aggressive desktop wheels without touching the physics stack.
+- Use `wheelDeltaCap` to cap any single wheel frame to roughly a row (default `1.25` rows). Excess delta is rolled into the next frame so slow touchpads stay smooth while still allowing high-speed scrubs across long lists.
+- The same guard powers both `CollapsibleNumberPicker` and bare `PickerGroup`, so standalone wheel pickers opt into wheel capture explicitly while every other instance remains passive by default.
+
+#### Performance notes
+
+- Wheel listeners are only attached when `wheelMode` is `'natural'` or `'inverted'`, and they use `passive: false` deliberately so `preventDefault` can stop accidental page scrolling without forcing reflows on unrelated nodes.
+- Deltas stay in raw MotionValues until a settle frame runs, avoiding React state churn while still sampling velocity for momentum projection. The virtualization window (`slotCount` × `overscan`) means only a handful of rows render at any time, so long option lists keep layout and paint work bounded.
 
 ### Theming
 
@@ -517,9 +533,19 @@ Enable magnetic snapping for slow drags:
     snapRange: 0.3,          // 30% of item height
     pullStrength: 0.6,       // Magnetic strength (0-1)
     velocityThreshold: 120,  // px/s to override snap
+    rangeScaleIntensity: 0.12,       // Base flick projection window (seconds)
+    rangeScaleVelocityBoost: 1.25,   // Multiply projection once velocity crosses the threshold
+    rangeScaleVelocityCap: 3200,     // Clamp release velocity (px/s)
   }}
 />
 ```
+
+The release scaler works in two stages:
+
+1. **Base projection (`rangeScaleIntensity`)** gives every flick ~120 ms of extra coast, so a 500 px/s scrub glides ~60 px after you let go.
+2. **Velocity boost (`rangeScaleVelocityBoost`)** measures how far the release speed exceeds `velocityThreshold` and multiplies the projection window up to `(1 + boost)x`. Faster flicks now reliably skip more values instead of instantly snapping back.
+
+Pair the boost with `rangeScaleVelocityCap` if you want to keep runaway scroll wheels from skipping the entire dataset.
 
 ## Local Development
 

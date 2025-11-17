@@ -6,6 +6,12 @@ import type {
   SnapPhysicsResult
 } from '../types/snapPhysics';
 import { debugSnapLog } from '../../utils/debug';
+import {
+  SNAP_AGGRESSIVE_ZONE_THRESHOLD,
+  CENTER_LOCK_MAX_THRESHOLD,
+  SNAP_ZONE_POWER_BASE,
+  SNAP_ZONE_POWER_SCALE,
+} from '../../config/physics';
 
 const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
 
@@ -59,9 +65,9 @@ export function useSnapPhysics(config: SnapPhysicsConfig) {
     const baseStickRadius = exitThresholdPx * 0.5;
     let stickRadius = baseStickRadius * (1 - normalizedCenterLock);
 
-    if (proportionInZone > 0.6 && stickRadius > 0) {
+    if (proportionInZone > SNAP_AGGRESSIVE_ZONE_THRESHOLD && stickRadius > 0) {
       stickTranslate = clamp(mappedTranslate, snapTarget - stickRadius, snapTarget + stickRadius);
-    } else if (normalizedCenterLock >= 0.999) {
+    } else if (normalizedCenterLock >= CENTER_LOCK_MAX_THRESHOLD) {
       stickTranslate = snapTarget;
       stickRadius = 0;
     }
@@ -70,7 +76,7 @@ export function useSnapPhysics(config: SnapPhysicsConfig) {
     if (normalizedCenterLock > 0 && stickTranslate !== snapTarget) {
       lockBlend = Math.min(
         1,
-        normalizedCenterLock * Math.pow(proportionInZone, 1 + normalizedCenterLock * 1.5)
+        normalizedCenterLock * Math.pow(proportionInZone, SNAP_ZONE_POWER_BASE + normalizedCenterLock * SNAP_ZONE_POWER_SCALE)
       );
       stickTranslate = stickTranslate + (snapTarget - stickTranslate) * lockBlend;
     }

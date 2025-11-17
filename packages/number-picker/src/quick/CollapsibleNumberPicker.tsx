@@ -48,7 +48,8 @@ const CollapsibleNumberPickerComponent: React.FC<CollapsibleNumberPickerProps> =
     enableHaptics = true,
     enableAudioFeedback = true,
     feedbackConfig,
-    wheelMode = 'inverted',
+    wheelSensitivity = 1,
+    wheelDeltaCap = 1.25,
     visualTweaks,
     timingPreset,
     timingConfig,
@@ -73,7 +74,8 @@ const CollapsibleNumberPickerComponent: React.FC<CollapsibleNumberPickerProps> =
 
     const itemHeightPx = itemHeightProp ?? ITEM_HEIGHT;
     const pickerWindowHeight = itemHeightPx * 5;
-    const collapsedHeight = 48;
+    // Make collapsedHeight responsive: use itemHeight as base, minimum 48px
+    const collapsedHeight = Math.max(itemHeightPx, 48);
     const pickerTranslate = showPicker
         ? -(pickerWindowHeight / 2 - collapsedHeight / 2)
         : undefined;
@@ -231,7 +233,8 @@ const CollapsibleNumberPickerComponent: React.FC<CollapsibleNumberPickerProps> =
             onGesture: onGestureWithFeedback,
             showPicker,
             snapConfig: pickerSnapConfig,
-            wheelMode,
+            wheelSensitivity,
+            wheelDeltaCap,
         }),
         [
             values,
@@ -245,7 +248,8 @@ const CollapsibleNumberPickerComponent: React.FC<CollapsibleNumberPickerProps> =
             onGestureWithFeedback,
             showPicker,
             pickerSnapConfig,
-            wheelMode,
+            wheelSensitivity,
+            wheelDeltaCap,
         ]
     );
 
@@ -341,25 +345,37 @@ const CollapsibleNumberPicker = React.memo(
 
         // Deep comparison for config objects (only if defined)
         if (prevProps.snapPhysicsConfig || nextProps.snapPhysicsConfig) {
-            if (!shallowEqual(prevProps.snapPhysicsConfig, nextProps.snapPhysicsConfig)) {
+            if (!shallowEqual(
+                prevProps.snapPhysicsConfig as Record<string, unknown> | undefined,
+                nextProps.snapPhysicsConfig as Record<string, unknown> | undefined
+            )) {
                 return false;
             }
         }
 
         if (prevProps.visualTweaks || nextProps.visualTweaks) {
-            if (!shallowEqual(prevProps.visualTweaks, nextProps.visualTweaks)) {
+            if (!shallowEqual(
+                prevProps.visualTweaks as Record<string, unknown> | undefined,
+                nextProps.visualTweaks as Record<string, unknown> | undefined
+            )) {
                 return false;
             }
         }
 
         if (prevProps.theme || nextProps.theme) {
-            if (!shallowEqual(prevProps.theme, nextProps.theme)) {
+            if (!shallowEqual(
+                prevProps.theme as Record<string, unknown> | undefined,
+                nextProps.theme as Record<string, unknown> | undefined
+            )) {
                 return false;
             }
         }
 
         if (prevProps.timingConfig || nextProps.timingConfig) {
-            if (!shallowEqual(prevProps.timingConfig, nextProps.timingConfig)) {
+            if (!shallowEqual(
+                prevProps.timingConfig as Record<string, unknown> | undefined,
+                nextProps.timingConfig as Record<string, unknown> | undefined
+            )) {
                 return false;
             }
         }
@@ -369,7 +385,10 @@ const CollapsibleNumberPicker = React.memo(
 );
 
 // Shallow equality helper for objects
-function shallowEqual(obj1: Record<string, unknown>, obj2: Record<string, unknown>): boolean {
+function shallowEqual(
+    obj1: Record<string, unknown> | undefined,
+    obj2: Record<string, unknown> | undefined
+): boolean {
     if (obj1 === obj2) return true;
     if (!obj1 || !obj2) return false;
 

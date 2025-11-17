@@ -27,6 +27,8 @@ export interface StandaloneWheelPickerProps {
   highlightColor?: string;
   enableSnapPhysics?: boolean;
   snapPhysicsConfig?: Partial<SnapPhysicsConfig>;
+  wheelSensitivity?: number;
+  wheelDeltaCap?: number;
   renderItem?: (
     option: NormalizedPickerOption,
     state: { selected: boolean; visuallySelected: boolean }
@@ -59,6 +61,8 @@ const StandaloneWheelPicker: React.FC<StandaloneWheelPickerProps> = ({
   highlightColor,
   enableSnapPhysics = false,
   snapPhysicsConfig,
+  wheelSensitivity,
+  wheelDeltaCap,
   renderItem,
 }) => {
   const normalizedOptions = useMemo<NormalizedPickerOption[]>(() => {
@@ -113,7 +117,7 @@ const StandaloneWheelPicker: React.FC<StandaloneWheelPickerProps> = ({
         <div
           className={`np-wheel-item ${state.selected || state.visuallySelected ? 'np-wheel-item-selected' : ''}`}
           style={{
-            color: state.selected
+            color: state.selected || state.visuallySelected
               ? option.accentColor ?? accentColor
               : option.accentColor ?? '#E7EDF2',
           }}
@@ -149,7 +153,14 @@ const StandaloneWheelPicker: React.FC<StandaloneWheelPickerProps> = ({
   return (
     <div className={`np-wheel-picker ${className}`} style={containerStyle}>
       <div className="np-wheel-container">
-        <PickerGroup value={pickerValue} onChange={handleValueChange} height={pickerHeight} itemHeight={itemHeight}>
+        <PickerGroup
+          value={pickerValue}
+          onChange={handleValueChange}
+          height={pickerHeight}
+          itemHeight={itemHeight}
+          wheelSensitivity={wheelSensitivity}
+          wheelDeltaCap={wheelDeltaCap}
+        >
           <PickerGroup.Column name="value" snapConfig={mergedSnapConfig} options={pickerOptions} />
         </PickerGroup>
       </div>

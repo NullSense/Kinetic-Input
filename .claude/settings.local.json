@@ -22,7 +22,21 @@
       "Bash(npm run:*)",
       "Bash(cat:*)",
       "Bash(npm install:*)",
-      "Bash(npm test:*)"
+      "Bash(npm test:*)",
+      "Bash(find:*)",
+      "Bash(xargs sed:*)",
+      "Bash(for line in 15 46 72 96 124 156)",
+      "Bash(do echo \"Line $line:\")",
+      "Bash(done)",
+      "Bash(node -e:*)",
+      "mcp__chrome-devtools__list_pages",
+      "Bash(lsof:*)",
+      "mcp__chrome-devtools__navigate_page",
+      "mcp__chrome-devtools__take_snapshot",
+      "mcp__chrome-devtools__click",
+      "mcp__chrome-devtools__take_screenshot",
+      "mcp__chrome-devtools__evaluate_script",
+      "mcp__chrome-devtools__list_console_messages"
     ],
     "deny": [],
     "ask": []

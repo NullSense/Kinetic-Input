@@ -1,30 +1,20 @@
 /*
- * Quick number input structural styles. Everything hangs off the
- * `.quick-number-input-root` element so consumers can safely scope overrides.
+ * Quick number input - minimal, themeable styling
+ * Only customize variables users actually need to change
  */
 .quick-number-input-root {
+  /* User-customizable */
   --qni-row-height: 40px;
   --qni-visible-rows: 5;
   --qni-font-family: 'Geist Mono', monospace;
   --qni-font-size: 1rem;
-  --qni-unit-font-family: 'Archivo', sans-serif;
-  --qni-unit-font-size: 0.75em;
-  --qni-gap: 0.5rem;
-  --qni-padding-inline: 1rem;
   --qni-color-muted: #9db1be;
   --qni-color-active: #3edcff;
   --qni-color-unit: #8e77b5;
   --qni-highlight-fill: rgba(62, 220, 255, 0.05);
   --qni-fade-color: #0a0b0d;
   --qni-backdrop-color: rgba(0, 0, 0, 0.6);
-  --qni-active-scale: 1.14;
-  --qni-selected-scale: 1.04;
-  --qni-selected-opacity: 0.82;
-  --qni-accent-letter-spacing: 0.02em;
-  --qni-accent-shadow: 0 0 0.5px currentColor, 0.5px 0 0.5px currentColor;
-  --qni-selected-shadow: 0 0 0.4px currentColor;
-  --qni-chevron-size: 20px;
-  --qni-ease: cubic-bezier(0.32, 0.94, 0.6, 1);
+  /* Derived (auto-calculated) */
   --qni-viewport-offset: calc(
     ((var(--qni-visible-rows) - 1) / 2) * var(--qni-row-height)
   );
@@ -38,9 +28,7 @@
 }
 
 .quick-number-input-root .picker-surface {
-  touch-action: pan-x pinch-zoom;
-  overscroll-behavior-y: contain;
-  user-select: none;
+  /* Base protections inherited from picker-base.css */
 }
 
 .quick-number-input-root .picker-container {
@@ -50,7 +38,7 @@
 }
 
 .quick-number-input-root :where(.picker-item, .qni-closed, .qni-inner) {
-  gap: var(--qni-gap, 0.5rem);
+  gap: 0.5rem;
 }
 
 .quick-number-input-root .picker-item {
@@ -60,12 +48,12 @@
   align-items: center;
   justify-content: center;
   width: 100%;
-  padding-inline: var(--qni-padding-inline, 1rem);
+  padding-inline: 1rem;
   color: var(--qni-color-muted);
-  transition:
-    color 0.12s var(--qni-ease),
-    transform 0.16s var(--qni-ease),
-    opacity 0.16s var(--qni-ease);
+  /* Hardcoded for consistency */
+  transition: color 0.12s cubic-bezier(0.32, 0.94, 0.6, 1),
+              transform 0.16s cubic-bezier(0.32, 0.94, 0.6, 1),
+              opacity 0.16s cubic-bezier(0.32, 0.94, 0.6, 1);
   position: relative;
   z-index: 20;
 }
@@ -75,21 +63,21 @@
 }
 
 .quick-number-input-root :is(.picker-item-unit, .qni-unit) {
-  font-family: var(--qni-unit-font-family);
-  font-size: var(--qni-unit-font-size);
+  font-family: 'Archivo', sans-serif;
+  font-size: 0.75em;
   color: var(--qni-color-unit);
 }
 
 .quick-number-input-root .picker-item.picker-item-active {
   color: var(--qni-color-active);
-  text-shadow: var(--qni-accent-shadow);
+  text-shadow: 0 0 0.5px currentColor, 0.5px 0 0.5px currentColor;
   transform: scale(var(--qni-active-scale));
-  letter-spacing: var(--qni-accent-letter-spacing);
+  letter-spacing: 0.02em;
 }
 
 .quick-number-input-root .picker-item.picker-item-selected:not(.picker-item-active) {
   color: var(--qni-color-muted);
-  text-shadow: var(--qni-selected-shadow);
+  text-shadow: 0 0 0.4px currentColor;
   transform: scale(var(--qni-selected-scale));
   opacity: var(--qni-selected-opacity);
 }
@@ -167,16 +155,16 @@
 
 .quick-number-input-root .qni-closed .qni-value {
   color: var(--qni-color-active);
-  text-shadow: var(--qni-accent-shadow);
-  letter-spacing: var(--qni-accent-letter-spacing);
+  text-shadow: 0 0 0.5px currentColor, 0.5px 0 0.5px currentColor;
+  letter-spacing: 0.02em;
 }
 
 .quick-number-input-root .qni-closed .qni-chevron {
   opacity: 0.9;
   color: var(--qni-color-unit);
   stroke: currentColor;
-  width: var(--qni-chevron-size);
-  height: var(--qni-chevron-size);
+  width: 20px;
+  height: 20px;
   vertical-align: middle;
 }
 

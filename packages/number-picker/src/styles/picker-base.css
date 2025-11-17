@@ -1,0 +1,65 @@
+/*
+ * Base picker styles - Level 1 protections
+ * Applied to ALL picker primitives (PickerGroup, StandaloneWheelPicker, CollapsibleNumberPicker)
+ * User MUST import this: import '@tensil/kinetic-input/styles/picker.css'
+ */
+
+/* Base protection - root container */
+.picker-surface {
+  position: relative;
+  /* Prevent text selection */
+  user-select: none;
+  -webkit-user-select: none;
+  /* Prevent page scroll during wheel/touchpad use */
+  touch-action: pan-x pinch-zoom;
+  overscroll-behavior-y: contain;
+  /* No text cursor */
+  cursor: default;
+  /* Customizable highlight color - brighter cyan for better visibility */
+  --picker-highlight-color: rgba(62, 220, 255, 0.85);
+}
+
+/* Picker scroller (PickerColumn container) */
+.picker-scroller {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Base picker item */
+.picker-item {
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: default;
+}
+
+/* Prevent browser default focus outlines (no vertical bars) */
+.picker-column {
+  outline: none;
+}
+
+.picker-column:focus {
+  outline: none;
+}
+
+/* Column-specific highlights (horizontal bars for center row) */
+.picker-column-highlight {
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+/* Show horizontal highlights on focus (for both single and multi-column) */
+.picker-column:focus .picker-column-highlight {
+  opacity: 1;
+}
+
+/* PickerGroup-level highlight lines (center row indicators) */
+.picker-highlight-hitbox {
+  position: absolute;
+  pointer-events: none;
+  inset-inline: 0;
+}
+
+/* Unit styling base (can be overridden by higher levels) */
+.picker-item-unit {
+  opacity: 0.7;
+}

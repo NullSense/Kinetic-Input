@@ -14,23 +14,34 @@ import {
 } from 'framer-motion';
 import type { PickerOption } from '../PickerGroup';
 import type { SnapPhysicsConfig } from '../types/snapPhysics';
-import { DEFAULT_SNAP_PHYSICS } from '../../config/physics';
+import {
+  DEFAULT_SNAP_PHYSICS,
+  MAX_OVERSCROLL_PIXELS,
+  OPENING_DRAG_THRESHOLD_PIXELS,
+  CLICK_STEP_THRESHOLD_RATIO,
+  TOUCH_TAP_THRESHOLD_RATIO,
+  MINIMUM_MOVEMENT_PIXELS,
+  DOM_DELTA_MODE,
+  OVERSCROLL_DAMPING_EXPONENT,
+  MOMENTUM_PHYSICS,
+} from '../../config/physics';
 import { useSnapPhysics } from './useSnapPhysics';
 import { useVirtualWindow } from './useVirtualWindow';
 import { useSnappedIndexStore } from '../useSnappedIndexStore';
 import { clamp, clampIndex, indexFromY, yFromIndex } from '../utils/math';
-import { projectReleaseTranslate } from '../utils/releaseMomentum';
-import { animationDebugger, debugSnapLog } from '../../utils/debug';
+import { animationDebugger, debugSnapLog, debugPickerLog } from '../../utils/debug';
+import { animateMomentumWithFriction, type FrictionMomentumControls } from '../utils/frictionMomentum';
 import {
   createGestureEmitter,
   createVelocityTracker,
   type PickerGestureHandler,
 } from '../gestures';
 
-const MAX_OVERSCROLL = 80;
-const OPENING_DRAG_THRESHOLD = 6;
-const CLICK_STEP_THRESHOLD_RATIO = 0.3;
-const TOUCH_TAP_THRESHOLD_RATIO = 0.1;
+const clampWheelSensitivity = (value: number) =>
+  Number.isFinite(value) && value > 0 ? value : 1;
+
+const clampWheelDeltaCap = (value: number) =>
+  Number.isFinite(value) && value > 0 ? value : 1.25;
 
 export interface PickerColumnInteractionsConfig {
   key: string;
@@ -39,7 +50,8 @@ export interface PickerColumnInteractionsConfig {
   itemHeight: number;
   height: number;
   isPickerOpen: boolean;
-  wheelMode: 'off' | 'natural' | 'inverted';
+  wheelSensitivity: number;
+  wheelDeltaCap: number;
   changeValue: (key: string, value: string | number) => boolean;
   /** Event-driven gesture handler */
   onGesture?: PickerGestureHandler;
@@ -62,6 +74,9 @@ export interface PickerColumnInteractionsResult {
   handlePointerUp: (event: React.PointerEvent<HTMLDivElement>) => void;
   handlePointerCancel: (event: React.PointerEvent<HTMLDivElement>) => void;
   handlePointerLeave: (event: React.PointerEvent<HTMLDivElement>) => void;
+  handleWheel: (event: WheelEvent) => void;
+  handleClick: (event: React.MouseEvent<HTMLDivElement>) => void;
+  handleDoubleClick: (event: React.MouseEvent<HTMLDivElement>) => void;
 }
 
 /**
@@ -79,7 +94,8 @@ export function usePickerPhysics({
   itemHeight,
   height,
   isPickerOpen,
-  wheelMode,
+  wheelSensitivity,
+  wheelDeltaCap,
   changeValue,
   onGesture,
   snapConfig,
@@ -90,8 +106,8 @@ export function usePickerPhysics({
 
   // Create velocity tracker for pointer/wheel gestures
   const velocityTracker = useMemo(() => createVelocityTracker({
-    sampleCount: 5,
-    maxSampleAge: 100,
+    sampleCount: 8, // Increased from 5 for better mobile accuracy
+    maxSampleAge: 150, // Reduced from 250ms for more responsive velocity calculation
   }), []);
 
   const mergedSnapConfig = useMemo<SnapPhysicsConfig>(
@@ -104,6 +120,21 @@ export function usePickerPhysics({
   const snapEnabled = mergedSnapConfig.enabled;
   const snapPhysics = useSnapPhysics(mergedSnapConfig);
 
+  // Wheel-specific snap: VERY strong magnetic pull for precision (especially important for ranges like reps)
+  const wheelSnapConfig = useMemo<SnapPhysicsConfig>(
+    () => ({
+      ...mergedSnapConfig,
+      pullStrength: 1.4,  // Maximum pull strength (same as pointer) for rigid feel
+      centerLock: 0.85,   // Very sticky center - easy to land precisely on target value
+      velocityReducer: 0.05, // Minimal scaling - snap stays strong even when scrolling
+      // Gentler projection for wheel (touchpad has acceleration, don't over-project)
+      rangeScaleIntensity: 0.1, // 100ms projection (vs 250ms for pointer) - less aggressive
+      rangeScaleVelocityBoost: 1.0, // No boost (vs 2.0 for pointer)
+    }),
+    [mergedSnapConfig],
+  );
+  const wheelSnapPhysics = useSnapPhysics(wheelSnapConfig);
+
   const lastIndex = Math.max(0, options.length - 1);
   const maxTranslate = useMemo(() => height / 2 - itemHeight / 2, [height, itemHeight]);
   const minTranslate = useMemo(
@@ -113,6 +144,9 @@ export function usePickerPhysics({
 
   const yRaw = useMotionValue(0);
   const ySnap = useMotionValue(0);
+
+  const normalizedWheelSensitivity = useMemo(() => clampWheelSensitivity(wheelSensitivity), [wheelSensitivity]);
+  const normalizedWheelDeltaCap = useMemo(() => clampWheelDeltaCap(wheelDeltaCap), [wheelDeltaCap]);
 
   useMotionValueEvent(yRaw, 'change', (latest) => {
     const snapped = Math.round(Number(latest));
@@ -139,6 +173,7 @@ export function usePickerPhysics({
   const skipClickRef = useRef(false);
   const pointerTypeRef = useRef<'mouse' | 'pen' | 'touch' | ''>('');
   const activeAnimationRef = useRef<AnimationPlaybackControls | null>(null);
+  const activeFrictionMomentumRef = useRef<FrictionMomentumControls | null>(null);
   const activeAnimationIdRef = useRef<symbol | null>(null);
   const activeTargetIndexRef = useRef<number | null>(null);
   const lastIsPickerOpenRef = useRef(isPickerOpen);
@@ -183,8 +218,8 @@ export function usePickerPhysics({
       let applied = nextTranslate;
       if (applied < minTranslate) {
         const distance = minTranslate - applied;
-        const limitedDistance = Math.min(distance, MAX_OVERSCROLL);
-        const overscroll = Math.pow(limitedDistance, 0.8);
+        const limitedDistance = Math.min(distance, MAX_OVERSCROLL_PIXELS);
+        const overscroll = Math.pow(limitedDistance, OVERSCROLL_DAMPING_EXPONENT);
         applied = minTranslate - overscroll;
         if (distance > 0 && !boundaryHitFiredRef.current) {
           const value = options[lastIndex]?.value;
@@ -193,8 +228,8 @@ export function usePickerPhysics({
         }
       } else if (applied > maxTranslate) {
         const distance = applied - maxTranslate;
-        const limitedDistance = Math.min(distance, MAX_OVERSCROLL);
-        const overscroll = Math.pow(limitedDistance, 0.8);
+        const limitedDistance = Math.min(distance, MAX_OVERSCROLL_PIXELS);
+        const overscroll = Math.pow(limitedDistance, OVERSCROLL_DAMPING_EXPONENT);
         applied = maxTranslate + overscroll;
         if (distance > 0 && !boundaryHitFiredRef.current) {
           const value = options[0]?.value;
@@ -232,6 +267,13 @@ export function usePickerPhysics({
   }, [commitValueAtIndex, itemHeight, lastIndex, maxTranslate, yRaw]);
 
   const stopActiveAnimation = useCallback(() => {
+    // Stop friction momentum animation if running
+    if (activeFrictionMomentumRef.current) {
+      activeFrictionMomentumRef.current.stop();
+      activeFrictionMomentumRef.current = null;
+    }
+
+    // Stop spring animation if running
     if (!activeAnimationRef.current) {
       return;
     }
@@ -321,30 +363,104 @@ export function usePickerPhysics({
     [commitValueAtIndex, itemHeight, lastIndex, maxTranslate, options.length, stopActiveAnimation, yRaw],
   );
 
-  const releaseProjectionConfig = useMemo(
-    () => ({
-      projectionSeconds: mergedSnapConfig.rangeScaleIntensity ?? 0,
-      velocityCap: mergedSnapConfig.rangeScaleVelocityCap,
-      minTranslate,
-      maxTranslate,
-    }),
-    [maxTranslate, mergedSnapConfig.rangeScaleIntensity, mergedSnapConfig.rangeScaleVelocityCap, minTranslate],
-  );
-
   const settleFromY = useCallback(
     (currentY: number, velocity: number, onComplete?: () => void) => {
-      const projected = projectReleaseTranslate(currentY, velocity, releaseProjectionConfig);
-      const clampedY = clamp(projected, minTranslate, maxTranslate);
-      const index = clampIndex(indexFromY(clampedY, itemHeight, maxTranslate), lastIndex);
-      settleToIndex(index, onComplete);
+      // Stop any active animation before starting new one
+      stopActiveAnimation();
+
+      debugPickerLog('SETTLE FROM Y', {
+        currentY: currentY.toFixed(1),
+        velocity: velocity.toFixed(1) + ' px/s',
+        minTranslate,
+        maxTranslate,
+      });
+
+      // If velocity is negligible, just snap to nearest item immediately
+      if (Math.abs(velocity) < 10) {
+        const index = clampIndex(indexFromY(currentY, itemHeight, maxTranslate), lastIndex);
+        settleToIndex(index, onComplete);
+        return;
+      }
+
+      // Start friction-based momentum animation
+      // Scale velocity to 35% for controlled flick speed
+      const controls = animateMomentumWithFriction({
+        control: yRaw,
+        initialVelocity: velocity * 0.35,
+        bounds: {
+          min: minTranslate,
+          max: maxTranslate,
+        },
+        snapFunction: (position) => {
+          // Calculate which item index this position corresponds to
+          const index = clampIndex(indexFromY(position, itemHeight, maxTranslate), lastIndex);
+          // Return the exact Y position for that index
+          return yFromIndex(index, itemHeight, maxTranslate, lastIndex);
+        },
+        config: MOMENTUM_PHYSICS,
+        onComplete: () => {
+          // Calculate final index from yRaw position
+          const finalY = yRaw.get();
+          const finalIndex = clampIndex(indexFromY(finalY, itemHeight, maxTranslate), lastIndex);
+
+          debugPickerLog('FRICTION MOMENTUM COMPLETE', {
+            finalY: finalY.toFixed(1),
+            finalIndex,
+          });
+
+          // Commit the value
+          commitValueAtIndex(finalIndex);
+          activeTargetIndexRef.current = null;
+          activeFrictionMomentumRef.current = null;
+
+          onComplete?.();
+        },
+        snapSpring: {
+          stiffness: 300,
+          damping: 34,
+          restDelta: 0.5,
+          restSpeed: 10,
+        },
+      });
+
+      // Store controls for potential interruption
+      activeFrictionMomentumRef.current = controls;
+
+      // Track target for debugging (will be set when snap phase starts)
+      const estimatedIndex = clampIndex(indexFromY(currentY, itemHeight, maxTranslate), lastIndex);
+      activeTargetIndexRef.current = estimatedIndex;
     },
-    [itemHeight, lastIndex, maxTranslate, minTranslate, releaseProjectionConfig, settleToIndex],
+    [
+      commitValueAtIndex,
+      itemHeight,
+      lastIndex,
+      maxTranslate,
+      minTranslate,
+      settleToIndex,
+      stopActiveAnimation,
+      yRaw,
+    ],
   );
+
+  // Track all captured pointer IDs for proper cleanup
+  const capturedPointersRef = useRef<Set<number>>(new Set());
 
   const handlePointerDown = useCallback(
     (event: React.PointerEvent<HTMLDivElement>) => {
       const element = event.currentTarget as HTMLElement;
       element.setPointerCapture?.(event.pointerId);
+
+      // Track this pointer ID
+      capturedPointersRef.current.add(event.pointerId);
+
+      debugPickerLog('POINTER DOWN', {
+        pointerId: event.pointerId,
+        pointerType: event.pointerType,
+        isMovingBefore: isMovingRef.current,
+        capturedPointers: Array.from(capturedPointersRef.current),
+        timestamp: Date.now(),
+      });
+
       pointerTypeRef.current =
         event.pointerType === 'mouse' || event.pointerType === 'pen' || event.pointerType === 'touch'
           ? event.pointerType
@@ -369,7 +485,13 @@ export function usePickerPhysics({
 
   const handlePointerMove = useCallback(
     (event: React.PointerEvent<HTMLDivElement>) => {
-      if (!isMovingRef.current) return;
+      if (!isMovingRef.current) {
+        debugPickerLog('POINTER MOVE BLOCKED (isMoving=false)', {
+          pointerId: event.pointerId,
+          timestamp: Date.now(),
+        });
+        return;
+      }
 
       // Track velocity
       velocityTracker.addSample(event.clientY);
@@ -377,7 +499,7 @@ export function usePickerPhysics({
       const deltaY = event.clientY - startPointerYRef.current;
       const contentDelta = deltaY;
       if (!openingDragThresholdPassedRef.current) {
-        if (Math.abs(deltaY) < OPENING_DRAG_THRESHOLD) {
+        if (Math.abs(deltaY) < OPENING_DRAG_THRESHOLD_PIXELS) {
           return;
         }
         openingDragThresholdPassedRef.current = true;
@@ -409,19 +531,33 @@ export function usePickerPhysics({
 
   const handlePointerUp = useCallback(
     (event: React.PointerEvent<HTMLDivElement>) => {
+      debugPickerLog('POINTER UP', {
+        pointerId: event.pointerId,
+        isMovingBefore: isMovingRef.current,
+        capturedPointersBefore: Array.from(capturedPointersRef.current),
+        timestamp: Date.now(),
+      });
+
+      // Remove from tracked pointers
+      capturedPointersRef.current.delete(event.pointerId);
+
       try {
         (event.currentTarget as HTMLElement).releasePointerCapture?.(event.pointerId);
+        debugPickerLog('Released capture for ID', event.pointerId,
+          'remaining:', Array.from(capturedPointersRef.current));
       } catch (error) {
-        debugSnapLog?.('releasePointerCapture failed', error);
+        debugPickerLog('Failed to release capture', error);
+        debugSnapLog('releasePointerCapture failed', error);
       }
 
       const currentTranslate = yRaw.get();
       const movementDelta = Math.abs(currentTranslate - startTranslateRef.current);
-      const hasMoved = movementDelta > 2;
+      const hasMoved = movementDelta > MINIMUM_MOVEMENT_PIXELS;
 
       const shouldSkipSettle = !openingDragThresholdPassedRef.current && !wasOpenOnPointerDownRef.current;
 
       isMovingRef.current = false;
+      debugPickerLog('Set isMoving = false');
       snapPhysics.reset();
 
       const pointerType = pointerTypeRef.current;
@@ -485,7 +621,21 @@ export function usePickerPhysics({
         velocityTracker.reset();
       };
 
-      settleFromY(currentTranslate, velocity, () => finalize(hasMoved));
+      // Apply damped momentum in single-gesture mode to prevent overshoot
+      // Full momentum in multi-gesture mode (picker already open)
+      const singleGestureDamping = 0.6; // 60% of velocity for touch-to-open-and-drag
+      const velocityForSettle = wasOpenOnPointerDownRef.current
+        ? velocity
+        : velocity * singleGestureDamping;
+
+      debugPickerLog('VELOCITY', {
+        measured: velocity.toFixed(0) + ' px/s',
+        used: velocityForSettle.toFixed(0) + ' px/s',
+        mode: wasOpenOnPointerDownRef.current ? 'multi-gesture' : 'single-gesture',
+        damping: wasOpenOnPointerDownRef.current ? 1.0 : singleGestureDamping,
+      });
+
+      settleFromY(currentTranslate, velocityForSettle, () => finalize(hasMoved));
     },
     [
       columnRef,
@@ -520,51 +670,87 @@ export function usePickerPhysics({
 
   const wheelingTimer = useRef<number | null>(null);
   const wheelStartTranslateRef = useRef<number | null>(null);
+  const wheelRemainderRef = useRef(0);
+  const wheelWasCappedRef = useRef(false);
 
   const handleWheeling = useCallback(
     (event: WheelEvent) => {
       let delta = event.deltaY;
 
-      if (event.deltaMode === 0x01) {
-        delta *= 16;
-      } else if (event.deltaMode === 0x02) {
+      if (event.deltaMode === DOM_DELTA_MODE.LINE) {
+        delta *= itemHeight;
+      } else if (event.deltaMode === DOM_DELTA_MODE.PAGE) {
         delta *= height;
       }
 
-      delta *= 0.1;
+      delta *= normalizedWheelSensitivity;
 
-      if (wheelMode === 'inverted') {
-        delta = -delta;
+      // Auto-detect scrolling direction based on input device
+      if (event.deltaMode === DOM_DELTA_MODE.PIXEL) {
+        // Touchpad (DOM_DELTA_MODE.PIXEL): natural scrolling (like smartphones)
+        // Touchpads provide fine-grained pixel deltas, so reduce sensitivity
+        // to prevent scrolling too fast (0.35 = roughly 1:1 pixel movement)
+        delta = delta * 0.35;
       }
+      // LINE mode (mouse wheel) uses delta as-is after sensitivity scaling
+
+      const maxDelta = itemHeight * normalizedWheelDeltaCap;
+      const accumulated = wheelRemainderRef.current + delta;
+      const boundedDelta = clamp(accumulated, -maxDelta, maxDelta);
+      const wasCapped = Math.abs(accumulated) > Math.abs(boundedDelta);
+      // Flag as spike if capped by >20% (touchpad accel creates high velocity, don't over-project)
+      if (wasCapped && Math.abs(accumulated - boundedDelta) / Math.abs(boundedDelta) > 0.2) {
+        wheelWasCappedRef.current = true;
+      }
+      wheelRemainderRef.current = accumulated - boundedDelta;
 
       const currentTranslate = yRaw.get();
-      let nextTranslate = currentTranslate + delta;
+      // Subtract delta because coordinate system: higher index = lower translateY
+      // Positive wheel delta (scroll down) → subtract → lower translateY → higher index
+      const rawTranslate = currentTranslate - boundedDelta;
 
+      // Apply strong snap physics for satisfying magnetic "thunk" feel (like phone touch)
+      const nearestIndex = indexFromY(rawTranslate, itemHeight, maxTranslate);
+      const snapTargetTranslate = yFromIndex(nearestIndex, itemHeight, maxTranslate, lastIndex);
+      const deltaToTarget = rawTranslate - snapTargetTranslate;
+
+      let nextTranslate = rawTranslate;
       if (snapEnabled) {
-        const nearestIndex = indexFromY(nextTranslate, itemHeight, maxTranslate);
-        const snapTargetTranslate = yFromIndex(nearestIndex, itemHeight, maxTranslate, lastIndex);
-        const deltaToTarget = nextTranslate - snapTargetTranslate;
-        const frame = {
-          deltaY: deltaToTarget,
-          velocityY: velocityTracker.getVelocity(),
-          totalPixelsMoved: Math.abs(nextTranslate - (wheelStartTranslateRef.current ?? nextTranslate)),
-        };
-        const snapResult = snapPhysics.calculate(frame, 0, itemHeight);
+        const wheelStartTranslate = wheelStartTranslateRef.current ?? currentTranslate;
+        const totalPixelsMoved = Math.abs(rawTranslate - wheelStartTranslate);
+        const snapResult = wheelSnapPhysics.calculate(
+          { deltaY: deltaToTarget, velocityY: velocityTracker.getVelocity(), totalPixelsMoved },
+          0,
+          itemHeight,
+        );
         nextTranslate = snapResult.mappedTranslate + snapTargetTranslate;
-      } else {
-        nextTranslate = currentTranslate + delta;
       }
 
-      // Track wheel velocity using the raw translate value
-      velocityTracker.addSample(nextTranslate);
+      // Track ALL deltas for accurate velocity (flicks need full velocity captured)
+      velocityTracker.addSample(rawTranslate);
 
       updateScrollerWhileMoving(nextTranslate);
     },
-    [height, itemHeight, lastIndex, maxTranslate, snapEnabled, snapPhysics, updateScrollerWhileMoving, velocityTracker, wheelMode, yRaw],
+    [
+      height,
+      itemHeight,
+      lastIndex,
+      maxTranslate,
+      normalizedWheelDeltaCap,
+      normalizedWheelSensitivity,
+      snapEnabled,
+      updateScrollerWhileMoving,
+      velocityTracker,
+      wheelSnapPhysics,
+      yRaw,
+    ],
   );
 
   const handleWheel = useCallback(
     (event: WheelEvent) => {
+      if (event.ctrlKey) {
+        return;
+      }
       event.preventDefault();
 
       if (wheelStartTranslateRef.current === null) {
@@ -573,9 +759,12 @@ export function usePickerPhysics({
         // Reset velocity tracker for new wheel gesture
         velocityTracker.reset();
         velocityTracker.addSample(wheelStartTranslateRef.current);
+        wheelRemainderRef.current = 0;
+        wheelWasCappedRef.current = false;
         emitter.dragStart('wheel');
 
         snapPhysics.reset();
+        wheelSnapPhysics.reset();
         boundaryHitFiredRef.current = false;
       }
 
@@ -589,21 +778,25 @@ export function usePickerPhysics({
         const currentTranslate = yRaw.get();
         const startTranslate = wheelStartTranslateRef.current ?? currentTranslate;
         const movementDelta = Math.abs(currentTranslate - startTranslate);
-        const hasMoved = movementDelta > 2;
+        const hasMoved = movementDelta > MINIMUM_MOVEMENT_PIXELS;
 
-        // Get velocity before settling
-        const velocity = velocityTracker.getVelocity();
+        // Wheel scrolling should NEVER use momentum/flicking - always velocity = 0
+        // Only pointer/touch gestures should have momentum physics
+        const velocity = 0;
 
+        // Settle to nearest snap point without momentum projection
         settleFromY(currentTranslate, velocity, () => {
           snapPhysics.reset();
           emitter.dragEnd(hasMoved, velocity);
           wheelStartTranslateRef.current = null;
           wheelingTimer.current = null;
+          wheelRemainderRef.current = 0;
+          wheelWasCappedRef.current = false;
           velocityTracker.reset();
         });
       }, 200);
     },
-    [emitter, handleWheeling, settleFromY, snapPhysics, velocityTracker, yRaw],
+    [emitter, handleWheeling, settleFromY, snapPhysics, velocityTracker, wheelSnapPhysics, yRaw],
   );
 
   useEffect(() => {
@@ -640,6 +833,39 @@ export function usePickerPhysics({
     boundaryHitFiredRef.current = false;
   }, [options.length]);
 
+  const handleClick = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
+    debugPickerLog('CLICK', {
+      timestamp: Date.now(),
+      detail: event.detail, // 1 for single, 2 for double
+      isMoving: isMovingRef.current,
+      capturedPointers: Array.from(capturedPointersRef.current),
+    });
+  }, []);
+
+  const handleDoubleClick = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
+    debugPickerLog('DOUBLE-CLICK detected', {
+      timestamp: Date.now(),
+      isMoving: isMovingRef.current,
+      capturedPointers: Array.from(capturedPointersRef.current),
+      clientX: event.clientX,
+      clientY: event.clientY,
+    });
+
+    // SAFETY: Force release ALL captured pointers and cleanup
+    debugPickerLog('SAFETY: Forcing cleanup due to dblclick');
+    capturedPointersRef.current.forEach(id => {
+      try {
+        columnRef.current?.releasePointerCapture(id);
+        debugPickerLog('SAFETY: Released pointer ID', id);
+      } catch (e) {
+        debugPickerLog('SAFETY: Failed to release pointer ID', id, e);
+      }
+    });
+    capturedPointersRef.current.clear();
+    isMovingRef.current = false;
+    debugPickerLog('SAFETY: Forced isMoving = false, cleared all captures');
+  }, []);
+
   return {
     columnRef,
     ySnap,
@@ -652,5 +878,8 @@ export function usePickerPhysics({
     handlePointerUp,
     handlePointerCancel,
     handlePointerLeave,
+    handleWheel,
+    handleClick,
+    handleDoubleClick,
   };
 }

@@ -1,5 +1,5 @@
 import type React from 'react';
-import { act, renderHook, waitFor } from '@testing-library/react';
+import { act, cleanup, renderHook, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import type { MotionValue } from 'framer-motion';
 import { usePickerPhysics } from '../usePickerPhysics';
@@ -11,30 +11,32 @@ type PendingAnimation = {
   stopped: boolean;
 };
 
-const pendingAnimations: PendingAnimation[] = [];
+const pendingAnimations = vi.hoisted(() => [] as PendingAnimation[]);
 
-const animateMock = vi.fn((motionValue: unknown, to: unknown, config: { onComplete?: () => void } = {}) => {
-  const record: PendingAnimation = { motionValue: motionValue as MotionValue<number>, to: to as number, config, stopped: false };
-  pendingAnimations.push(record);
-  return {
-    stop: () => {
-      record.stopped = true;
-      const idx = pendingAnimations.indexOf(record);
-      if (idx >= 0) {
-        pendingAnimations.splice(idx, 1);
-      }
-    },
-    play: () => {},
-    pause: () => {},
-    complete: () => {},
-    cancel: () => {},
-    time: 0,
-    speed: 1,
-    startTime: 0,
-    duration: 0,
-    state: 'idle' as const,
-  };
-});
+const animateMock = vi.hoisted(() =>
+  vi.fn((motionValue: unknown, to: unknown, config: { onComplete?: () => void } = {}) => {
+    const record: PendingAnimation = { motionValue: motionValue as MotionValue<number>, to: to as number, config, stopped: false };
+    pendingAnimations.push(record);
+    return {
+      stop: () => {
+        record.stopped = true;
+        const idx = pendingAnimations.indexOf(record);
+        if (idx >= 0) {
+          pendingAnimations.splice(idx, 1);
+        }
+      },
+      play: () => {},
+      pause: () => {},
+      complete: () => {},
+      cancel: () => {},
+      time: 0,
+      speed: 1,
+      startTime: 0,
+      duration: 0,
+      state: 'idle' as const,
+    };
+  })
+);
 
 // Mock framer-motion's animate function
 vi.mock('framer-motion', async () => {
@@ -70,6 +72,7 @@ const makeOptions = (count: number): Option[] =>
 
 describe('usePickerPhysics', () => {
   beforeEach(() => {
+    cleanup();
     pendingAnimations.splice(0, pendingAnimations.length);
     animateMock.mockClear();
   });
@@ -79,7 +82,8 @@ describe('usePickerPhysics', () => {
     itemHeight: 40,
     height: 200,
     isPickerOpen: true,
-    wheelMode: 'off' as const,
+    wheelSensitivity: 1,
+    wheelDeltaCap: 1.25,
     changeValue: vi.fn(),
     virtualization: { slotCount: 11, overscan: 5 },
   };

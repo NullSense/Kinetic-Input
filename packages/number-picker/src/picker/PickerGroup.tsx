@@ -9,11 +9,13 @@ import {
   useMemo,
   useReducer,
   useRef,
+  type KeyboardEvent,
 } from 'react';
 
 const DEFAULT_HEIGHT = 216;
 const DEFAULT_ITEM_HEIGHT = 36;
-const DEFAULT_WHEEL_MODE = 'off';
+const DEFAULT_WHEEL_SENSITIVITY = 1;
+const DEFAULT_WHEEL_DELTA_CAP = 1.25;
 
 interface Option {
   value: string | number;
@@ -33,14 +35,16 @@ export interface PickerGroupRootProps<TType extends PickerValue>
   onChange: (value: TType, key: string) => void;
   height?: number;
   itemHeight?: number;
-  wheelMode?: 'off' | 'natural' | 'inverted';
+  wheelSensitivity?: number;
+  wheelDeltaCap?: number;
   showHighlightLines?: boolean;
 }
 
 const PickerGroupDataContext = createContext<{
   height: number;
   itemHeight: number;
-  wheelMode: 'off' | 'natural' | 'inverted';
+  wheelSensitivity: number;
+  wheelDeltaCap: number;
   value: PickerValue;
   optionGroups: { [key: string]: Option[] };
 } | null>(null);
@@ -114,7 +118,8 @@ function PickerGroupRoot<TType extends PickerValue>(props: PickerGroupRootProps<
     onChange,
     height = DEFAULT_HEIGHT,
     itemHeight = DEFAULT_ITEM_HEIGHT,
-    wheelMode = DEFAULT_WHEEL_MODE,
+    wheelSensitivity = DEFAULT_WHEEL_SENSITIVITY,
+    wheelDeltaCap = DEFAULT_WHEEL_DELTA_CAP,
     showHighlightLines = true,
     ...restProps
   } = props;
@@ -147,8 +152,8 @@ function PickerGroupRoot<TType extends PickerValue>(props: PickerGroupRootProps<
   const [optionGroups, dispatch] = useReducer(pickerGroupReducer, {});
 
   const pickerGroupData = useMemo(
-    () => ({ height, itemHeight, wheelMode, value, optionGroups }),
-    [height, itemHeight, value, optionGroups, wheelMode],
+    () => ({ height, itemHeight, wheelSensitivity, wheelDeltaCap, value, optionGroups }),
+    [height, itemHeight, optionGroups, value, wheelDeltaCap, wheelSensitivity],
   );
 
   const valueRef = useRef(value);
@@ -240,14 +245,65 @@ function PickerGroupRoot<TType extends PickerValue>(props: PickerGroupRootProps<
     []
   );
 
-  return (
-    <div
-      style={mergedContainerStyle}
-      onTouchMove={(e) => {
+  // Cross-column keyboard navigation
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const handleContainerKeyDown = useCallback((e: KeyboardEvent<HTMLDivElement>) => {
+    // Only intercept ArrowLeft/ArrowRight for multi-column navigation
+    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') {
+      return;
+    }
+
+    const container = containerRef.current;
+    if (!container) return;
+
+    // Find all focusable columns
+    const columns = Array.from(container.querySelectorAll('.picker-column')) as HTMLElement[];
+    if (columns.length <= 1) {
+      // Single column - let the column handle left/right as up/down
+      return;
+    }
+
+    // Multi-column picker - use left/right to navigate between columns
+    const activeElement = document.activeElement as HTMLElement;
+    const currentIndex = columns.indexOf(activeElement);
+
+    if (currentIndex === -1) {
+      // No column focused, focus the first one
+      columns[0]?.focus();
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+
+    if (e.key === 'ArrowLeft') {
+      const prevIndex = currentIndex - 1;
+      if (prevIndex >= 0) {
+        columns[prevIndex].focus();
         e.preventDefault();
         e.stopPropagation();
-      }}
-      onTouchStart={(e) => {
+      }
+    } else if (e.key === 'ArrowRight') {
+      const nextIndex = currentIndex + 1;
+      if (nextIndex < columns.length) {
+        columns[nextIndex].focus();
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    }
+  }, []);
+
+  // Wheel event handling is managed by column's native listener
+  // which always prevents default to avoid page scrolling
+
+  return (
+    <div
+      ref={containerRef}
+      className="picker-surface"
+      style={mergedContainerStyle}
+      onKeyDownCapture={handleContainerKeyDown}
+      onTouchMove={(e) => {
+        e.preventDefault();
         e.stopPropagation();
       }}
       {...restProps}
@@ -265,11 +321,13 @@ function PickerGroupRoot<TType extends PickerValue>(props: PickerGroupRootProps<
         style={bottomGradientStyle}
       />
       {showHighlightLines && (
-        <div style={highlightStyle}>
+        <div className="picker-highlight-hitbox" style={highlightStyle}>
           <div
+            className="picker-highlight-line-top"
             style={highlightBorderTopStyle}
           />
           <div
+            className="picker-highlight-line-bottom"
             style={highlightBorderBottomStyle}
           />
         </div>
