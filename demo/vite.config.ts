@@ -7,7 +7,7 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      registerType: 'prompt',
+      registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'apple-touch-icon.png', 'safari-pinned-tab.svg'],
       manifest: {
         name: 'Kinetic Input - React Components',
@@ -16,6 +16,8 @@ export default defineConfig({
         theme_color: '#3EDCFF',
         background_color: '#0A0B0D',
         display: 'standalone',
+        start_url: '/',
+        scope: '/',
         icons: [
           {
             src: '/android-chrome-192x192.png',
@@ -33,10 +35,31 @@ export default defineConfig({
             type: 'image/png',
             purpose: 'any maskable'
           }
+        ],
+        shortcuts: [
+          {
+            name: 'Get Started',
+            short_name: 'Docs',
+            description: 'View installation and usage guide',
+            url: '/#snippets',
+            icons: [{ src: '/favicon.svg', sizes: '96x96' }]
+          },
+          {
+            name: 'Presets Gallery',
+            short_name: 'Presets',
+            description: 'Browse themed picker examples',
+            url: '/#presets',
+            icons: [{ src: '/favicon.svg', sizes: '96x96' }]
+          }
         ]
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
+        // Force immediate activation and control of all clients
+        skipWaiting: true,
+        clientsClaim: true,
+        // Clean old caches automatically
+        cleanupOutdatedCaches: true,
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
@@ -67,6 +90,9 @@ export default defineConfig({
             }
           }
         ]
+      },
+      devOptions: {
+        enabled: false
       }
     })
   ],

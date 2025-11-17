@@ -5,6 +5,7 @@ import { ComponentShowcase } from './components/ComponentShowcase';
 import { PresetsGallery } from './components/PresetsGallery';
 import { Footer } from './components/Footer';
 import { PWAUpdatePrompt } from './components/PWAUpdatePrompt';
+import { PWAInstallPrompt } from './components/PWAInstallPrompt';
 
 function App() {
   return (
@@ -20,8 +21,9 @@ function App() {
 
       <Footer />
 
-      {/* PWA Update Prompt */}
+      {/* PWA Prompts */}
       <PWAUpdatePrompt />
+      <PWAInstallPrompt />
     </>
   );
 }

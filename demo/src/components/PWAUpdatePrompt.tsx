@@ -6,8 +6,12 @@ import { RefreshCw, X } from 'lucide-react';
 /**
  * PWA Update Prompt
  *
- * Shows a notification when a new version is available.
- * Users can reload to get the latest version or dismiss.
+ * Aggressive update strategy:
+ * - Checks on page load (automatic)
+ * - Checks every 5 minutes while app is active
+ * - Checks when user returns to tab (visibility change)
+ * - Auto-updates with skipWaiting + clientsClaim
+ * - Shows brief notification when update completes
  */
 export function PWAUpdatePrompt() {
   const [showPrompt, setShowPrompt] = useState(false);
@@ -18,11 +22,23 @@ export function PWAUpdatePrompt() {
     updateServiceWorker,
   } = useRegisterSW({
     onRegistered(r) {
-      // Check for updates every hour
       if (r) {
+        // Check every 5 minutes (aggressive)
         setInterval(() => {
           r.update();
-        }, 60 * 60 * 1000);
+        }, 5 * 60 * 1000);
+
+        // Check when user returns to tab
+        document.addEventListener('visibilitychange', () => {
+          if (!document.hidden) {
+            r.update();
+          }
+        });
+
+        // Check on focus
+        window.addEventListener('focus', () => {
+          r.update();
+        });
       }
     },
     onRegisterError(error) {
