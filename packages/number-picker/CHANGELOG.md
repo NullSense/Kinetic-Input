@@ -7,19 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+<!-- Add new changes here before publishing -->
+
+## [0.1.1] - 2025-01 (Current)
+
 ### Added
 - Initial public release of `@tensil/kinetic-input`
-- `QuickNumberInput` component with momentum scrolling
-- `WheelPicker` component for list/range selection
-- Smart auto-close timing (150ms pointer, 800ms wheel, 1.5s idle)
+- `CollapsibleNumberPicker` component with momentum scrolling
+- `StandaloneWheelPicker` component for list/range selection
+- Smart auto-close timing with configurable presets (instant/fast/balanced/patient)
 - XState v5 powered state machine for interaction tracking
 - Controlled and uncontrolled modes
-- Full theming support via `buildTheme` utility
+- Full theming support via `buildTheme` utility and theme prop
 - Custom render hooks for values and items
 - Optional snap physics for magnetic item alignment
 - Comprehensive TypeScript types
 - Debug logging system with namespace controls
-- 40 unit tests with 100% coverage of state machine logic
+- CSS convenience bundle (`all.css`) for simplified imports
+- Comprehensive test suite (219 tests passing)
 
 ### Fixed
 - Infinite loop bug in Firefox when navigating between wizard steps
@@ -27,7 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - State machine interaction counter not resetting after natural auto-close
 - Unstable callback references causing unnecessary re-renders
 
-## [0.0.1] - 2025-01-XX (Internal Development)
+## [0.0.1] - 2025-01 (Internal Development)
 
 ### Added
 - Initial package structure and build configuration

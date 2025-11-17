@@ -404,6 +404,10 @@ Auto-detect based on device + user preferences:
 ```typescript
 import { getRecommendedTiming } from '@tensil/kinetic-input/config';
 
+// Auto-selects timing based on:
+// - prefers-reduced-motion setting
+// - Touch device detection
+// - Screen size (mobile vs desktop)
 <CollapsibleNumberPicker timingPreset={getRecommendedTiming()} />
 ```
 

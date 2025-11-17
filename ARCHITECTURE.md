@@ -152,7 +152,7 @@ The picker lifecycle is modeled as a finite state machine:
      │                                         │
      │                                         │ MOMENTUM_END
      │                                         ↓
-     │    autoCloseDelay (4s)           ┌──────┐
+     │    idleTimeout (4s default)      ┌──────┐
      └──────────────────────────────────│ idle │
                                         └──────┘
 ```
@@ -478,7 +478,7 @@ packages/number-picker/src/
 │   └── StandaloneWheelPicker.tsx
 │
 ├── utils/                     # Shared utilities
-│   ├── debug.ts              # Production-safe debug system (497 lines)
+│   ├── debug.ts              # Production-safe debug system
 │   └── pickerOptions.ts      # Decimal scaling utilities
 │
 └── styles/                    # Component CSS

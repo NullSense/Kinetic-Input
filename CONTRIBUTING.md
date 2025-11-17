@@ -360,7 +360,7 @@ Checklist:
 - [ ] No TypeScript errors (`npx tsc --noEmit`)
 - [ ] Changes tested in demo app
 - [ ] Documentation updated (if needed)
-- [ ] CHANGELOG.md updated (if user-facing change)
+- [ ] `packages/number-picker/CHANGELOG.md` updated (if user-facing change)
 
 ### PR Title
 
@@ -429,7 +429,7 @@ Current version is `0.1.1` (published to npm as `@tensil/kinetic-input`). During
 ### Release Checklist (for maintainers)
 
 - [ ] Update version in `package.json`
-- [ ] Update CHANGELOG.md
+- [ ] Update `packages/number-picker/CHANGELOG.md`
 - [ ] Run full test suite
 - [ ] Build package (`npm run build`)
 - [ ] Test build in demo
