@@ -1,4 +1,4 @@
-# @tensil/number-picker
+# @tensil/kinetic-input
 
 High-performance numeric scrubber components for React. The package exposes:
 
@@ -16,9 +16,9 @@ All component docs now live in this README.
 ## Installation
 
 ```bash
-npm install @tensil/number-picker
+npm install @tensil/kinetic-input
 # or
-yarn add @tensil/number-picker
+yarn add @tensil/kinetic-input
 ```
 
 Peer dependencies you must provide in your host app:
@@ -61,13 +61,13 @@ import {
   DEFAULT_THEME,
   buildTheme,
   BOUNDARY_SETTLE_DELAY,
-} from '@tensil/number-picker'
+} from '@tensil/kinetic-input'
 ```
 
 ### StandaloneWheelPicker example
 
 ```tsx
-import { StandaloneWheelPicker } from '@tensil/number-picker'
+import { StandaloneWheelPicker } from '@tensil/kinetic-input'
 
 const colorOptions = [
   { value: 'rest', label: 'Rest Day', accentColor: '#8E77B5' },
@@ -171,7 +171,7 @@ interface CollapsibleNumberPickerTheme {
 #### Default Theme
 
 ```ts
-import { DEFAULT_THEME } from '@tensil/number-picker'
+import { DEFAULT_THEME } from '@tensil/kinetic-input'
 
 // Default values:
 {
@@ -247,7 +247,7 @@ const theme = {
 Use `buildTheme` for type-safe overrides:
 
 ```tsx
-import { buildTheme } from '@tensil/number-picker'
+import { buildTheme } from '@tensil/kinetic-input'
 
 const myTheme = buildTheme({
   activeTextColor: '#ff0000',
@@ -358,7 +358,7 @@ location.reload();
 
 **Programmatically:**
 ```typescript
-import { enableAllDebugNamespaces } from '@tensil/number-picker/utils';
+import { enableAllDebugNamespaces } from '@tensil/kinetic-input/utils';
 
 if (import.meta.env.DEV) {
   enableAllDebugNamespaces();
@@ -367,7 +367,7 @@ if (import.meta.env.DEV) {
 
 **Disable all:**
 ```typescript
-import { disableAllDebugNamespaces } from '@tensil/number-picker/utils';
+import { disableAllDebugNamespaces } from '@tensil/kinetic-input/utils';
 disableAllDebugNamespaces();
 ```
 
@@ -387,7 +387,7 @@ Control auto-close behavior with presets:
 Auto-detect based on device + user preferences:
 
 ```typescript
-import { getRecommendedTiming } from '@tensil/number-picker/config';
+import { getRecommendedTiming } from '@tensil/kinetic-input/config';
 
 <CollapsibleNumberPicker timingPreset={getRecommendedTiming()} />
 ```
@@ -437,9 +437,9 @@ The demo app lives in `demo/` and showcases all features with an interactive cod
 This is an **npm workspaces monorepo** with unified tooling and configuration:
 
 ```
-kinetic-input/                     # Root workspace
+Kinetic-Input/                     # Root workspace
 ├── packages/
-│   └── number-picker/             # Core library (publishable npm package)
+│   └── number-picker/             # Core library (@tensil/kinetic-input npm package)
 │       ├── src/                   # Source code
 │       ├── dist/                  # Build output (gitignored)
 │       ├── package.json           # Package dependencies & scripts
