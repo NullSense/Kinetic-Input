@@ -128,28 +128,70 @@ export function animateMomentumWithFriction(
   });
 
   /**
-   * Clamp position to bounds with exponential damping at edges
+   * Check if position has hit a boundary
+   * Returns { hitBoundary: boolean, clampedPosition: number }
    */
-  const clampWithOverdamping = (pos: number): number => {
+  const checkBoundary = (pos: number): { hitBoundary: boolean; clampedPosition: number } => {
     if (pos < bounds.min) {
-      // Hit top boundary - apply strong damping
-      const overshoot = bounds.min - pos;
-      const damped = Math.pow(Math.min(overshoot, 80), 0.8); // Max 80px overshoot
-      velocity *= 0.5; // Kill velocity on boundary hit
-      return bounds.min - damped;
+      debugPickerLog('BOUNDARY HIT', {
+        boundary: 'min',
+        position: pos.toFixed(1),
+        bound: bounds.min.toFixed(1),
+        velocity: velocity.toFixed(1),
+      });
+      return { hitBoundary: true, clampedPosition: bounds.min };
     }
     if (pos > bounds.max) {
-      // Hit bottom boundary - apply strong damping
-      const overshoot = pos - bounds.max;
-      const damped = Math.pow(Math.min(overshoot, 80), 0.8);
-      velocity *= 0.5; // Kill velocity on boundary hit
-      return bounds.max + damped;
+      debugPickerLog('BOUNDARY HIT', {
+        boundary: 'max',
+        position: pos.toFixed(1),
+        bound: bounds.max.toFixed(1),
+        velocity: velocity.toFixed(1),
+      });
+      return { hitBoundary: true, clampedPosition: bounds.max };
     }
-    return pos;
+    return { hitBoundary: false, clampedPosition: pos };
   };
 
   /**
-   * Friction animation loop
+   * Apply friction decay to velocity
+   */
+  const applyFriction = (currentVelocity: number, deltaTime: number): number => {
+    const decayFactor = Math.pow(config.decelerationRate, deltaTime);
+    return currentVelocity * decayFactor;
+  };
+
+  /**
+   * Calculate new position from velocity
+   */
+  const updatePosition = (currentPos: number, currentVelocity: number, deltaTime: number): number => {
+    const deltaPos = currentVelocity * (deltaTime / 1000); // Convert ms to seconds
+    return currentPos + deltaPos;
+  };
+
+  /**
+   * Check if should transition to snap phase
+   */
+  const shouldSnap = (currentPos: number, currentVelocity: number): {
+    should: boolean;
+    reason?: string;
+  } => {
+    const absVelocity = Math.abs(currentVelocity);
+    if (absVelocity < config.snapVelocityThreshold) {
+      return { should: true, reason: 'velocity threshold' };
+    }
+
+    const snapTarget = snapFunction(currentPos);
+    const distanceToSnap = Math.abs(currentPos - snapTarget);
+    if (distanceToSnap < config.snapDistanceThreshold) {
+      return { should: true, reason: 'distance threshold' };
+    }
+
+    return { should: false };
+  };
+
+  /**
+   * Friction animation loop (Uncle Bob: single responsibility, small functions)
    */
   const tick = (currentTime: number): void => {
     if (cancelled) return;
@@ -169,41 +211,45 @@ export function animateMomentumWithFriction(
       return;
     }
 
-    // Apply exponential friction decay
-    // velocity(t) = velocity(0) * decelerationRate^t
-    const decayFactor = Math.pow(config.decelerationRate, deltaTime);
-    velocity *= decayFactor;
+    // Apply friction decay
+    velocity = applyFriction(velocity, deltaTime);
 
-    // Update position based on velocity
-    // Δposition = velocity * Δt
+    // Calculate new position
     const currentPos = control.get();
-    const deltaPos = velocity * (deltaTime / 1000); // Convert ms to seconds
-    let newPos = currentPos + deltaPos;
+    let newPos = updatePosition(currentPos, velocity, deltaTime);
 
-    // Clamp to bounds with overdamping
-    newPos = clampWithOverdamping(newPos);
+    // Check boundary collision (iOS: momentum stops at boundaries, no overscroll)
+    const { hitBoundary, clampedPosition } = checkBoundary(newPos);
+    if (hitBoundary) {
+      // Clamp to boundary
+      control.set(clampedPosition);
+      // Zero velocity - iOS behavior: momentum stops at edges
+      velocity = 0;
+      // Immediately snap to nearest item
+      debugPickerLog('BOUNDARY → SNAP', {
+        clampedPosition: clampedPosition.toFixed(1),
+        totalTime: totalTime.toFixed(0) + 'ms',
+      });
+      transitionToSnap();
+      return;
+    }
+
+    // Update position
     control.set(newPos);
 
     debugPickerLog('FRICTION TICK', {
       deltaTime: deltaTime.toFixed(1) + 'ms',
       velocity: velocity.toFixed(1) + ' px/s',
-      deltaPos: deltaPos.toFixed(2) + 'px',
       position: newPos.toFixed(1),
-      decayFactor: decayFactor.toFixed(4),
     });
 
-    // Check if we should transition to snap
-    const absVelocity = Math.abs(velocity);
-    const shouldSnapVelocity = absVelocity < config.snapVelocityThreshold;
-
-    // Also check distance to snap point
-    const snapTarget = snapFunction(newPos);
-    const distanceToSnap = Math.abs(newPos - snapTarget);
-    const shouldSnapDistance = distanceToSnap < config.snapDistanceThreshold;
-
-    if (shouldSnapVelocity || shouldSnapDistance) {
+    // Check if should transition to snap
+    const snapCheck = shouldSnap(newPos, velocity);
+    if (snapCheck.should) {
+      const snapTarget = snapFunction(newPos);
+      const distanceToSnap = Math.abs(newPos - snapTarget);
       debugPickerLog('FRICTION → SNAP TRANSITION', {
-        reason: shouldSnapVelocity ? 'velocity threshold' : 'distance threshold',
+        reason: snapCheck.reason,
         currentVelocity: velocity.toFixed(1) + ' px/s',
         threshold: config.snapVelocityThreshold + ' px/s',
         currentPosition: newPos.toFixed(1),
