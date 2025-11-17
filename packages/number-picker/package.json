@@ -70,9 +70,9 @@
     "test:coverage": "vitest run --coverage"
   },
   "devDependencies": {
-    "@types/node": "^22.14.0",
+    "@types/node": "^22.19.1",
     "tsup": "^8.3.0",
-    "typescript": "~5.8.2"
+    "typescript": "~5.8.3"
   },
   "keywords": [
     "picker",

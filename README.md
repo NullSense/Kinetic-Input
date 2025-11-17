@@ -564,6 +564,16 @@ npm run lint:fix            # Auto-fix issues
 npm run lint:dead-code      # Find unused exports
 ```
 
+## Browser Support
+
+This library works in all modern browsers with:
+
+- **Desktop**: Chrome 90+, Firefox 88+, Safari 14+, Edge 90+
+- **Mobile**: iOS 14+, Android Chrome 90+
+- **Required APIs**: Pointer Events, CSS Grid (supported by all modern browsers)
+
+See [ARCHITECTURE.md](./ARCHITECTURE.md#browser-support) for detailed compatibility information.
+
 ## License
 
 MIT - See [LICENSE](./LICENSE) for details.

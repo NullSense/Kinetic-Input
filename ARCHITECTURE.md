@@ -186,9 +186,10 @@ The picker lifecycle is modeled as a finite state machine:
 
 Located in `packages/number-picker/src/config/timing.ts`:
 
-- **QUICK**: 150ms settle, 800ms wheel idle, 3000ms close
-- **DEFAULT**: 150ms settle, 800ms wheel idle, 4000ms close
-- **RELAXED**: 300ms settle, 1200ms wheel idle, 6000ms close
+- **instant**: 50ms settle, 300ms wheel idle, 1500ms close (power users)
+- **fast**: 100ms settle, 500ms wheel idle, 2500ms close (desktop workflows)
+- **balanced**: 150ms settle, 800ms wheel idle, 4000ms close (DEFAULT, general use)
+- **patient**: 300ms settle, 1200ms wheel idle, 6000ms close (mobile/accessibility)
 
 ---
 
