@@ -11,14 +11,14 @@ export interface VelocityTrackerConfig {
   /**
    * Number of recent samples to keep for velocity calculation
    * Higher = smoother but less responsive
-   * @default 5
+   * @default 8 (increased for mobile accuracy)
    */
   sampleCount?: number;
 
   /**
    * Maximum age of samples to include in calculation (milliseconds)
    * Older samples are discarded
-   * @default 100
+   * @default 150 (increased for mobile touch sampling)
    */
   maxSampleAge?: number;
 }
@@ -47,7 +47,7 @@ interface VelocitySample {
  * ```
  */
 export function createVelocityTracker(config: VelocityTrackerConfig = {}) {
-  const { sampleCount = 5, maxSampleAge = 100 } = config;
+  const { sampleCount = 8, maxSampleAge = 150 } = config; // Increased for mobile
 
   const samples: VelocitySample[] = [];
 
@@ -66,7 +66,7 @@ export function createVelocityTracker(config: VelocityTrackerConfig = {}) {
   /**
    * Calculate current velocity in pixels/second
    *
-   * Uses linear regression over recent samples for smooth results
+   * Uses linear regression over recent samples for smooth, accurate results
    */
   const getVelocity = (): number => {
     if (samples.length < 2) {
@@ -84,18 +84,30 @@ export function createVelocityTracker(config: VelocityTrackerConfig = {}) {
       return 0;
     }
 
-    // Calculate velocity using first and last recent samples
-    const first = recentSamples[0];
-    const last = recentSamples[recentSamples.length - 1];
+    // Use linear regression for better noise resistance
+    const n = recentSamples.length;
+    let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
 
-    const deltaPosition = last.position - first.position;
-    const deltaTime = (last.timestamp - first.timestamp) / 1000; // Convert to seconds
+    recentSamples.forEach((sample) => {
+      const x = sample.timestamp;
+      const y = sample.position;
+      sumX += x;
+      sumY += y;
+      sumXY += x * y;
+      sumX2 += x * x;
+    });
 
-    if (deltaTime === 0) {
+    const denominator = n * sumX2 - sumX * sumX;
+
+    if (denominator === 0) {
       return 0;
     }
 
-    return deltaPosition / deltaTime; // pixels/second
+    // Slope of regression line = velocity in pixels/millisecond
+    const slope = (n * sumXY - sumX * sumY) / denominator;
+
+    // Convert from px/ms to px/s
+    return slope * 1000;
   };
 
   /**

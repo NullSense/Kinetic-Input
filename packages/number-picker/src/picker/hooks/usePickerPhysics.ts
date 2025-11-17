@@ -127,8 +127,8 @@ export function usePickerPhysics({
       centerLock: 0.85,   // Very sticky center - easy to land precisely on target value
       velocityReducer: 0.05, // Minimal scaling - snap stays strong even when scrolling
       // Gentler projection for wheel (touchpad has acceleration, don't over-project)
-      rangeScaleIntensity: 0.06, // 60ms projection (vs 120ms for pointer) - less aggressive
-      rangeScaleVelocityBoost: 1.0, // No boost (vs 1.1 for pointer)
+      rangeScaleIntensity: 0.1, // 100ms projection (vs 250ms for pointer) - less aggressive
+      rangeScaleVelocityBoost: 1.0, // No boost (vs 2.0 for pointer)
     }),
     [mergedSnapConfig],
   );
@@ -582,9 +582,19 @@ export function usePickerPhysics({
         velocityTracker.reset();
       };
 
-      // CRITICAL: Disable flicking/momentum in single-gesture mode (touch-to-open-and-drag)
-      // Only multi-gesture (picker already open) should have momentum projection
-      const velocityForSettle = wasOpenOnPointerDownRef.current ? velocity : 0;
+      // Apply damped momentum in single-gesture mode to prevent overshoot
+      // Full momentum in multi-gesture mode (picker already open)
+      const singleGestureDamping = 0.6; // 60% of velocity for touch-to-open-and-drag
+      const velocityForSettle = wasOpenOnPointerDownRef.current
+        ? velocity
+        : velocity * singleGestureDamping;
+
+      debugPickerLog('VELOCITY', {
+        measured: velocity.toFixed(0) + ' px/s',
+        used: velocityForSettle.toFixed(0) + ' px/s',
+        mode: wasOpenOnPointerDownRef.current ? 'multi-gesture' : 'single-gesture',
+        damping: wasOpenOnPointerDownRef.current ? 1.0 : singleGestureDamping,
+      });
 
       settleFromY(currentTranslate, velocityForSettle, () => finalize(hasMoved));
     },

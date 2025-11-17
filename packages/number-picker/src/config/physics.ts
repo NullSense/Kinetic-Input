@@ -86,14 +86,14 @@ export const SNAP_PHYSICS = {
     snapRange: 1.4,
     enterThreshold: 0.8,
     exitThreshold: 0.68,
-    velocityThreshold: 300,
+    velocityThreshold: 500, // Higher threshold for boost (was 300)
     velocityScaling: true,
     pullStrength: 1.4,
     velocityReducer: 0.3,
     centerLock: 1,
-    rangeScaleIntensity: 0.12, // 120ms base projection
-    rangeScaleVelocityCap: 3200,
-    rangeScaleVelocityBoost: 1.1, // up to 2.1x projection once velocity crosses the threshold
+    rangeScaleIntensity: 0.25, // 250ms base projection (mobile-friendly, was 120ms)
+    rangeScaleVelocityCap: 5000, // Allow faster swipes (was 3200)
+    rangeScaleVelocityBoost: 2.0, // up to 3.0x projection for fast swipes (was 1.1 → 2.1x)
   },
 } as const satisfies { DEFAULT: SnapPhysicsConfig };
 
