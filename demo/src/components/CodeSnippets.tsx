@@ -241,7 +241,7 @@ export function CodeSnippets() {
             description={currentSnippet.description}
             code={currentSnippet.code}
             height="600px"
-            openFile="src/App.tsx"
+            openFile="src/App.js"
           />
 
           <div className="mt-4x pt-4x border-t border-hairline">
