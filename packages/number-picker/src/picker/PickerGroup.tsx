@@ -110,6 +110,35 @@ function pickerGroupReducer(
   }
 }
 
+/**
+ * Multi-column picker container with shared state and keyboard navigation.
+ *
+ * Provides context for child PickerColumn components, manages value synchronization,
+ * and handles cross-column keyboard navigation (ArrowLeft/ArrowRight).
+ *
+ * @template TType - Shape of the picker value object (e.g., `{ hours: number; minutes: number }`)
+ *
+ * @param {TType} props.value - Current selected values for all columns
+ * @param {(value: TType, key: string) => void} props.onChange - Callback when any column value changes
+ * @param {number} [props.height=216] - Total picker height in pixels
+ * @param {number} [props.itemHeight=36] - Height of each individual item in pixels
+ * @param {number} [props.wheelSensitivity=1] - Mouse wheel scroll speed multiplier
+ * @param {number} [props.wheelDeltaCap=1.25] - Maximum wheel delta per event (prevents over-scrolling)
+ * @param {boolean} [props.showHighlightLines=true] - Show selection highlight borders
+ *
+ * @example
+ * ```tsx
+ * <PickerGroup
+ *   value={{ hours: 14, minutes: 30 }}
+ *   onChange={(value) => setTime(value)}
+ *   height={216}
+ *   itemHeight={36}
+ * >
+ *   <PickerColumn name="hours" options={hourOptions} />
+ *   <PickerColumn name="minutes" options={minuteOptions} />
+ * </PickerGroup>
+ * ```
+ */
 function PickerGroupRoot<TType extends PickerValue>(props: PickerGroupRootProps<TType>) {
   const {
     style,

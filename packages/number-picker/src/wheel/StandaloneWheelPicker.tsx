@@ -46,6 +46,51 @@ const clampVisibleItems = (visibleItems?: number): number => {
   return candidate % 2 === 0 ? candidate + 1 : candidate;
 };
 
+/**
+ * Standalone wheel picker for lists, ranges, or custom options with momentum scrolling.
+ *
+ * Simpler alternative to CollapsibleNumberPicker when you only need the wheel interface
+ * without auto-collapse behavior. Supports both option arrays and numeric ranges (min/max/step).
+ *
+ * @param {string | number} props.value - Currently selected value
+ * @param {(value: string | number) => void} props.onChange - Callback when selection changes
+ * @param {PickerOption[]} [props.options] - Custom options array (overrides min/max/step)
+ * @param {number} [props.min=0] - Minimum value for numeric range
+ * @param {number} [props.max=0] - Maximum value for numeric range
+ * @param {number} [props.step=1] - Step increment for numeric range
+ * @param {string} [props.unit=''] - Unit suffix (e.g., 'kg', 'mph')
+ * @param {number} [props.visibleItems=5] - Number of visible items (forced to odd number)
+ * @param {number} [props.itemHeight=48] - Height of each item in pixels
+ * @param {string} [props.accentColor='#3EDCFF'] - Primary accent color
+ * @param {string} [props.highlightColor] - Override highlight color (defaults to accentColor)
+ * @param {boolean} [props.enableSnapPhysics=false] - Enable magnetic snap-to-item physics
+ * @param {Partial<SnapPhysicsConfig>} [props.snapPhysicsConfig] - Snap physics tuning parameters
+ * @param {(option, state) => ReactNode} [props.renderItem] - Custom item renderer
+ *
+ * @example
+ * ```tsx
+ * // Numeric range
+ * <StandaloneWheelPicker
+ *   value={weight}
+ *   onChange={setWeight}
+ *   min={40}
+ *   max={200}
+ *   step={0.5}
+ *   unit="kg"
+ * />
+ *
+ * // Custom options
+ * <StandaloneWheelPicker
+ *   value="easy"
+ *   onChange={setDifficulty}
+ *   options={[
+ *     { value: 'easy', label: 'Easy' },
+ *     { value: 'medium', label: 'Medium' },
+ *     { value: 'hard', label: 'Hard' }
+ *   ]}
+ * />
+ * ```
+ */
 const StandaloneWheelPicker: React.FC<StandaloneWheelPickerProps> = ({
   value,
   onChange,

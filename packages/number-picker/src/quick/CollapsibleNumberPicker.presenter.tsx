@@ -80,11 +80,14 @@ interface CollapsibleNumberPickerPresenterProps {
 /**
  * Visual shell for the quick number input, rendering the closed display,
  * picker surface, highlight chrome, and helper controls using a prebuilt view model.
+ *
+ * Memoized to prevent unnecessary re-renders when parent updates but viewModel is unchanged.
+ *
  * @component
  * @param {CollapsibleNumberPickerPresenterProps} props
  * @returns {React.ReactElement}
  */
-export function CollapsibleNumberPickerPresenter({ viewModel }: CollapsibleNumberPickerPresenterProps) {
+export const CollapsibleNumberPickerPresenter = React.memo(function CollapsibleNumberPickerPresenter({ viewModel }: CollapsibleNumberPickerPresenterProps) {
     const {
         labelProps,
         ariaProps,
@@ -285,4 +288,4 @@ export function CollapsibleNumberPickerPresenter({ viewModel }: CollapsibleNumbe
             )}
         </div>
     );
-}
+});

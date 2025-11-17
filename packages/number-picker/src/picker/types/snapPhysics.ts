@@ -1,16 +1,36 @@
+/**
+ * Configuration for magnetic snap-to-item physics (experimental feature).
+ *
+ * Creates a "magnetic" pull toward the center item, making selections feel more deliberate.
+ * Advanced users can tune these parameters for different tactile feels.
+ *
+ * @see {@link DEFAULT_SNAP_PHYSICS} for recommended defaults
+ */
 export interface SnapPhysicsConfig {
+  /** Whether snap physics is enabled */
   enabled: boolean;
-  snapRange: number; // fraction of itemHeight (e.g. 0.22)
-  enterThreshold: number; // fraction of itemHeight to enter snap zone
-  exitThreshold: number; // fraction of itemHeight to exit snap zone
-  velocityThreshold: number; // px/sec where snap starts weakening
+  /** Snap zone size as fraction of item height (e.g., 0.3 = 30% of item height) */
+  snapRange: number;
+  /** Distance threshold to enter snap zone (fraction of item height) */
+  enterThreshold: number;
+  /** Distance threshold to exit snap zone (fraction of item height) */
+  exitThreshold: number;
+  /** Velocity in px/sec where snap starts weakening (allows fast scrolling to override) */
+  velocityThreshold: number;
+  /** Whether to scale snap strength based on velocity */
   velocityScaling: boolean;
-  pullStrength: number; // 0-1 base attraction
-  velocityReducer: number; // 0-1 reduction at threshold velocity
-  centerLock: number; // 0-1 clamp strength toward the exact center line
-  rangeScaleIntensity?: number; // seconds of release projection applied to flicks
-  rangeScaleVelocityCap?: number; // px/sec cap when projecting release distance
-  rangeScaleVelocityBoost?: number; // additional projection multiplier after crossing velocity threshold
+  /** Base magnetic pull strength toward center (0-1, higher = stronger) */
+  pullStrength: number;
+  /** Strength reduction factor at threshold velocity (0-1) */
+  velocityReducer: number;
+  /** Clamp strength toward exact center line (0-1, higher = more precise) */
+  centerLock: number;
+  /** Seconds of release projection applied to flick gestures */
+  rangeScaleIntensity?: number;
+  /** Maximum velocity in px/sec when projecting release distance */
+  rangeScaleVelocityCap?: number;
+  /** Additional projection multiplier for velocities above threshold */
+  rangeScaleVelocityBoost?: number;
 }
 
 export interface DragContextFrame {
