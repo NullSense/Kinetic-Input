@@ -267,6 +267,10 @@ export function animateMomentumWithFriction(
 
   /**
    * Transition from friction phase to spring snap phase
+   *
+   * Note: We do NOT pass velocity to the spring to avoid overshoot and bounce.
+   * The friction phase provides the momentum feel. The snap phase should be
+   * a smooth, consistent settle - matching the behavior of non-flick releases.
    */
   const transitionToSnap = (): void => {
     if (cancelled) return;
@@ -274,18 +278,22 @@ export function animateMomentumWithFriction(
     inFrictionPhase = false;
     const currentPos = control.get();
     const snapTarget = snapFunction(currentPos);
+    const distanceToSnap = Math.abs(currentPos - snapTarget);
 
     debugPickerLog('SNAP SPRING START', {
       from: currentPos.toFixed(1),
       to: snapTarget.toFixed(1),
-      velocity: velocity.toFixed(1) + ' px/s',
+      distance: distanceToSnap.toFixed(1) + 'px',
+      frictionVelocity: velocity.toFixed(1) + ' px/s (not passed to spring)',
       spring: snapSpring,
     });
 
-    // Start spring animation with current velocity
+    // Start spring animation WITHOUT velocity (matches non-flick behavior)
+    // Starting with 0 velocity prevents overshoot and bounce
     springControls = animate(control, snapTarget, {
       type: 'spring',
-      velocity: velocity, // Pass remaining velocity to spring
+      // velocity: velocity  ← REMOVED: Causes overshoot and bounce
+      // Spring starts with 0 velocity for smooth, consistent settle
       ...snapSpring,
       onComplete: () => {
         debugPickerLog('SNAP SPRING COMPLETE', {
