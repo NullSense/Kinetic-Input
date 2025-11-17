@@ -14,29 +14,27 @@ import {
 } from 'framer-motion';
 import type { PickerOption } from '../PickerGroup';
 import type { SnapPhysicsConfig } from '../types/snapPhysics';
-import { DEFAULT_SNAP_PHYSICS } from '../../config/physics';
+import {
+  DEFAULT_SNAP_PHYSICS,
+  MAX_OVERSCROLL_PIXELS,
+  OPENING_DRAG_THRESHOLD_PIXELS,
+  CLICK_STEP_THRESHOLD_RATIO,
+  TOUCH_TAP_THRESHOLD_RATIO,
+  MINIMUM_MOVEMENT_PIXELS,
+  DOM_DELTA_MODE,
+  OVERSCROLL_DAMPING_EXPONENT,
+} from '../../config/physics';
 import { useSnapPhysics } from './useSnapPhysics';
 import { useVirtualWindow } from './useVirtualWindow';
 import { useSnappedIndexStore } from '../useSnappedIndexStore';
 import { clamp, clampIndex, indexFromY, yFromIndex } from '../utils/math';
 import { projectReleaseTranslate } from '../utils/releaseMomentum';
-import { animationDebugger, debugSnapLog } from '../../utils/debug';
+import { animationDebugger, debugSnapLog, debugPickerLog } from '../../utils/debug';
 import {
   createGestureEmitter,
   createVelocityTracker,
   type PickerGestureHandler,
 } from '../gestures';
-
-// DEBUG: Verify logging works at module load
-console.log('[PICKER-DEBUG] usePickerPhysics module loaded - console logging is active');
-
-const MAX_OVERSCROLL = 80;
-const OPENING_DRAG_THRESHOLD = 6;
-const CLICK_STEP_THRESHOLD_RATIO = 0.3;
-const TOUCH_TAP_THRESHOLD_RATIO = 0.1;
-const DOM_DELTA_PIXEL = 0x00;
-const DOM_DELTA_LINE = 0x01;
-const DOM_DELTA_PAGE = 0x02;
 
 const clampWheelSensitivity = (value: number) =>
   Number.isFinite(value) && value > 0 ? value : 1;
@@ -218,8 +216,8 @@ export function usePickerPhysics({
       let applied = nextTranslate;
       if (applied < minTranslate) {
         const distance = minTranslate - applied;
-        const limitedDistance = Math.min(distance, MAX_OVERSCROLL);
-        const overscroll = Math.pow(limitedDistance, 0.8);
+        const limitedDistance = Math.min(distance, MAX_OVERSCROLL_PIXELS);
+        const overscroll = Math.pow(limitedDistance, OVERSCROLL_DAMPING_EXPONENT);
         applied = minTranslate - overscroll;
         if (distance > 0 && !boundaryHitFiredRef.current) {
           const value = options[lastIndex]?.value;
@@ -228,8 +226,8 @@ export function usePickerPhysics({
         }
       } else if (applied > maxTranslate) {
         const distance = applied - maxTranslate;
-        const limitedDistance = Math.min(distance, MAX_OVERSCROLL);
-        const overscroll = Math.pow(limitedDistance, 0.8);
+        const limitedDistance = Math.min(distance, MAX_OVERSCROLL_PIXELS);
+        const overscroll = Math.pow(limitedDistance, OVERSCROLL_DAMPING_EXPONENT);
         applied = maxTranslate + overscroll;
         if (distance > 0 && !boundaryHitFiredRef.current) {
           const value = options[0]?.value;
@@ -405,7 +403,7 @@ export function usePickerPhysics({
     [itemHeight, lastIndex, maxTranslate, minTranslate, releaseProjectionConfig, settleToIndex],
   );
 
-  // DEBUG: Track all captured pointer IDs
+  // Track all captured pointer IDs for proper cleanup
   const capturedPointersRef = useRef<Set<number>>(new Set());
 
   const handlePointerDown = useCallback(
@@ -416,8 +414,7 @@ export function usePickerPhysics({
       // Track this pointer ID
       capturedPointersRef.current.add(event.pointerId);
 
-      // DEBUG: Track pointer down
-      console.log('[PICKER-POINTER] DOWN', {
+      debugPickerLog('POINTER DOWN', {
         pointerId: event.pointerId,
         pointerType: event.pointerType,
         isMovingBefore: isMovingRef.current,
@@ -450,8 +447,7 @@ export function usePickerPhysics({
   const handlePointerMove = useCallback(
     (event: React.PointerEvent<HTMLDivElement>) => {
       if (!isMovingRef.current) {
-        // DEBUG: Movement blocked
-        console.log('[PICKER-POINTER] MOVE BLOCKED (isMoving=false)', {
+        debugPickerLog('POINTER MOVE BLOCKED (isMoving=false)', {
           pointerId: event.pointerId,
           timestamp: Date.now(),
         });
@@ -464,7 +460,7 @@ export function usePickerPhysics({
       const deltaY = event.clientY - startPointerYRef.current;
       const contentDelta = deltaY;
       if (!openingDragThresholdPassedRef.current) {
-        if (Math.abs(deltaY) < OPENING_DRAG_THRESHOLD) {
+        if (Math.abs(deltaY) < OPENING_DRAG_THRESHOLD_PIXELS) {
           return;
         }
         openingDragThresholdPassedRef.current = true;
@@ -496,8 +492,7 @@ export function usePickerPhysics({
 
   const handlePointerUp = useCallback(
     (event: React.PointerEvent<HTMLDivElement>) => {
-      // DEBUG: Track pointer up BEFORE any logic
-      console.log('[PICKER-POINTER] UP', {
+      debugPickerLog('POINTER UP', {
         pointerId: event.pointerId,
         isMovingBefore: isMovingRef.current,
         capturedPointersBefore: Array.from(capturedPointersRef.current),
@@ -509,21 +504,21 @@ export function usePickerPhysics({
 
       try {
         (event.currentTarget as HTMLElement).releasePointerCapture?.(event.pointerId);
-        console.log('[PICKER-POINTER] Released capture for ID', event.pointerId,
+        debugPickerLog('Released capture for ID', event.pointerId,
           'remaining:', Array.from(capturedPointersRef.current));
       } catch (error) {
-        console.error('[PICKER-POINTER] Failed to release capture', error);
-        debugSnapLog?.('releasePointerCapture failed', error);
+        debugPickerLog('Failed to release capture', error);
+        debugSnapLog('releasePointerCapture failed', error);
       }
 
       const currentTranslate = yRaw.get();
       const movementDelta = Math.abs(currentTranslate - startTranslateRef.current);
-      const hasMoved = movementDelta > 2;
+      const hasMoved = movementDelta > MINIMUM_MOVEMENT_PIXELS;
 
       const shouldSkipSettle = !openingDragThresholdPassedRef.current && !wasOpenOnPointerDownRef.current;
 
       isMovingRef.current = false;
-      console.log('[PICKER-POINTER] Set isMoving = false');
+      debugPickerLog('Set isMoving = false');
       snapPhysics.reset();
 
       const pointerType = pointerTypeRef.current;
@@ -633,23 +628,23 @@ export function usePickerPhysics({
     (event: WheelEvent) => {
       let delta = event.deltaY;
 
-      if (event.deltaMode === DOM_DELTA_LINE) {
+      if (event.deltaMode === DOM_DELTA_MODE.LINE) {
         delta *= itemHeight;
-      } else if (event.deltaMode === DOM_DELTA_PAGE) {
+      } else if (event.deltaMode === DOM_DELTA_MODE.PAGE) {
         delta *= height;
       }
 
       delta *= normalizedWheelSensitivity;
 
       // Auto-detect scrolling direction based on input device
-      // Touchpad (DOM_DELTA_PIXEL): natural scrolling (like smartphones)
-      // Mouse wheel (DOM_DELTA_LINE): inverted scrolling (traditional)
-      if (event.deltaMode === DOM_DELTA_PIXEL) {
+      // Touchpad (DOM_DELTA_MODE.PIXEL): natural scrolling (like smartphones)
+      // Mouse wheel (DOM_DELTA_MODE.LINE): inverted scrolling (traditional)
+      if (event.deltaMode === DOM_DELTA_MODE.PIXEL) {
         // Touchpads provide fine-grained pixel deltas, so reduce sensitivity
         // to prevent scrolling too fast (0.35 = roughly 1:1 pixel movement)
         delta = -delta * 0.35;
       }
-      // DOM_DELTA_LINE (mouse wheel) keeps delta as-is (inverted)
+      // DOM_DELTA_MODE.LINE (mouse wheel) keeps delta as-is (inverted)
 
       const maxDelta = itemHeight * normalizedWheelDeltaCap;
       const accumulated = wheelRemainderRef.current + delta;
@@ -733,7 +728,7 @@ export function usePickerPhysics({
         const currentTranslate = yRaw.get();
         const startTranslate = wheelStartTranslateRef.current ?? currentTranslate;
         const movementDelta = Math.abs(currentTranslate - startTranslate);
-        const hasMoved = movementDelta > 2;
+        const hasMoved = movementDelta > MINIMUM_MOVEMENT_PIXELS;
 
         // Wheel scrolling should NEVER use momentum/flicking - always velocity = 0
         // Only pointer/touch gestures should have momentum physics
@@ -788,9 +783,8 @@ export function usePickerPhysics({
     boundaryHitFiredRef.current = false;
   }, [options.length]);
 
-  // DEBUG: Track click events
   const handleClick = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
-    console.log('[PICKER-CLICK] CLICK', {
+    debugPickerLog('CLICK', {
       timestamp: Date.now(),
       detail: event.detail, // 1 for single, 2 for double
       isMoving: isMovingRef.current,
@@ -798,9 +792,8 @@ export function usePickerPhysics({
     });
   }, []);
 
-  // DEBUG: Handle double-click to detect if pointerUp is being suppressed
   const handleDoubleClick = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
-    console.log('[PICKER-CLICK] DOUBLE-CLICK detected', {
+    debugPickerLog('DOUBLE-CLICK detected', {
       timestamp: Date.now(),
       isMoving: isMovingRef.current,
       capturedPointers: Array.from(capturedPointersRef.current),
@@ -809,18 +802,18 @@ export function usePickerPhysics({
     });
 
     // SAFETY: Force release ALL captured pointers and cleanup
-    console.log('[PICKER-SAFETY] Forcing cleanup due to dblclick');
+    debugPickerLog('SAFETY: Forcing cleanup due to dblclick');
     capturedPointersRef.current.forEach(id => {
       try {
         columnRef.current?.releasePointerCapture(id);
-        console.log('[PICKER-SAFETY] Released pointer ID', id);
+        debugPickerLog('SAFETY: Released pointer ID', id);
       } catch (e) {
-        console.error('[PICKER-SAFETY] Failed to release pointer ID', id, e);
+        debugPickerLog('SAFETY: Failed to release pointer ID', id, e);
       }
     });
     capturedPointersRef.current.clear();
     isMovingRef.current = false;
-    console.log('[PICKER-SAFETY] Forced isMoving = false, cleared all captures');
+    debugPickerLog('SAFETY: Forced isMoving = false, cleared all captures');
   }, []);
 
   return {

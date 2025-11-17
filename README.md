@@ -7,6 +7,10 @@ High-performance numeric scrubber components for React. The package exposes:
 - `PickerGroup` – bare-bones wheel primitive that powers both components
 - Supporting hooks, theme builders, and configuration presets
 
+**📚 Documentation:**
+- [ARCHITECTURE.md](./ARCHITECTURE.md) - In-depth architecture guide
+- [CONTRIBUTING.md](./CONTRIBUTING.md) - Development setup and contributing guidelines
+
 All component docs now live in this README.
 
 ## Installation
@@ -340,10 +344,12 @@ Debug logging is **disabled by default** to prevent console spam. Enable it when
 
 **In browser console:**
 ```javascript
-window.__QNI_DEBUG__ = true;          // CollapsibleNumberPicker events
-window.__QNI_SNAP_DEBUG__ = true;     // Snap physics calculations
-window.__QNI_STATE_DEBUG__ = true;    // State machine transitions
-window.__QNI_WHEEL_DEBUG__ = true;    // StandaloneWheelPicker events
+window.__QNI_DEBUG__ = true;           // CollapsibleNumberPicker events
+window.__QNI_PICKER_DEBUG__ = true;    // Picker physics & pointer events
+window.__QNI_SNAP_DEBUG__ = true;      // Snap physics calculations
+window.__QNI_STATE_DEBUG__ = true;     // State machine transitions
+window.__QNI_WHEEL_DEBUG__ = true;     // StandaloneWheelPicker events
+window.__QNI_ANIMATION_DEBUG__ = true; // Animation lifecycle
 
 // Then reload the page
 location.reload();
