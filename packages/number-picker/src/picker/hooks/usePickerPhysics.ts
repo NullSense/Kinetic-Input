@@ -382,10 +382,11 @@ export function usePickerPhysics({
       }
 
       // Start friction-based momentum animation
-      // Scale velocity to 35% for controlled flick speed
+      // Scale velocity to 25% for controlled, precise flick speed
+      // Lower scaling provides more predictable momentum behavior
       const controls = animateMomentumWithFriction({
         control: yRaw,
-        initialVelocity: velocity * 0.35,
+        initialVelocity: velocity * 0.25,
         bounds: {
           min: minTranslate,
           max: maxTranslate,
@@ -881,5 +882,7 @@ export function usePickerPhysics({
     handleWheel,
     handleClick,
     handleDoubleClick,
+    // Exposed for external interruption (e.g., keyboard navigation, wheel events)
+    interruptMomentum: stopActiveAnimation,
   };
 }

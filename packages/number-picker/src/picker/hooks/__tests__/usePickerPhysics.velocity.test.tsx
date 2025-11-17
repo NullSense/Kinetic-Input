@@ -179,10 +179,10 @@ describe('usePickerPhysics velocity wiring', () => {
       result.current.handlePointerUp(pointerEvent(80));
     });
 
-    // Friction momentum should be called with scaled velocity (880 * 0.35 = 308)
+    // Friction momentum should be called with scaled velocity (880 * 0.25 = 220)
     const momentumCall = frictionMomentumMock.animateMomentumWithFriction.mock.calls.at(-1);
     expect(momentumCall).toBeDefined();
-    expect(momentumCall![0].initialVelocity).toBeCloseTo(880 * 0.35, 1);
+    expect(momentumCall![0].initialVelocity).toBeCloseTo(880 * 0.25, 1);
   });
 
   // NOTE: rangeScale config test removed - friction momentum uses simpler physics
@@ -275,6 +275,66 @@ describe('usePickerPhysics velocity wiring', () => {
     // without overshooting due to momentum physics
   });
 
+  it('wheel events interrupt active momentum (CRITICAL)', () => {
+    // When momentum is active and user scrolls with wheel, momentum should be stopped immediately
+    vi.useFakeTimers();
+    const options = makeOptions(50);
+    const { result } = renderHook(() =>
+      usePickerPhysics({
+        ...baseConfig,
+        options,
+        selectedIndex: 25,
+        isPickerOpen: true, // Multi-gesture mode = momentum enabled
+      })
+    );
+
+    const columnNode = {
+      setPointerCapture: vi.fn(),
+      releasePointerCapture: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      getBoundingClientRect: () => ({ top: 0, bottom: 200, height: 200, width: 100, left: 0, right: 100, x: 0, y: 0, toJSON: () => {} }),
+    } as unknown as HTMLDivElement;
+
+    act(() => {
+      result.current.columnRef.current = columnNode;
+    });
+
+    // Start momentum with high velocity
+    velocityState.value = 2000;
+    frictionMomentumMock.animateMomentumWithFriction.mockClear();
+
+    act(() => {
+      result.current.handlePointerDown({ pointerId: 1, pointerType: 'touch', clientY: 100, currentTarget: columnNode, target: columnNode } as unknown as React.PointerEvent<HTMLDivElement>);
+      result.current.handlePointerMove({ pointerId: 1, pointerType: 'touch', clientY: 60, currentTarget: columnNode, target: columnNode } as unknown as React.PointerEvent<HTMLDivElement>);
+      result.current.handlePointerUp({ pointerId: 1, pointerType: 'touch', clientY: 60, currentTarget: columnNode, target: columnNode } as unknown as React.PointerEvent<HTMLDivElement>);
+    });
+
+    // Verify momentum started
+    expect(frictionMomentumMock.animateMomentumWithFriction).toHaveBeenCalled();
+    const stopMock = frictionMomentumMock.animateMomentumWithFriction.mock.results[0].value.stop;
+
+    // Now interrupt with wheel event
+    const wheelEvent = {
+      deltaY: 3,
+      deltaMode: 0,
+      preventDefault: vi.fn(),
+      ctrlKey: false,
+    } as unknown as WheelEvent;
+
+    act(() => {
+      result.current.handleWheel(wheelEvent);
+      // Advance timers to trigger wheel settle (200ms timeout)
+      vi.advanceTimersByTime(250);
+    });
+
+    // CRITICAL ASSERTION: Momentum should be stopped
+    // settleFromY calls stopActiveAnimation before starting new animation
+    expect(stopMock).toHaveBeenCalled();
+
+    vi.useRealTimers();
+  });
+
   it('multi-gesture mode: fast swipe projects further than slow swipe (CRITICAL)', () => {
     // This test verifies the user's reported issue: "even in multi mode, fast and slow swipes travel identical distances"
     const options = makeOptions(50); // Large list to avoid boundary clamping
@@ -335,8 +395,8 @@ describe('usePickerPhysics velocity wiring', () => {
     expect(Math.abs(slowVelocityUsed)).toBeGreaterThan(0);
     expect(Math.abs(fastVelocityUsed)).toBeGreaterThan(0);
 
-    // Verify friction momentum was called with scaled velocities (velocity * 0.35)
-    expect(Math.abs(slowVelocityUsed)).toBeCloseTo(200 * 0.35, 0);
-    expect(Math.abs(fastVelocityUsed)).toBeCloseTo(3000 * 0.35, 0);
+    // Verify friction momentum was called with scaled velocities (velocity * 0.25)
+    expect(Math.abs(slowVelocityUsed)).toBeCloseTo(200 * 0.25, 0);
+    expect(Math.abs(fastVelocityUsed)).toBeCloseTo(3000 * 0.25, 0);
   });
 });
