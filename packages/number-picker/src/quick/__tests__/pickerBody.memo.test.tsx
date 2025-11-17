@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import CollapsibleNumberPicker from '../CollapsibleNumberPicker'
-import type { DEFAULT_THEME } from '../types'
+import type { DEFAULT_THEME } from '../theme'
 
 function setup({ value = 10, unit = 'kg' as string | undefined } = {}) {
   return render(

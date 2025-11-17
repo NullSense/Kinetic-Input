@@ -102,7 +102,8 @@ describe('usePickerPhysics velocity wiring', () => {
     });
 
     const lastCall = snapSpies.calculate.mock.calls.at(-1);
-    expect(lastCall?.[0].velocityY).toBe(640);
+    expect(lastCall).toBeDefined();
+    expect(lastCall![0].velocityY).toBe(640);
   });
 
   it('wheel scrolling never uses momentum - always velocity 0', () => {
@@ -180,7 +181,8 @@ describe('usePickerPhysics velocity wiring', () => {
 
     // Friction momentum should be called with scaled velocity (880 * 0.35 = 308)
     const momentumCall = frictionMomentumMock.animateMomentumWithFriction.mock.calls.at(-1);
-    expect(momentumCall?.[0].initialVelocity).toBeCloseTo(880 * 0.35, 1);
+    expect(momentumCall).toBeDefined();
+    expect(momentumCall![0].initialVelocity).toBeCloseTo(880 * 0.35, 1);
   });
 
   // NOTE: rangeScale config test removed - friction momentum uses simpler physics
@@ -264,7 +266,7 @@ describe('usePickerPhysics velocity wiring', () => {
 
     const slowMomentumCall = frictionMomentumMock.animateMomentumWithFriction.mock.calls[0];
     expect(slowMomentumCall).toBeDefined();
-    const slowVelocityUsed = slowMomentumCall[0].initialVelocity;
+    const slowVelocityUsed = slowMomentumCall![0].initialVelocity;
 
     // Scenario 2: FAST swipe (3000 px/s velocity)
     velocityState.value = 3000;
@@ -278,7 +280,7 @@ describe('usePickerPhysics velocity wiring', () => {
 
     const fastMomentumCall = frictionMomentumMock.animateMomentumWithFriction.mock.calls[0];
     expect(fastMomentumCall).toBeDefined();
-    const fastVelocityUsed = fastMomentumCall[0].initialVelocity;
+    const fastVelocityUsed = fastMomentumCall![0].initialVelocity;
 
     // CRITICAL ASSERTION: Fast velocity should be significantly higher than slow velocity
     expect(Math.abs(fastVelocityUsed)).toBeGreaterThan(Math.abs(slowVelocityUsed) * 5);
