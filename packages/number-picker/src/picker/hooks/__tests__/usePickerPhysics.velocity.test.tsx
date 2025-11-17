@@ -18,16 +18,10 @@ const trackerSpies = vi.hoisted(() => ({
   getSampleCount: vi.fn(() => 0),
 }));
 
-type ReleaseMomentumConfig = import('../../utils/releaseMomentum').ReleaseMomentumConfig;
-
-const releaseMomentumMock = vi.hoisted(() => ({
-  projectReleaseTranslate: vi.fn(
-    (current: number, velocity: number, config: ReleaseMomentumConfig) =>
-      Math.max(
-        config.minTranslate,
-        Math.min(config.maxTranslate, current + velocity * (config.projectionSeconds ?? 0)),
-      ),
-  ),
+const frictionMomentumMock = vi.hoisted(() => ({
+  animateMomentumWithFriction: vi.fn(() => ({
+    cancel: vi.fn(),
+  })),
 }));
 
 vi.mock('../useSnapPhysics', () => ({
@@ -42,7 +36,7 @@ vi.mock('../../gestures', async () => {
   };
 });
 
-vi.mock('../../utils/releaseMomentum', () => releaseMomentumMock);
+vi.mock('../../utils/frictionMomentum', () => frictionMomentumMock);
 
 type Option = { value: string; render: (state: { selected: boolean; visuallySelected: boolean }) => React.ReactNode; props: Record<string, unknown> };
 const makeOptions = (count: number): Option[] =>
@@ -61,7 +55,7 @@ describe('usePickerPhysics velocity wiring', () => {
     trackerSpies.reset.mockClear();
     trackerSpies.getVelocity.mockClear();
     trackerSpies.getSampleCount.mockClear();
-    releaseMomentumMock.projectReleaseTranslate.mockClear();
+    frictionMomentumMock.animateMomentumWithFriction.mockClear();
   });
 
   const baseConfig = {
@@ -133,9 +127,9 @@ describe('usePickerPhysics velocity wiring', () => {
       vi.advanceTimersByTime(250);
     });
 
-    // Wheel scrolling should ALWAYS pass velocity = 0 (no momentum/flicking)
-    const projectionCall = releaseMomentumMock.projectReleaseTranslate.mock.calls.at(-1);
-    expect(projectionCall?.[1]).toBe(0);
+    // Wheel scrolling should NEVER trigger friction momentum animation
+    // (wheel uses direct positioning, no coasting)
+    expect(frictionMomentumMock.animateMomentumWithFriction).not.toHaveBeenCalled();
     vi.useRealTimers();
   });
 
@@ -183,66 +177,13 @@ describe('usePickerPhysics velocity wiring', () => {
       result.current.handlePointerUp(pointerEvent(80));
     });
 
-    const projectionCall = releaseMomentumMock.projectReleaseTranslate.mock.calls.at(-1);
-    expect(projectionCall?.[1]).toBe(880);
+    // Friction momentum should be called with scaled velocity (880 * 0.35 = 308)
+    const momentumCall = frictionMomentumMock.animateMomentumWithFriction.mock.calls.at(-1);
+    expect(momentumCall?.[0].initialVelocity).toBeCloseTo(880 * 0.35, 1);
   });
 
-  it('threads the configured rangeScale boost/threshold into release projection', () => {
-    const options = makeOptions(5);
-    const boostedConfig = {
-      ...DEFAULT_SNAP_PHYSICS,
-      rangeScaleIntensity: 0.08,
-      rangeScaleVelocityBoost: 2.4,
-      velocityThreshold: 180,
-    } as const;
-
-    const { result } = renderHook(() =>
-      usePickerPhysics({ ...baseConfig, options, selectedIndex: 1, snapConfig: boostedConfig })
-    );
-
-    const columnNode = {
-      setPointerCapture: vi.fn(),
-      releasePointerCapture: vi.fn(),
-      addEventListener: vi.fn(),
-      removeEventListener: vi.fn(),
-      getBoundingClientRect: () => ({
-        top: 0,
-        bottom: 200,
-        height: 200,
-        width: 100,
-        left: 0,
-        right: 100,
-        x: 0,
-        y: 0,
-        toJSON: () => {},
-      }),
-    } as unknown as HTMLDivElement;
-
-    act(() => {
-      result.current.columnRef.current = columnNode;
-    });
-
-    const pointerEvent = (clientY: number) =>
-      ({
-        pointerId: 7,
-        pointerType: 'touch',
-        clientY,
-        currentTarget: columnNode,
-        target: columnNode,
-      }) as React.PointerEvent<HTMLDivElement>;
-
-    velocityState.value = 540;
-    act(() => {
-      result.current.handlePointerDown(pointerEvent(150));
-      result.current.handlePointerMove(pointerEvent(110));
-      result.current.handlePointerUp(pointerEvent(110));
-    });
-
-    const projectionCall = releaseMomentumMock.projectReleaseTranslate.mock.calls.at(-1);
-    expect(projectionCall?.[2].velocityBoost).toBeCloseTo(2.4, 5);
-    expect(projectionCall?.[2].velocityThreshold).toBe(180);
-    expect(projectionCall?.[2].projectionSeconds).toBeCloseTo(0.08, 5);
-  });
+  // NOTE: rangeScale config test removed - friction momentum uses simpler physics
+  // (decelerationRate + snapVelocityThreshold only, no projection configs)
 
   it('applies gentle snap physics to wheel for satisfying tactile feel', () => {
     const options = makeOptions(7);
@@ -312,7 +253,7 @@ describe('usePickerPhysics velocity wiring', () => {
 
     // Scenario 1: SLOW swipe (200 px/s velocity)
     velocityState.value = 200;
-    releaseMomentumMock.projectReleaseTranslate.mockClear();
+    frictionMomentumMock.animateMomentumWithFriction.mockClear();
 
     act(() => {
       result.current.handlePointerDown({ pointerId: 1, pointerType: 'touch', clientY: 100, currentTarget: columnNode, target: columnNode } as any);
@@ -320,13 +261,13 @@ describe('usePickerPhysics velocity wiring', () => {
       result.current.handlePointerUp({ pointerId: 1, pointerType: 'touch', clientY: 80, currentTarget: columnNode, target: columnNode } as any);
     });
 
-    const slowProjectionCall = releaseMomentumMock.projectReleaseTranslate.mock.calls[0];
-    expect(slowProjectionCall).toBeDefined();
-    const slowVelocityUsed = slowProjectionCall[1]; // Second arg is velocity
+    const slowMomentumCall = frictionMomentumMock.animateMomentumWithFriction.mock.calls[0];
+    expect(slowMomentumCall).toBeDefined();
+    const slowVelocityUsed = slowMomentumCall[0].initialVelocity;
 
     // Scenario 2: FAST swipe (3000 px/s velocity)
     velocityState.value = 3000;
-    releaseMomentumMock.projectReleaseTranslate.mockClear();
+    frictionMomentumMock.animateMomentumWithFriction.mockClear();
 
     act(() => {
       result.current.handlePointerDown({ pointerId: 2, pointerType: 'touch', clientY: 100, currentTarget: columnNode, target: columnNode } as any);
@@ -334,9 +275,9 @@ describe('usePickerPhysics velocity wiring', () => {
       result.current.handlePointerUp({ pointerId: 2, pointerType: 'touch', clientY: 80, currentTarget: columnNode, target: columnNode } as any);
     });
 
-    const fastProjectionCall = releaseMomentumMock.projectReleaseTranslate.mock.calls[0];
-    expect(fastProjectionCall).toBeDefined();
-    const fastVelocityUsed = fastProjectionCall[1]; // Second arg is velocity
+    const fastMomentumCall = frictionMomentumMock.animateMomentumWithFriction.mock.calls[0];
+    expect(fastMomentumCall).toBeDefined();
+    const fastVelocityUsed = fastMomentumCall[0].initialVelocity;
 
     // CRITICAL ASSERTION: Fast velocity should be significantly higher than slow velocity
     expect(Math.abs(fastVelocityUsed)).toBeGreaterThan(Math.abs(slowVelocityUsed) * 5);
@@ -345,8 +286,8 @@ describe('usePickerPhysics velocity wiring', () => {
     expect(Math.abs(slowVelocityUsed)).toBeGreaterThan(0);
     expect(Math.abs(fastVelocityUsed)).toBeGreaterThan(0);
 
-    // Verify projectReleaseTranslate was called with the actual velocities
-    expect(slowVelocityUsed).toBe(200); // Full velocity in multi-gesture
-    expect(fastVelocityUsed).toBe(3000); // Full velocity in multi-gesture
+    // Verify friction momentum was called with scaled velocities (velocity * 0.35)
+    expect(Math.abs(slowVelocityUsed)).toBeCloseTo(200 * 0.35, 0);
+    expect(Math.abs(fastVelocityUsed)).toBeCloseTo(3000 * 0.35, 0);
   });
 });

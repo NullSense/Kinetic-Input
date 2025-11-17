@@ -363,25 +363,6 @@ export function usePickerPhysics({
     [commitValueAtIndex, itemHeight, lastIndex, maxTranslate, options.length, stopActiveAnimation, yRaw],
   );
 
-  const releaseProjectionConfig = useMemo(
-    () => ({
-      projectionSeconds: mergedSnapConfig.rangeScaleIntensity ?? 0,
-      velocityCap: mergedSnapConfig.rangeScaleVelocityCap,
-      velocityThreshold: mergedSnapConfig.velocityThreshold,
-      velocityBoost: mergedSnapConfig.rangeScaleVelocityBoost,
-      minTranslate,
-      maxTranslate,
-    }),
-    [
-      maxTranslate,
-      mergedSnapConfig.rangeScaleIntensity,
-      mergedSnapConfig.rangeScaleVelocityCap,
-      mergedSnapConfig.rangeScaleVelocityBoost,
-      mergedSnapConfig.velocityThreshold,
-      minTranslate,
-    ],
-  );
-
   const settleFromY = useCallback(
     (currentY: number, velocity: number, onComplete?: () => void) => {
       // Stop any active animation before starting new one

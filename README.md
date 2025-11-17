@@ -118,7 +118,8 @@ export function SessionPicker({ value, onChange }) {
 | `helperText` | `ReactNode` | - | Optional caption below the input |
 | `enableSnapPhysics` | `boolean` | `false` | Experimental magnetic snap for slow drags |
 | `snapPhysicsConfig` | `Partial<SnapPhysicsConfig>` | defaults | Override snap parameters |
-| `wheelMode` | `'natural' \| 'inverted' \| 'off'` | `'inverted'` | Mouse wheel scroll direction (inverted: down=increment) |
+| `wheelSensitivity` | `number` | `1` | Mouse wheel scroll speed multiplier |
+| `wheelDeltaCap` | `number` | `1.25` | Maximum wheel delta per event (prevents jumps) |
 | `enableHaptics` | `boolean` | `true` | Vibration feedback on selection (mobile) |
 | `enableAudioFeedback` | `boolean` | `false` | Audio clicks on selection |
 
