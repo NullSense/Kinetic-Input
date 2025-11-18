@@ -21,6 +21,8 @@ const snippets: Snippet[] = [
     description: 'Minimal setup - just value, onChange, and label',
     code: `import { useState } from 'react';
 import { CollapsibleNumberPicker } from '@tensil/kinetic-input';
+// IMPORTANT: Import CSS styles (required)
+import '@tensil/kinetic-input/styles/all.css';
 
 export default function App() {
   const [weight, setWeight] = useState(70);
@@ -45,6 +47,7 @@ export default function App() {
     description: 'Magnetic snap, haptics, and audio (enabled by default)',
     code: `import { useState } from 'react';
 import { CollapsibleNumberPicker } from '@tensil/kinetic-input';
+import '@tensil/kinetic-input/styles/all.css';
 
 export default function App() {
   const [reps, setReps] = useState(10);
@@ -79,6 +82,7 @@ export default function App() {
     description: 'Match your design system with buildTheme',
     code: `import { useState } from 'react';
 import { CollapsibleNumberPicker, buildTheme } from '@tensil/kinetic-input';
+import '@tensil/kinetic-input/styles/all.css';
 
 // Build a custom theme (iOS-inspired light mode)
 const customTheme = buildTheme({
@@ -121,6 +125,7 @@ export default function App() {
     description: 'Fine-tune snap physics and wheel behavior',
     code: `import { useState } from 'react';
 import { CollapsibleNumberPicker } from '@tensil/kinetic-input';
+import '@tensil/kinetic-input/styles/all.css';
 
 export default function App() {
   const [distance, setDistance] = useState(5);
@@ -313,18 +318,51 @@ export function CodeSnippets() {
             <Code2 className="w-5 h-5" strokeWidth={2} />
             Installation
           </h3>
-          <div className="grid md:grid-cols-2 gap-4x">
+
+          {/* Step 1 & 2 */}
+          <div className="grid md:grid-cols-2 gap-4x mb-6x">
             <div>
-              <p className="text-sm text-muted mb-2x">npm</p>
+              <p className="text-sm text-muted mb-2x">Step 1: Install Package</p>
               <code className="block bg-black/30 p-3x font-mono text-sm text-accent">
                 npm install @tensil/kinetic-input
               </code>
             </div>
             <div>
-              <p className="text-sm text-muted mb-2x">Import CSS</p>
+              <p className="text-sm text-muted mb-2x">Step 2: Import CSS (Required)</p>
               <code className="block bg-black/30 p-3x font-mono text-sm text-accent">
-                import '@tensil/kinetic-input/styles/all.css';
+                {`import '@tensil/kinetic-input/styles/all.css';`}
               </code>
+            </div>
+          </div>
+
+          {/* CSS Warning */}
+          <div className="p-4x bg-warning/10 border border-warning/30 rounded-xs mb-6x">
+            <p className="text-sm text-fg mb-2x font-semibold">⚠️ CSS Import is Required</p>
+            <p className="text-sm text-muted">
+              The component will not work without importing the CSS. You can import the bundled CSS
+              (<code className="text-accent font-mono text-xs">all.css</code>) or granular imports
+              for specific components.
+            </p>
+          </div>
+
+          {/* CSS Options */}
+          <div className="space-y-3x">
+            <div>
+              <p className="text-sm font-medium text-fg mb-2x">Option 1: All Styles (Recommended)</p>
+              <code className="block bg-black/30 p-3x font-mono text-sm text-muted">
+                {`import '@tensil/kinetic-input/styles/all.css';`}
+              </code>
+              <p className="text-xs text-muted mt-1x">Includes all component styles (~3KB gzipped)</p>
+            </div>
+
+            <div>
+              <p className="text-sm font-medium text-fg mb-2x">Option 2: Granular Imports</p>
+              <code className="block bg-black/30 p-3x font-mono text-sm text-muted">
+                {`import '@tensil/kinetic-input/styles/picker.css'; // Base picker`}<br />
+                {`import '@tensil/kinetic-input/styles/quick.css';  // CollapsibleNumberPicker`}<br />
+                {`import '@tensil/kinetic-input/styles/wheel.css';  // StandaloneWheelPicker`}
+              </code>
+              <p className="text-xs text-muted mt-1x">Import only what you need</p>
             </div>
           </div>
         </motion.div>

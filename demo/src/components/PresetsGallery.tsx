@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { CollapsibleNumberPicker } from '@tensil/kinetic-input';
 import { Palette, X, ExternalLink, Code2 } from 'lucide-react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { vscDarkPlus, vs } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { DEMO_PICKERS } from '../config/pickerDefaults';
 import sdk from '@stackblitz/sdk';
 
@@ -340,13 +340,12 @@ ${preset.codeSnippet.split('\n').filter(line => line.includes('buildTheme')).joi
           version: '1.0.0',
           private: true,
           dependencies: {
-            'react': '^19.0.0',
-            'react-dom': '^19.0.0',
-            '@tensil/kinetic-input': '^0.1.1',
-            'framer-motion': '^11.11.11',
+            'react': '^18.2.0',
+            'react-dom': '^18.2.0',
+            '@tensil/kinetic-input': 'latest',
+            'framer-motion': '^11.0.0',
             '@xstate/react': '^6.0.0',
             'xstate': '^5.0.0',
-            'lucide-react': '^0.546.0',
           },
           scripts: {
             dev: 'vite',
@@ -516,14 +515,16 @@ createRoot(document.getElementById('root')!).render(
                   </div>
                   <SyntaxHighlighter
                     language="typescript"
-                    style={vscDarkPlus}
+                    style={['bg-slate-100', 'bg-indigo-50', 'bg-yellow-400', 'bg-white'].includes(selectedPreset.theme.bg) ? vs : vscDarkPlus}
                     customStyle={{
                       margin: 0,
                       borderRadius: '2px',
                       fontSize: '0.8125rem',
                       lineHeight: '1.5',
                       border: '1px solid rgba(0, 0, 0, 0.2)',
-                      backgroundColor: 'rgba(0, 0, 0, 0.3)',
+                      backgroundColor: ['bg-slate-100', 'bg-indigo-50', 'bg-yellow-400', 'bg-white'].includes(selectedPreset.theme.bg)
+                        ? 'rgba(255, 255, 255, 0.8)'
+                        : 'rgba(0, 0, 0, 0.3)',
                       maxHeight: '300px',
                     }}
                     showLineNumbers={false}
