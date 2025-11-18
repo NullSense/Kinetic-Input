@@ -1,8 +1,8 @@
 import { act, render } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
-import CollapsibleNumberPicker from '../CollapsibleNumberPicker';
+import CollapsiblePicker from '../CollapsiblePicker';
 
-describe('CollapsibleNumberPicker wheel orchestration', () => {
+describe('CollapsiblePicker wheel orchestration', () => {
   const baseProps = {
     label: 'Weight',
     unit: 'kg',
@@ -13,7 +13,7 @@ describe('CollapsibleNumberPicker wheel orchestration', () => {
   // wheelMode='off' no longer exists - wheel scrolling is always enabled with auto-detection
 
   it('opens the picker and captures wheel events (auto-detection always enabled)', () => {
-    const { getByTestId } = render(<CollapsibleNumberPicker {...baseProps} />);
+    const { getByTestId } = render(<CollapsiblePicker {...baseProps} />);
 
     const wrapper = getByTestId('qni-wrapper');
     const surface = getByTestId('picker-surface');

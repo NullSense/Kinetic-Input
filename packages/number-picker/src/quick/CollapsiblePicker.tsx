@@ -4,26 +4,37 @@ import { DEFAULT_SNAP_PHYSICS } from '../config/physics';
 import { useResolvedTheme } from './hooks/useResolvedTheme';
 import { usePickerVisibility } from './hooks/usePickerVisibility';
 import { usePickerCoordinator } from './hooks/usePickerCoordinator';
-import { CollapsibleNumberPickerPresenter } from './CollapsibleNumberPicker.presenter';
+import { CollapsiblePickerPresenter } from './CollapsiblePicker.presenter';
 import { useQuickNumberPresentation } from './hooks/useQuickNumberPresentation';
 import { useQuickPickerFeedbackService } from './hooks/useQuickPickerFeedbackService';
 import { useQuickNumberControllers } from './hooks/useQuickNumberControllers';
 import { useQuickNumberPresenterViewModel } from './hooks/useQuickNumberPresenterViewModel';
 import type {
-    CollapsibleNumberPickerProps,
-    CollapsibleNumberPickerRenderItemState,
+    CollapsiblePickerProps,
+    CollapsiblePickerRenderItemState,
     RenderItemFn
 } from './types';
 import type { SnapPhysicsConfig } from '../picker/types/snapPhysics';
 
 /**
- * Renders the fully wired quick number picker surface, delegating formatting,
- * gesture orchestration, accessibility, and presentation to extracted hooks.
+ * CollapsiblePicker - Interactive picker with open/close animation
+ *
+ * Primary interactive picker component. Opens to show scrollable wheel,
+ * collapses to show selected value. Ideal for space-efficient UIs.
+ *
+ * Features:
+ * - Open/close animation with state machine
+ * - Haptic & audio feedback
+ * - Customizable theming
+ * - Accessibility support
+ *
+ * For always-visible picker, see Picker component.
+ *
  * @component
- * @param {CollapsibleNumberPickerProps} props - Configuration for value range, theming, and behavior.
+ * @param {CollapsiblePickerProps} props - Configuration for value range, theming, and behavior.
  * @returns {React.ReactElement}
  */
-const CollapsibleNumberPickerComponent: React.FC<CollapsibleNumberPickerProps> = ({
+const CollapsiblePicker: React.FC<CollapsiblePickerProps> = ({
     label,
     value,
     onChange,
@@ -37,7 +48,6 @@ const CollapsibleNumberPickerComponent: React.FC<CollapsibleNumberPickerProps> =
     isOpen: controlledIsOpen,
     onRequestOpen,
     onRequestClose,
-    showBackdrop = false,
     itemHeight: itemHeightProp,
     theme: themeOverrides,
     renderValue,
@@ -141,7 +151,6 @@ const CollapsibleNumberPickerComponent: React.FC<CollapsibleNumberPickerProps> =
         highlightTapHandlers,
         handlePickerOpen,
         handlePickerClose,
-        handleBackdropClick,
         handlePointerDown,
         onGesture,
         openedViaRef,
@@ -164,13 +173,13 @@ const CollapsibleNumberPickerComponent: React.FC<CollapsibleNumberPickerProps> =
         if (process.env.NODE_ENV === 'development') {
             if (isControlled && !onRequestOpen) {
                 console.warn(
-                    'CollapsibleNumberPicker: isOpen prop is controlled but onRequestOpen callback not provided. ' +
+                    'CollapsiblePicker: isOpen prop is controlled but onRequestOpen callback not provided. ' +
                         'Picker will not be able to open. Either provide onRequestOpen or remove isOpen prop.'
                 );
             }
             if (isControlled && !onRequestClose) {
                 console.warn(
-                    'CollapsibleNumberPicker: isOpen prop is controlled but onRequestClose callback not provided. ' +
+                    'CollapsiblePicker: isOpen prop is controlled but onRequestClose callback not provided. ' +
                         'Picker will not be able to close. Either provide onRequestClose or remove isOpen prop.'
                 );
             }
@@ -184,7 +193,7 @@ const CollapsibleNumberPickerComponent: React.FC<CollapsibleNumberPickerProps> =
     }, [renderItem]);
 
     const stableRenderItem = useCallback(
-        (valueArg: string, state: CollapsibleNumberPickerRenderItemState) =>
+        (valueArg: string, state: CollapsiblePickerRenderItemState) =>
             renderItemRef.current ? renderItemRef.current(valueArg, state) : undefined,
         []
     );
@@ -213,6 +222,12 @@ const CollapsibleNumberPickerComponent: React.FC<CollapsibleNumberPickerProps> =
             // Trigger haptic/audio feedback for visual value changes
             if (event.type === 'value:visual') {
                 handleVisualValueChange(event.value);
+            }
+            // Trigger settle haptic (stronger feedback when picker comes to rest)
+            if (event.type === 'value:settle' && event.hadMomentum) {
+                // Only trigger settle haptic after momentum (flicking)
+                // Direct snaps (keyboard, tap) use regular haptic
+                handleVisualValueChange(event.value, { isSettle: true });
             }
             // Forward to orchestration
             onGesture(event);
@@ -273,7 +288,6 @@ const CollapsibleNumberPickerComponent: React.FC<CollapsibleNumberPickerProps> =
         },
         pickerState: {
             showPicker,
-            showBackdrop,
             selectedIndex,
             totalValues,
         },
@@ -285,7 +299,6 @@ const CollapsibleNumberPickerComponent: React.FC<CollapsibleNumberPickerProps> =
         },
         refs: { wrapperRef, interactiveRef, pickerRef, highlightRef },
         handlers: {
-            onBackdropClick: handleBackdropClick,
             onPointerDown: handlePointerDown,
             onKeyDown: handleKeyDown,
         },
@@ -300,14 +313,14 @@ const CollapsibleNumberPickerComponent: React.FC<CollapsibleNumberPickerProps> =
         theme,
     });
 
-    return <CollapsibleNumberPickerPresenter viewModel={presenterViewModel} />;
+    return <CollapsiblePickerPresenter viewModel={presenterViewModel} />;
 };
 
 // ✅ PERFORMANCE FIX: Wrap in React.memo with deep comparison for config objects
 // Without this, component re-renders when parent updates even if props are equivalent
 // Custom comparison handles object props (snapPhysicsConfig, visualTweaks, theme)
-const CollapsibleNumberPicker = React.memo(
-    CollapsibleNumberPickerComponent,
+const CollapsiblePickerMemoized = React.memo(
+    CollapsiblePicker,
     (prevProps, nextProps) => {
         // Primitive comparisons (fast path)
         if (
@@ -321,7 +334,6 @@ const CollapsibleNumberPicker = React.memo(
             prevProps.lastValue !== nextProps.lastValue ||
             prevProps.initialValue !== nextProps.initialValue ||
             prevProps.isOpen !== nextProps.isOpen ||
-            prevProps.showBackdrop !== nextProps.showBackdrop ||
             prevProps.itemHeight !== nextProps.itemHeight ||
             prevProps.enableSnapPhysics !== nextProps.enableSnapPhysics ||
             prevProps.enableHaptics !== nextProps.enableHaptics ||
@@ -404,9 +416,10 @@ function shallowEqual(
     return true;
 }
 
-export default CollapsibleNumberPicker;
+export default CollapsiblePickerMemoized;
 
 export type {
-    CollapsibleNumberPickerProps,
-    CollapsibleNumberPickerTheme
+    CollapsiblePickerProps,
+    CollapsiblePickerRenderItemState,
+    CollapsiblePickerTheme
 } from './types';

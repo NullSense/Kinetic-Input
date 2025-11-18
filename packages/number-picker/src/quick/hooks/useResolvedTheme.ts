@@ -1,12 +1,12 @@
 import { useMemo } from 'react';
 import { buildTheme } from '../theme';
-import type { CollapsibleNumberPickerTheme } from '../types';
+import type { CollapsiblePickerTheme } from '../types';
 
 /**
  * Returns the memoized theme object merged with any overrides.
- * @param {Partial<CollapsibleNumberPickerTheme>|undefined} themeOverrides - Optional theme overrides.
- * @returns {CollapsibleNumberPickerTheme}
+ * @param {Partial<CollapsiblePickerTheme>|undefined} themeOverrides - Optional theme overrides.
+ * @returns {CollapsiblePickerTheme}
  */
-export function useResolvedTheme(themeOverrides: Partial<CollapsibleNumberPickerTheme> | undefined): CollapsibleNumberPickerTheme {
+export function useResolvedTheme(themeOverrides: Partial<CollapsiblePickerTheme> | undefined): CollapsiblePickerTheme {
     return useMemo(() => buildTheme(themeOverrides), [themeOverrides]);
 }

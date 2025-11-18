@@ -1,13 +1,17 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CollapsibleNumberPicker } from '@tensil/kinetic-input';
-import { Palette, X } from 'lucide-react';
+import { CollapsiblePicker } from '@tensil/kinetic-input';
+import { Palette, X, ExternalLink, Code2, Copy, Check } from 'lucide-react';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { vscDarkPlus, vs } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { DEMO_PICKERS } from '../config/pickerDefaults';
+import sdk from '@stackblitz/sdk';
 
 type Preset = {
   id: string;
   name: string;
   description: string;
+  codeSnippet: string;
   theme: {
     bg: string;
     fg: string;
@@ -26,6 +30,7 @@ type Preset = {
     highlightFillColor: string;
     fadeColor: string;
     textColor: string;
+    unitColor: string;
   };
 };
 
@@ -34,6 +39,25 @@ const presets: Preset[] = [
     id: 'ios',
     name: 'iOS Native',
     description: 'Apple HIG-inspired design',
+    codeSnippet: `import { buildTheme } from '@tensil/kinetic-input';
+
+const iosTheme = buildTheme({
+  activeTextColor: '#3b82f6',
+  textColor: '#64748b',
+  closedBorderColor: 'rgba(59, 130, 246, 0.5)',
+  closedBackgroundColor: 'rgba(241, 245, 249, 0.8)',
+  labelColor: '#64748b',
+  highlightBorderColor: 'rgba(59, 130, 246, 0.5)',
+  fadeColor: '#f1f5f9',
+});
+
+<CollapsiblePicker
+  value={weight}
+  onChange={setWeight}
+  label="WEIGHT"
+  unit="kg"
+  theme={iosTheme}
+/>`,
     theme: {
       bg: 'bg-slate-100',
       fg: 'text-slate-900',
@@ -43,6 +67,7 @@ const presets: Preset[] = [
     pickerTheme: {
       activeTextColor: '#3b82f6', // blue-500
       textColor: '#64748b', // slate-500 for non-selected rows
+      unitColor: '#94a3b8', // slate-400 for units
       closedBorderColor: 'rgba(59, 130, 246, 0.5)',
       closedBackgroundColor: 'rgba(241, 245, 249, 0.8)', // slate-100 semi-transparent
       closedBackgroundColorEmpty: 'rgba(226, 232, 240, 0.6)', // slate-200
@@ -58,6 +83,25 @@ const presets: Preset[] = [
     id: 'material',
     name: 'Material Design',
     description: 'Google Material 3',
+    codeSnippet: `import { buildTheme } from '@tensil/kinetic-input';
+
+const materialTheme = buildTheme({
+  activeTextColor: '#4f46e5',
+  textColor: '#6366f1',
+  closedBorderColor: 'rgba(79, 70, 229, 0.5)',
+  closedBackgroundColor: 'rgba(238, 242, 255, 0.8)',
+  labelColor: '#6366f1',
+  highlightBorderColor: 'rgba(79, 70, 229, 0.5)',
+  fadeColor: '#eef2ff',
+});
+
+<CollapsiblePicker
+  value={weight}
+  onChange={setWeight}
+  label="WEIGHT"
+  unit="kg"
+  theme={materialTheme}
+/>`,
     theme: {
       bg: 'bg-indigo-50',
       fg: 'text-indigo-950',
@@ -67,6 +111,7 @@ const presets: Preset[] = [
     pickerTheme: {
       activeTextColor: '#4f46e5', // indigo-600
       textColor: '#6366f1', // indigo-500 for non-selected rows
+      unitColor: '#a5b4fc', // indigo-300 for units
       closedBorderColor: 'rgba(79, 70, 229, 0.5)',
       closedBackgroundColor: 'rgba(238, 242, 255, 0.8)', // indigo-50 semi-transparent
       closedBackgroundColorEmpty: 'rgba(224, 231, 255, 0.6)', // indigo-100
@@ -82,6 +127,25 @@ const presets: Preset[] = [
     id: 'brutalist',
     name: 'Brutalist',
     description: 'Bold & high contrast',
+    codeSnippet: `import { buildTheme } from '@tensil/kinetic-input';
+
+const brutalistTheme = buildTheme({
+  activeTextColor: '#000000',
+  textColor: '#000000',
+  closedBorderColor: '#000000',
+  closedBackgroundColor: 'rgba(250, 204, 21, 0.9)',
+  labelColor: '#000000',
+  highlightBorderColor: '#000000',
+  fadeColor: '#facc15',
+});
+
+<CollapsiblePicker
+  value={weight}
+  onChange={setWeight}
+  label="WEIGHT"
+  unit="kg"
+  theme={brutalistTheme}
+/>`,
     theme: {
       bg: 'bg-yellow-400',
       fg: 'text-black',
@@ -91,6 +155,7 @@ const presets: Preset[] = [
     pickerTheme: {
       activeTextColor: '#000000',
       textColor: '#000000', // black for all rows
+      unitColor: '#000000', // black for units (high contrast)
       closedBorderColor: '#000000',
       closedBackgroundColor: 'rgba(250, 204, 21, 0.9)', // yellow-400 semi-transparent
       closedBackgroundColorEmpty: 'rgba(250, 204, 21, 0.6)',
@@ -106,6 +171,25 @@ const presets: Preset[] = [
     id: 'neon',
     name: 'Neon Nights',
     description: 'Cyberpunk aesthetic',
+    codeSnippet: `import { buildTheme } from '@tensil/kinetic-input';
+
+const neonTheme = buildTheme({
+  activeTextColor: '#ec4899',
+  textColor: '#22d3ee',
+  closedBorderColor: 'rgba(236, 72, 153, 0.8)',
+  closedBackgroundColor: 'rgba(59, 7, 100, 0.8)',
+  labelColor: '#22d3ee',
+  highlightBorderColor: 'rgba(236, 72, 153, 0.8)',
+  fadeColor: '#3b0764',
+});
+
+<CollapsiblePicker
+  value={weight}
+  onChange={setWeight}
+  label="WEIGHT"
+  unit="kg"
+  theme={neonTheme}
+/>`,
     theme: {
       bg: 'bg-purple-950',
       fg: 'text-cyan-400',
@@ -115,6 +199,7 @@ const presets: Preset[] = [
     pickerTheme: {
       activeTextColor: '#ec4899', // pink-500
       textColor: '#22d3ee', // cyan-400 for non-selected rows
+      unitColor: '#a855f7', // purple-500 for cyberpunk units
       closedBorderColor: 'rgba(236, 72, 153, 0.8)',
       closedBackgroundColor: 'rgba(59, 7, 100, 0.8)', // purple-950 semi-transparent
       closedBackgroundColorEmpty: 'rgba(59, 7, 100, 0.5)',
@@ -130,6 +215,25 @@ const presets: Preset[] = [
     id: 'monochrome',
     name: 'Monochrome',
     description: 'Pure black & white',
+    codeSnippet: `import { buildTheme } from '@tensil/kinetic-input';
+
+const monochromeTheme = buildTheme({
+  activeTextColor: '#1f2937',
+  textColor: '#6b7280',
+  closedBorderColor: 'rgba(156, 163, 175, 0.6)',
+  closedBackgroundColor: 'rgba(255, 255, 255, 0.9)',
+  labelColor: '#6b7280',
+  highlightBorderColor: 'rgba(156, 163, 175, 0.6)',
+  fadeColor: '#ffffff',
+});
+
+<CollapsiblePicker
+  value={weight}
+  onChange={setWeight}
+  label="WEIGHT"
+  unit="kg"
+  theme={monochromeTheme}
+/>`,
     theme: {
       bg: 'bg-white',
       fg: 'text-black',
@@ -139,6 +243,7 @@ const presets: Preset[] = [
     pickerTheme: {
       activeTextColor: '#1f2937', // gray-800
       textColor: '#6b7280', // gray-500 for non-selected rows
+      unitColor: '#9ca3af', // gray-400 for units
       closedBorderColor: 'rgba(156, 163, 175, 0.6)', // gray-400
       closedBackgroundColor: 'rgba(255, 255, 255, 0.9)',
       closedBackgroundColorEmpty: 'rgba(249, 250, 251, 0.8)', // gray-50
@@ -154,6 +259,25 @@ const presets: Preset[] = [
     id: 'gaming',
     name: 'RGB Gaming',
     description: 'Gamer aesthetic',
+    codeSnippet: `import { buildTheme } from '@tensil/kinetic-input';
+
+const gamingTheme = buildTheme({
+  activeTextColor: '#22c55e',
+  textColor: '#4ade80',
+  closedBorderColor: 'rgba(34, 197, 94, 0.8)',
+  closedBackgroundColor: 'rgba(15, 23, 42, 0.9)',
+  labelColor: '#4ade80',
+  highlightBorderColor: 'rgba(34, 197, 94, 0.8)',
+  fadeColor: '#0f172a',
+});
+
+<CollapsiblePicker
+  value={weight}
+  onChange={setWeight}
+  label="WEIGHT"
+  unit="kg"
+  theme={gamingTheme}
+/>`,
     theme: {
       bg: 'bg-slate-900',
       fg: 'text-green-400',
@@ -163,6 +287,7 @@ const presets: Preset[] = [
     pickerTheme: {
       activeTextColor: '#22c55e', // green-500
       textColor: '#4ade80', // green-400 for non-selected rows
+      unitColor: '#86efac', // green-300 for units (bright)
       closedBorderColor: 'rgba(34, 197, 94, 0.8)',
       closedBackgroundColor: 'rgba(15, 23, 42, 0.9)', // slate-900 semi-transparent
       closedBackgroundColorEmpty: 'rgba(15, 23, 42, 0.6)',
@@ -187,6 +312,94 @@ const presets: Preset[] = [
 export function PresetsGallery() {
   const [selectedPreset, setSelectedPreset] = useState<Preset | null>(null);
   const [presetValue, setPresetValue] = useState(DEMO_PICKERS.weight.initialValue);
+  const [copiedPresetCode, setCopiedPresetCode] = useState(false);
+
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedPresetCode(true);
+      setTimeout(() => setCopiedPresetCode(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
+  };
+
+  const openInStackBlitz = (preset: Preset) => {
+    const appCode = `import { useState } from 'react';
+import { CollapsiblePicker } from '@tensil/kinetic-input';
+${preset.codeSnippet.includes('buildTheme') ? "import { buildTheme } from '@tensil/kinetic-input';" : ''}
+
+export default function App() {
+  const [weight, setWeight] = useState(70);
+
+${preset.codeSnippet.split('\n').filter(line => line.includes('buildTheme')).join('\n')}
+
+  return (
+    <div style={{ padding: '2rem', background: '${preset.theme.bg.replace('bg-', '#')}', minHeight: '100vh' }}>
+      ${preset.codeSnippet.split('\n').filter(line => line.includes('<CollapsiblePicker')).join('\n        ')}
+    </div>
+  );
+}`;
+
+    sdk.openProject({
+      title: `Kinetic Input - ${preset.name}`,
+      description: preset.description,
+      template: 'node',
+      files: {
+        'package.json': JSON.stringify({
+          name: preset.id,
+          version: '1.0.0',
+          private: true,
+          dependencies: {
+            'react': '^18.2.0',
+            'react-dom': '^18.2.0',
+            '@tensil/kinetic-input': 'latest',
+            'framer-motion': '^11.0.0',
+            '@xstate/react': '^6.0.0',
+            'xstate': '^5.0.0',
+          },
+          scripts: {
+            dev: 'vite',
+            build: 'vite build',
+          },
+          devDependencies: {
+            '@vitejs/plugin-react': '^5.1.1',
+            'vite': '^6.4.1',
+            'typescript': '^5.9.3',
+          },
+        }, null, 2),
+        'vite.config.ts': `import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+
+export default defineConfig({
+  plugins: [react()],
+});`,
+        'index.html': `<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>${preset.name}</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>`,
+        'src/main.tsx': `import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
+import App from './App';
+import '@tensil/kinetic-input/styles/all.css';
+
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    <App />
+  </StrictMode>
+);`,
+        'src/App.tsx': appCode,
+      },
+    });
+  };
 
   return (
     <section id="presets" className="py-16 px-4x bg-hairline/30">
@@ -236,9 +449,9 @@ export function PresetsGallery() {
 
               {/* Preview Swatch */}
               <div className="flex gap-2">
-                <div className={`w-8 h-8 rounded ${preset.theme.bg} ${preset.theme.border} border-2`} />
-                <div className={`w-8 h-8 rounded ${preset.theme.fg.replace('text-', 'bg-')}`} />
-                <div className={`w-8 h-8 rounded ${preset.theme.accent.replace('text-', 'bg-')}`} />
+                <div className={`w-8 h-8 rounded-sm ${preset.theme.bg} ${preset.theme.border} border-2`} />
+                <div className={`w-8 h-8 rounded-sm ${preset.theme.fg.replace('text-', 'bg-')}`} />
+                <div className={`w-8 h-8 rounded-sm ${preset.theme.accent.replace('text-', 'bg-')}`} />
               </div>
             </motion.button>
           ))}
@@ -252,7 +465,7 @@ export function PresetsGallery() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="fixed inset-0 z-modal bg-bg/90 backdrop-blur-sm flex items-center justify-center p-4x"
+              className="fixed inset-0 z-modal bg-bg/90 backdrop-blur-xs flex items-center justify-center p-4x"
               onClick={() => setSelectedPreset(null)}
             >
               <motion.div
@@ -262,9 +475,10 @@ export function PresetsGallery() {
                 transition={{ duration: 0.2 }}
                 onClick={(e) => e.stopPropagation()}
                 className={`
-                  relative max-w-md w-full p-8x
+                  relative max-w-4xl w-full p-8x
                   ${selectedPreset.theme.bg} ${selectedPreset.theme.fg}
                   ${selectedPreset.theme.border} border-2
+                  max-h-[90vh] overflow-y-auto rounded-sm
                 `}
               >
                 {/* Close Button */}
@@ -294,12 +508,75 @@ export function PresetsGallery() {
                   <div className="block text-sm font-medium mb-2x uppercase">
                     Try it out
                   </div>
-                  <CollapsibleNumberPicker
+                  <CollapsiblePicker
                     {...DEMO_PICKERS.weight}
                     value={presetValue}
                     onChange={setPresetValue}
                     theme={selectedPreset.pickerTheme}
                   />
+                </div>
+
+                {/* Code Example */}
+                <div className="mt-6x">
+                  <div className="flex items-center justify-between mb-3x">
+                    <div className="flex items-center gap-2">
+                      <Code2 className="w-4 h-4 opacity-70" strokeWidth={2} />
+                      <div className="text-sm font-medium uppercase">
+                        Code Example
+                      </div>
+                    </div>
+                    {/* Copy Button */}
+                    <button
+                      onClick={() => copyToClipboard(selectedPreset.codeSnippet)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-black/30 hover:bg-black/40 border border-white/20 hover:border-white/30 text-white/90 font-medium text-xs transition-all duration-instant focus-accent rounded-xs"
+                      title="Copy code"
+                    >
+                      {copiedPresetCode ? (
+                        <>
+                          <Check className="w-3.5 h-3.5" strokeWidth={2} />
+                          <span>COPIED</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-3.5 h-3.5" strokeWidth={2} />
+                          <span>COPY</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                  <SyntaxHighlighter
+                    language="typescript"
+                    style={['bg-slate-100', 'bg-indigo-50', 'bg-yellow-400', 'bg-white'].includes(selectedPreset.theme.bg) ? vs : vscDarkPlus}
+                    customStyle={{
+                      margin: 0,
+                      borderRadius: '2px',
+                      fontSize: '0.8125rem',
+                      lineHeight: '1.5',
+                      border: '1px solid rgba(0, 0, 0, 0.2)',
+                      backgroundColor: ['bg-slate-100', 'bg-indigo-50', 'bg-yellow-400', 'bg-white'].includes(selectedPreset.theme.bg)
+                        ? 'rgba(255, 255, 255, 0.8)'
+                        : 'rgba(0, 0, 0, 0.3)',
+                      maxHeight: '300px',
+                    }}
+                    showLineNumbers={false}
+                    wrapLines
+                  >
+                    {selectedPreset.codeSnippet}
+                  </SyntaxHighlighter>
+                </div>
+
+                {/* Open in StackBlitz */}
+                <div className="mt-6x">
+                  <button
+                    onClick={() => openInStackBlitz(selectedPreset)}
+                    className="w-full flex items-center justify-center gap-2x px-4x py-3x bg-accent/20 hover:bg-accent/30 border border-accent/30 transition-colors duration-fast focus-accent text-accent font-medium text-sm"
+                  >
+                    <ExternalLink className="w-4 h-4" strokeWidth={2} />
+                    <span>Open Interactive Example in StackBlitz</span>
+                  </button>
+                  <p className="mt-2x text-xs text-muted opacity-70">
+                    Edit, run, and fork the code in a full development environment
+                  </p>
                 </div>
 
                 <div className="mt-6x pt-6x border-t opacity-50">

@@ -1,7 +1,7 @@
 {
   "name": "kinetic-input",
   "version": "0.0.1",
-  "private": false,
+  "private": true,
   "description": "Momentum-driven number picker components for React",
   "type": "module",
   "workspaces": [
@@ -23,8 +23,7 @@
     "test:ui": "npm run test:ui --workspace=packages/number-picker",
     "test:coverage": "npm run test:coverage --workspace=packages/number-picker",
     "validate": "npm run typecheck && npm run lint && npm run lint:dead-code && npm test",
-    "ci": "npm run validate",
-    "postinstall": "husky || true"
+    "ci": "npm run validate"
   },
   "keywords": [
     "react",
@@ -37,20 +36,27 @@
     "type": "git",
     "url": "https://github.com/NullSense/Kinetic-Input.git"
   },
-  "author": "",
+  "homepage": "https://github.com/NullSense/Kinetic-Input#readme",
+  "bugs": {
+    "url": "https://github.com/NullSense/Kinetic-Input/issues"
+  },
+  "author": "NullSense",
   "license": "MIT",
   "devDependencies": {
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.1",
     "@vitejs/plugin-react": "^5.1.1",
-    "@vitest/ui": "^4.0.9",
+    "@vitest/ui": "^4.0.10",
     "happy-dom": "^20.0.10",
     "husky": "^9.1.7",
     "jsdom": "^27.2.0",
     "knip": "^5.43.0",
-    "lint-staged": "^15.2.11",
-    "oxlint": "^1.28.0",
-    "vitest": "^4.0.9"
+    "lint-staged": "^16.2.6",
+    "oxlint": "^1.29.0",
+    "vitest": "^4.0.10"
+  },
+  "dependencies": {
+    "tailwindcss": "^4.1.17"
   }
 }

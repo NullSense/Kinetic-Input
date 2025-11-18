@@ -1,0 +1,21 @@
+/*
+ * Kinetic Input - All Styles Bundle
+ * Convenience import for all picker components
+ *
+ * This bundles:
+ * - picker-base.css (base protections for all pickers)
+ * - quick-number-input.css (CollapsiblePicker styles)
+ * - wheel-picker.css (Picker styles)
+ *
+ * Usage:
+ *   import '@tensil/kinetic-input/styles/all.css'
+ *
+ * For granular control, import individually:
+ *   import '@tensil/kinetic-input/styles/picker.css'
+ *   import '@tensil/kinetic-input/styles/quick.css'
+ *   import '@tensil/kinetic-input/styles/wheel.css'
+ */
+
+@import './picker-base.css';
+@import './quick-number-input.css';
+@import './wheel-picker.css';

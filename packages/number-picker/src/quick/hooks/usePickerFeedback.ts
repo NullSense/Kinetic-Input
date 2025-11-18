@@ -72,8 +72,8 @@ export const usePickerFeedback = ({
     }, [selectedValue.value]);
 
     // Trigger haptic feedback on value scroll
-    const triggerHaptics = useCallback(() => {
-        adapters.haptics?.trigger();
+    const triggerHaptics = useCallback((isSettle?: boolean) => {
+        adapters.haptics?.trigger(isSettle);
     }, [adapters.haptics]);
 
     // Trigger audio confirmation on value commit
@@ -95,14 +95,14 @@ export const usePickerFeedback = ({
 
     // Handle visual value changes (scrolling) - triggers haptics
     const handleVisualValueChange = useCallback(
-        (value: string | number) => {
+        (value: string | number, meta?: { isSettle?: boolean }) => {
             const next = String(value);
             // Track visual value for audio confirmation on close
             lastVisualValueRef.current = next;
 
             if (next !== lastHapticValueRef.current) {
                 lastHapticValueRef.current = next;
-                triggerHaptics();
+                triggerHaptics(meta?.isSettle);
             }
         },
         [triggerHaptics]

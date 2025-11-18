@@ -22,9 +22,9 @@ This document provides an in-depth look at the architecture of the `@tensil/kine
 
 Kinetic Input is built around three main component families:
 
-1. **CollapsibleNumberPicker** (`quick/`) - Full-featured collapsible input with touch/mouse/wheel support
+1. **CollapsiblePicker** (`quick/`) - Full-featured collapsible input with touch/mouse/wheel support
 2. **PickerColumn** (`picker/`) - Core wheel picker primitive
-3. **StandaloneWheelPicker** (`wheel/`) - Standalone wheel component
+3. **Picker** (`wheel/`) - Standalone wheel component
 
 ### Design Philosophy
 
@@ -90,10 +90,10 @@ Input Sources → Gesture Handler → Physics Engine → Animation → DOM
 
 ## Component Hierarchy
 
-### CollapsibleNumberPicker
+### CollapsiblePicker
 
 ```
-CollapsibleNumberPicker
+CollapsiblePicker
 ├── ThemedNumberInput (closed state)
 │   └── Formatted display value
 └── Picker Surface (open state)
@@ -109,7 +109,7 @@ CollapsibleNumberPicker
 
 ### Hook Composition
 
-#### CollapsibleNumberPicker Hooks
+#### CollapsiblePicker Hooks
 
 ```
 usePickerStateMachine (XState)
@@ -152,7 +152,7 @@ The picker lifecycle is modeled as a finite state machine:
      │                                         │
      │                                         │ MOMENTUM_END
      │                                         ↓
-     │    autoCloseDelay (4s)           ┌──────┐
+     │    idleTimeout (4s default)      ┌──────┐
      └──────────────────────────────────│ idle │
                                         └──────┘
 ```
@@ -186,9 +186,10 @@ The picker lifecycle is modeled as a finite state machine:
 
 Located in `packages/number-picker/src/config/timing.ts`:
 
-- **QUICK**: 150ms settle, 800ms wheel idle, 3000ms close
-- **DEFAULT**: 150ms settle, 800ms wheel idle, 4000ms close
-- **RELAXED**: 300ms settle, 1200ms wheel idle, 6000ms close
+- **instant**: 50ms settle, 300ms wheel idle, 1500ms close (power users)
+- **fast**: 100ms settle, 500ms wheel idle, 2500ms close (desktop workflows)
+- **balanced**: 150ms settle, 800ms wheel idle, 4000ms close (DEFAULT, general use)
+- **patient**: 300ms settle, 1200ms wheel idle, 6000ms close (mobile/accessibility)
 
 ---
 
@@ -363,7 +364,7 @@ Production-safe opt-in debugging system in `packages/number-picker/src/utils/deb
 ### Debug Namespaces
 
 ```typescript
-window.__QNI_DEBUG__ = true           // CollapsibleNumberPicker
+window.__QNI_DEBUG__ = true           // CollapsiblePicker
 window.__QNI_SNAP_DEBUG__ = true      // Snap physics
 window.__QNI_STATE_DEBUG__ = true     // State machine
 window.__QNI_WHEEL_DEBUG__ = true     // Wheel picker
@@ -458,8 +459,8 @@ packages/number-picker/src/
 │       ├── math.ts                  # Y ↔ index conversions
 │       └── releaseMomentum.ts       # Momentum projection
 │
-├── quick/                     # CollapsibleNumberPicker component
-│   ├── CollapsibleNumberPicker.tsx
+├── quick/                     # CollapsiblePicker component
+│   ├── CollapsiblePicker.tsx
 │   ├── ThemedNumberInput.tsx         # Closed state input
 │   ├── theme.ts                      # Color & typography tokens
 │   ├── hooks/
@@ -473,11 +474,11 @@ packages/number-picker/src/
 │       ├── haptics.ts                # Vibration API wrapper
 │       └── audio.ts                  # Web Audio API wrapper
 │
-├── wheel/                     # StandaloneWheelPicker
-│   └── StandaloneWheelPicker.tsx
+├── wheel/                     # Picker
+│   └── Picker.tsx
 │
 ├── utils/                     # Shared utilities
-│   ├── debug.ts              # Production-safe debug system (497 lines)
+│   ├── debug.ts              # Production-safe debug system
 │   └── pickerOptions.ts      # Decimal scaling utilities
 │
 └── styles/                    # Component CSS

@@ -1,5 +1,5 @@
 /**
- * Tests for haptic and audio feedback in CollapsibleNumberPicker
+ * Tests for haptic and audio feedback in CollapsiblePicker
  *
  * Covers:
  * - Haptic feedback API usage (pattern-based)
@@ -9,14 +9,14 @@
  *
  * Note: These are unit tests focusing on the feedback functions themselves.
  * Integration tests for triggering feedback through user interactions
- * are in the main CollapsibleNumberPicker test suite.
+ * are in the main CollapsiblePicker test suite.
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render } from '@testing-library/react';
-import CollapsibleNumberPicker from '../CollapsibleNumberPicker';
+import CollapsiblePicker from '../CollapsiblePicker';
 
-describe('CollapsibleNumberPicker - Haptic Feedback Configuration', () => {
+describe('CollapsiblePicker - Haptic Feedback Configuration', () => {
   let vibrateSpy: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
@@ -36,7 +36,7 @@ describe('CollapsibleNumberPicker - Haptic Feedback Configuration', () => {
   it('should render without errors when enableHaptics is false', () => {
     expect(() => {
       render(
-        <CollapsibleNumberPicker
+        <CollapsiblePicker
           label="Test"
           value={10}
           onChange={vi.fn()}
@@ -50,7 +50,7 @@ describe('CollapsibleNumberPicker - Haptic Feedback Configuration', () => {
   it('should render without errors when enableHaptics is true', () => {
     expect(() => {
       render(
-        <CollapsibleNumberPicker
+        <CollapsiblePicker
           label="Test"
           value={10}
           onChange={vi.fn()}
@@ -71,7 +71,7 @@ describe('CollapsibleNumberPicker - Haptic Feedback Configuration', () => {
 
     expect(() => {
       render(
-        <CollapsibleNumberPicker
+        <CollapsiblePicker
           label="Test"
           value={10}
           onChange={vi.fn()}
@@ -86,7 +86,7 @@ describe('CollapsibleNumberPicker - Haptic Feedback Configuration', () => {
     // This tests the pattern configuration indirectly
     // Full integration test would need actual picker interaction
     render(
-      <CollapsibleNumberPicker
+      <CollapsiblePicker
         label="Test"
         value={10}
         onChange={vi.fn()}
@@ -131,7 +131,7 @@ type MockAudioContext = {
   close: ReturnType<typeof vi.fn>;
 };
 
-describe('CollapsibleNumberPicker - Audio Feedback Configuration', () => {
+describe('CollapsiblePicker - Audio Feedback Configuration', () => {
   let mockAudioContext: MockAudioContext;
   let mockOscillator: MockOscillator;
   let mockGainNode: MockGainNode;
@@ -185,7 +185,7 @@ describe('CollapsibleNumberPicker - Audio Feedback Configuration', () => {
   it('should render without errors when enableAudioFeedback is false', () => {
     expect(() => {
       render(
-        <CollapsibleNumberPicker
+        <CollapsiblePicker
           label="Test"
           value={10}
           onChange={vi.fn()}
@@ -199,7 +199,7 @@ describe('CollapsibleNumberPicker - Audio Feedback Configuration', () => {
   it('should render without errors when enableAudioFeedback is true', () => {
     expect(() => {
       render(
-        <CollapsibleNumberPicker
+        <CollapsiblePicker
           label="Test"
           value={10}
           onChange={vi.fn()}
@@ -216,7 +216,7 @@ describe('CollapsibleNumberPicker - Audio Feedback Configuration', () => {
 
     expect(() => {
       render(
-        <CollapsibleNumberPicker
+        <CollapsiblePicker
           label="Test"
           value={10}
           onChange={vi.fn()}
@@ -231,7 +231,7 @@ describe('CollapsibleNumberPicker - Audio Feedback Configuration', () => {
     // This verifies the refactored approach creates new gain nodes
     // Full integration test would need actual picker close simulation
     render(
-      <CollapsibleNumberPicker
+      <CollapsiblePicker
         label="Test"
         value={10}
         onChange={vi.fn()}
@@ -247,7 +247,7 @@ describe('CollapsibleNumberPicker - Audio Feedback Configuration', () => {
   it('should configure 920Hz triangle wave for confirmation sound', () => {
     // This tests the audio configuration indirectly
     render(
-      <CollapsibleNumberPicker
+      <CollapsiblePicker
         label="Test"
         value={10}
         onChange={vi.fn()}

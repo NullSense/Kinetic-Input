@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import type { CollapsibleNumberPickerVisualTweaks } from "../types";
+import type { CollapsiblePickerVisualTweaks } from "../types";
 
 export interface ResolvedVisualTweaks {
   activeScale: number;
@@ -29,11 +29,11 @@ const DEFAULT_TWEAKS: ResolvedVisualTweaks = {
 
 /**
  * Merges provided visual tweak overrides with defaults for highlight spacing.
- * @param {CollapsibleNumberPickerVisualTweaks|undefined} overrides
+ * @param {CollapsiblePickerVisualTweaks|undefined} overrides
  * @returns {ResolvedVisualTweaks}
  */
 export function useResolvedVisualTweaks(
-  overrides: CollapsibleNumberPickerVisualTweaks | undefined,
+  overrides: CollapsiblePickerVisualTweaks | undefined,
 ): ResolvedVisualTweaks {
   return useMemo(() => {
     if (!overrides) {

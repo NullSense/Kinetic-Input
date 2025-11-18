@@ -2,9 +2,9 @@ import React from 'react';
 import { renderHook } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { useQuickNumberPresentation } from '../useQuickNumberPresentation';
-import type { CollapsibleNumberPickerTheme } from '../../types';
+import type { CollapsiblePickerTheme } from '../../types';
 
-const THEME: CollapsibleNumberPickerTheme = {
+const THEME: CollapsiblePickerTheme = {
     textColor: '#fff',
     activeTextColor: '#0ff',
     unitColor: '#ccc',

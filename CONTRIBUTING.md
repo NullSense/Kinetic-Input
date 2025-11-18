@@ -30,15 +30,7 @@ Thank you for your interest in contributing to Kinetic Input! This guide will he
 git clone https://github.com/NullSense/Kinetic-Input.git
 cd Kinetic-Input
 
-# Install dependencies (monorepo root)
-npm install
-
-# Install package dependencies
-cd packages/number-picker
-npm install
-
-# Install demo dependencies
-cd ../../demo
+# Install all dependencies (handles monorepo workspaces)
 npm install
 ```
 
@@ -46,10 +38,9 @@ npm install
 
 ```bash
 # From project root
-cd demo
-npm run dev
+npm run dev:demo
 
-# Open http://localhost:5173
+# Open http://localhost:3001
 ```
 
 The demo provides an interactive playground for testing components with:
@@ -315,7 +306,7 @@ Enable debug logging in the browser console:
 enableAllDebugNamespaces()
 
 // Or enable specific namespaces
-window.__QNI_DEBUG__ = true           // CollapsibleNumberPicker
+window.__QNI_DEBUG__ = true           // CollapsiblePicker
 window.__QNI_PICKER_DEBUG__ = true    // Picker physics
 window.__QNI_SNAP_DEBUG__ = true      // Snap physics
 window.__QNI_STATE_DEBUG__ = true     // State machine
@@ -369,7 +360,7 @@ Checklist:
 - [ ] No TypeScript errors (`npx tsc --noEmit`)
 - [ ] Changes tested in demo app
 - [ ] Documentation updated (if needed)
-- [ ] CHANGELOG.md updated (if user-facing change)
+- [ ] `packages/number-picker/CHANGELOG.md` updated (if user-facing change)
 
 ### PR Title
 
@@ -438,7 +429,7 @@ Current version is `0.1.1` (published to npm as `@tensil/kinetic-input`). During
 ### Release Checklist (for maintainers)
 
 - [ ] Update version in `package.json`
-- [ ] Update CHANGELOG.md
+- [ ] Update `packages/number-picker/CHANGELOG.md`
 - [ ] Run full test suite
 - [ ] Build package (`npm run build`)
 - [ ] Test build in demo

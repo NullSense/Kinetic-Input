@@ -1,6 +1,6 @@
 /*
  * Base picker styles - Level 1 protections
- * Applied to ALL picker primitives (PickerGroup, StandaloneWheelPicker, CollapsibleNumberPicker)
+ * Applied to ALL picker primitives (PickerGroup, Picker, CollapsiblePicker)
  * User MUST import this: import '@tensil/kinetic-input/styles/picker.css'
  */
 

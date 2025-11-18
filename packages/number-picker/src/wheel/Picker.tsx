@@ -8,11 +8,18 @@ import {
   type PickerOption,
   type NormalizedPickerOption,
 } from '../utils/pickerOptions';
+import { createFeedbackAdapters, type FeedbackAdapters } from '../quick/feedback';
+import { usePickerGestureFeedback } from '../shared/hooks';
 
 // Shared empty props object to avoid allocations for large datasets
 const EMPTY_PROPS = {};
 
-export interface StandaloneWheelPickerProps {
+/**
+ * Props for Picker component
+ *
+ * Clean, focused interface following Interface Segregation Principle
+ */
+export interface PickerProps {
   value: string | number;
   onChange: (value: string | number) => void;
   options?: PickerOption[];
@@ -33,10 +40,29 @@ export interface StandaloneWheelPickerProps {
     option: NormalizedPickerOption,
     state: { selected: boolean; visuallySelected: boolean }
   ) => React.ReactNode;
+  /** Enable haptic feedback on value changes (requires device support) */
+  enableHaptics?: boolean;
+  /** Enable audio feedback on value commit (requires user interaction) */
+  enableAudioFeedback?: boolean;
+  /** Override default feedback patterns and adapters */
+  feedbackOverrides?: {
+    haptics?: {
+      pattern?: number | number[];
+      settlePattern?: number | number[];
+    };
+    audio?: {
+      frequency?: number;
+      waveform?: OscillatorType;
+      attackMs?: number;
+      decayMs?: number;
+      durationMs?: number;
+      peakGain?: number;
+    };
+  };
 }
 
-// Re-export PickerOption for backwards compatibility
-export type { PickerOption as StandaloneWheelPickerOption };
+// Re-export PickerOption for convenience
+export type { PickerOption as PickerOptionType };
 
 const clampVisibleItems = (visibleItems?: number): number => {
   if (!Number.isFinite(visibleItems) || (visibleItems ?? 0) < 3) {
@@ -46,7 +72,48 @@ const clampVisibleItems = (visibleItems?: number): number => {
   return candidate % 2 === 0 ? candidate + 1 : candidate;
 };
 
-const StandaloneWheelPicker: React.FC<StandaloneWheelPickerProps> = ({
+/**
+ * Picker - Always-visible wheel picker with momentum scrolling
+ *
+ * Primary picker component for most use cases. Use this when you want an always-visible
+ * picker without auto-collapse behavior. Supports both option arrays and numeric ranges.
+ *
+ * Features:
+ * - Momentum scrolling with physics
+ * - Haptic & audio feedback
+ * - Snap-to-item physics (optional)
+ * - Custom item rendering
+ * - Numeric ranges or custom options
+ *
+ * For interactive open/close behavior, see CollapsiblePicker.
+ * For multi-column pickers (time, date), see Picker.Group.
+ *
+ * @example
+ * ```tsx
+ * // Numeric range with haptics
+ * <Picker
+ *   value={weight}
+ *   onChange={setWeight}
+ *   min={40}
+ *   max={200}
+ *   step={0.5}
+ *   unit="kg"
+ *   enableHaptics
+ * />
+ *
+ * // Custom options
+ * <Picker
+ *   value="easy"
+ *   onChange={setDifficulty}
+ *   options={[
+ *     { value: 'easy', label: 'Easy' },
+ *     { value: 'medium', label: 'Medium' },
+ *     { value: 'hard', label: 'Hard' }
+ *   ]}
+ * />
+ * ```
+ */
+const Picker: React.FC<PickerProps> = ({
   value,
   onChange,
   options,
@@ -64,7 +131,25 @@ const StandaloneWheelPicker: React.FC<StandaloneWheelPickerProps> = ({
   wheelSensitivity,
   wheelDeltaCap,
   renderItem,
+  enableHaptics = false,
+  enableAudioFeedback = false,
+  feedbackOverrides,
 }) => {
+  // Create feedback adapters (only when enabled)
+  const adapters = useMemo<FeedbackAdapters>(
+    () =>
+      createFeedbackAdapters({
+        enableHaptics,
+        enableAudioFeedback,
+        hapticsOptions: feedbackOverrides?.haptics,
+        audioOptions: feedbackOverrides?.audio,
+      }),
+    [enableHaptics, enableAudioFeedback, feedbackOverrides]
+  );
+
+  // Use shared gesture-to-feedback mapping hook (SRP)
+  const handleGesture = usePickerGestureFeedback(adapters);
+
   const normalizedOptions = useMemo<NormalizedPickerOption[]>(() => {
     if (options && options.length > 0) {
       return normalizeOptions(options);
@@ -161,11 +246,16 @@ const StandaloneWheelPicker: React.FC<StandaloneWheelPickerProps> = ({
           wheelSensitivity={wheelSensitivity}
           wheelDeltaCap={wheelDeltaCap}
         >
-          <PickerGroup.Column name="value" snapConfig={mergedSnapConfig} options={pickerOptions} />
+          <PickerGroup.Column
+            name="value"
+            snapConfig={mergedSnapConfig}
+            options={pickerOptions}
+            onGesture={handleGesture}
+          />
         </PickerGroup>
       </div>
     </div>
   );
 };
 
-export default StandaloneWheelPicker;
+export default Picker;

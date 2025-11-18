@@ -57,7 +57,7 @@ export const usePickerStateMachine = ({
   }, [isControlled, isOpen, matches, send]);
 
   // ✅ PERFORMANCE FIX: Memoize functions to prevent re-renders downstream
-  // Without this, every render creates new arrow functions, causing CollapsibleNumberPickerPresenter
+  // Without this, every render creates new arrow functions, causing CollapsiblePickerPresenter
   // to re-render at 60Hz during any state update
   const handlePointerDown = useCallback(() => send({ type: 'POINTER_DOWN' }), [send]);
   const handlePointerUp = useCallback(() => send({ type: 'POINTER_UP' }), [send]);

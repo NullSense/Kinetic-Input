@@ -91,7 +91,7 @@ export const TIMING_PRESETS = {
  *
  * @example
  * ```tsx
- * <CollapsibleNumberPicker timingPreset={getRecommendedTiming()} />
+ * <CollapsiblePicker timingPreset={getRecommendedTiming()} />
  * ```
  */
 export function getRecommendedTiming(): TimingPreset {

@@ -1,8 +1,8 @@
 import React, { useMemo, type CSSProperties } from 'react';
-import { motion } from 'framer-motion';
-import { ChevronDown, ChevronUp } from 'lucide-react';
-import { PickerBody, type PickerBodyProps } from './CollapsibleNumberPicker.pickerBody';
-import type { CollapsibleNumberPickerTheme } from './types';
+import { LazyMotion, domAnimation, m } from 'framer-motion';
+import { ChevronDown, ChevronUp } from './icons';
+import { PickerBody, type PickerBodyProps } from './CollapsiblePicker.pickerBody';
+import type { CollapsiblePickerTheme } from './types';
 
 export type CSSVariableStyles = CSSProperties & Record<`--${string}`, string>;
 
@@ -42,13 +42,11 @@ export interface LayoutProps {
 
 export interface PickerStateProps {
     showPicker: boolean;
-    showBackdrop: boolean;
     selectedIndex: number;
     totalValues: number;
 }
 
 export interface InteractionHandlers {
-    onBackdropClick: () => void;
     onPointerDown: (event: React.PointerEvent) => void;
     onKeyDown: React.KeyboardEventHandler;
 }
@@ -70,21 +68,24 @@ export interface QuickNumberPresenterViewModel {
     pickerBodyProps: PickerBodyProps;
     valueDisplay: ValueDisplayProps;
     cssVariables: CSSVariableStyles;
-    theme: CollapsibleNumberPickerTheme;
+    theme: CollapsiblePickerTheme;
 }
 
-interface CollapsibleNumberPickerPresenterProps {
+interface CollapsiblePickerPresenterProps {
     viewModel: QuickNumberPresenterViewModel;
 }
 
 /**
  * Visual shell for the quick number input, rendering the closed display,
  * picker surface, highlight chrome, and helper controls using a prebuilt view model.
+ *
+ * Memoized to prevent unnecessary re-renders when parent updates but viewModel is unchanged.
+ *
  * @component
- * @param {CollapsibleNumberPickerPresenterProps} props
+ * @param {CollapsiblePickerPresenterProps} props
  * @returns {React.ReactElement}
  */
-export function CollapsibleNumberPickerPresenter({ viewModel }: CollapsibleNumberPickerPresenterProps) {
+export const CollapsiblePickerPresenter = React.memo(function CollapsiblePickerPresenter({ viewModel }: CollapsiblePickerPresenterProps) {
     const {
         labelProps,
         ariaProps,
@@ -111,8 +112,8 @@ export function CollapsibleNumberPickerPresenter({ viewModel }: CollapsibleNumbe
     } = ariaProps;
     const { wrapperRef, interactiveRef, pickerRef, highlightRef } = refs;
     const { collapsedHeight, pickerWindowHeight, pickerTranslate } = layout;
-    const { showPicker, showBackdrop, selectedIndex, totalValues } = pickerState;
-    const { onBackdropClick, onPointerDown, onKeyDown } = handlers;
+    const { showPicker, selectedIndex, totalValues } = pickerState;
+    const { onPointerDown, onKeyDown } = handlers;
     const { valueNode, maxSampleString } = valueDisplay;
     const closedHasValue = currentValue !== undefined;
 
@@ -164,7 +165,8 @@ export function CollapsibleNumberPickerPresenter({ viewModel }: CollapsibleNumbe
     );
 
     return (
-        <div className="quick-number-input-root space-y-2" style={cssVariables}>
+        <LazyMotion features={domAnimation} strict>
+            <div className="quick-number-input-root space-y-2" style={cssVariables}>
             <div className="flex items-center gap-2">
                 <label
                     className="font-archivo text-sm uppercase tracking-wider"
@@ -220,10 +222,8 @@ export function CollapsibleNumberPickerPresenter({ viewModel }: CollapsibleNumbe
                     </div>
                 </div>
 
-                {showPicker && showBackdrop && <div className="picker-backdrop" onClick={onBackdropClick} />}
-
                 <div
-                    className="absolute top-0 left-0 right-0 overflow-hidden focus:outline-none picker-surface"
+                    className="absolute top-0 left-0 right-0 overflow-hidden focus:outline-hidden picker-surface"
                     style={pickerSurfaceStyle}
                     id={controlId}
                     ref={interactiveRef}
@@ -247,7 +247,7 @@ export function CollapsibleNumberPickerPresenter({ viewModel }: CollapsibleNumbe
                     onPointerDown={onPointerDown}
                     onKeyDown={onKeyDown}
                 >
-                    <motion.div
+                    <m.div
                         aria-hidden={!showPicker}
                         animate={{
                             opacity: showPicker ? 1 : 0,
@@ -274,7 +274,7 @@ export function CollapsibleNumberPickerPresenter({ viewModel }: CollapsibleNumbe
                                 <PickerBody {...pickerBodyProps} />
                             </div>
                         </div>
-                    </motion.div>
+                    </m.div>
                 </div>
             </div>
 
@@ -283,6 +283,7 @@ export function CollapsibleNumberPickerPresenter({ viewModel }: CollapsibleNumbe
                     {helperText}
                 </p>
             )}
-        </div>
+            </div>
+        </LazyMotion>
     );
-}
+});

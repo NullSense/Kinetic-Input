@@ -49,9 +49,9 @@ vi.mock('../../picker', () => {
   }
 })
 
-const importQNI = async () => (await import('../CollapsibleNumberPicker')).default
+const importQNI = async () => (await import('../CollapsiblePicker')).default
 
-describe('CollapsibleNumberPicker audio/haptics strict assertions', () => {
+describe('CollapsiblePicker audio/haptics strict assertions', () => {
   beforeEach(() => {
     // Mock vibrate
     Object.defineProperty(navigator, 'vibrate', {
@@ -175,9 +175,9 @@ describe('CollapsibleNumberPicker audio/haptics strict assertions', () => {
 
   it('vibrates on commit when haptics enabled (pattern check best-effort)', async () => {
     const vib = navigator.vibrate as unknown as ReturnType<typeof vi.fn>
-    const CollapsibleNumberPicker = await importQNI()
+    const CollapsiblePicker = await importQNI()
     render(
-      <CollapsibleNumberPicker label="Test" value={10} onChange={vi.fn()} unit="kg" enableHaptics />
+      <CollapsiblePicker label="Test" value={10} onChange={vi.fn()} unit="kg" enableHaptics />
     )
     // We can only verify it is callable; exact timing requires integration gesture
     expect(typeof vib).toBe('function')

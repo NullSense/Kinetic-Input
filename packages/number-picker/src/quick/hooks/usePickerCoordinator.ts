@@ -47,7 +47,6 @@ interface UseQuickPickerOrchestrationResult {
     highlightTapHandlers: ReturnType<typeof useHighlightTap>;
     handlePickerOpen: () => void;
     handlePickerClose: (reason?: string) => void;
-    handleBackdropClick: () => void;
     handlePointerDown: (event: React.PointerEvent) => void;
     onGesture: PickerGestureHandler;
     openedViaRef: React.MutableRefObject<GestureSource>;
@@ -58,7 +57,7 @@ interface UseQuickPickerOrchestrationResult {
 
 /**
  * Coordinates picker visibility, gesture bookkeeping, and highlight interactions
- * so CollapsibleNumberPicker can stay declarative.
+ * so CollapsiblePicker can stay declarative.
  * @param {object} params - Visibility controls, selected value, and timing data.
  * @returns {object} Gesture refs, handlers, and state-machine helpers.
  */
@@ -175,10 +174,6 @@ export const usePickerCoordinator = ({
         [stateMachine]
     );
 
-    const handleBackdropClick = useCallback(() => {
-        handlePickerClose('backdrop-click');
-    }, [handlePickerClose]);
-
     const highlightTapHandlers = useHighlightTap({
         enabled: showPicker,
         getHighlightRect: () => highlightRef.current?.getBoundingClientRect() ?? null,
@@ -201,7 +196,7 @@ export const usePickerCoordinator = ({
         const handleClickOutside = (event: PointerEvent) => {
             if (!(event.target instanceof Node)) {
                 if (process.env.NODE_ENV === 'development') {
-                    console.warn('[CollapsibleNumberPicker] Click-outside: event.target is not a Node', {
+                    console.warn('[CollapsiblePicker] Click-outside: event.target is not a Node', {
                         target: event.target,
                         type: typeof event.target,
                     });
@@ -255,7 +250,6 @@ export const usePickerCoordinator = ({
         highlightTapHandlers,
         handlePickerOpen,
         handlePickerClose,
-        handleBackdropClick,
         handlePointerDown,
         onGesture,
         openedViaRef,

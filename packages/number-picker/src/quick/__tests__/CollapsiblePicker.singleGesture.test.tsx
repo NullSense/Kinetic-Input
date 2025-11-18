@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, act, fireEvent } from '@testing-library/react';
-import CollapsibleNumberPicker from '../CollapsibleNumberPicker';
+import CollapsiblePicker from '../CollapsiblePicker';
 
-describe('CollapsibleNumberPicker single-gesture mode', () => {
+describe('CollapsiblePicker single-gesture mode', () => {
   const baseProps = {
     label: 'Weight',
     unit: 'kg',
@@ -26,7 +26,7 @@ describe('CollapsibleNumberPicker single-gesture mode', () => {
   it('opens and scrolls in single gesture (touch-to-open-and-drag)', async () => {
     const onChange = vi.fn();
     const { getByTestId } = render(
-      <CollapsibleNumberPicker {...baseProps} onChange={onChange} />,
+      <CollapsiblePicker {...baseProps} onChange={onChange} />,
     );
 
     const surface = getByTestId('picker-surface');
@@ -77,7 +77,7 @@ describe('CollapsibleNumberPicker single-gesture mode', () => {
   // Here we just verify the basic single-gesture mechanism works
 
   it('restores pointer cursor on hover when closed', () => {
-    const { getByTestId } = render(<CollapsibleNumberPicker {...baseProps} />);
+    const { getByTestId } = render(<CollapsiblePicker {...baseProps} />);
 
     const surface = getByTestId('picker-surface');
 
@@ -86,7 +86,7 @@ describe('CollapsibleNumberPicker single-gesture mode', () => {
   });
 
   it('changes cursor to grab when open', async () => {
-    const { getByTestId } = render(<CollapsibleNumberPicker {...baseProps} />);
+    const { getByTestId } = render(<CollapsiblePicker {...baseProps} />);
 
     const surface = getByTestId('picker-surface');
 

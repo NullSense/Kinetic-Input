@@ -14,6 +14,7 @@ import type {
   BoundaryHitEvent,
   VisualValueChangeEvent,
   ValueCommitEvent,
+  SettleEvent,
   GestureSource,
   PickerGestureHandler,
 } from './types';
@@ -121,6 +122,30 @@ export function createValueCommitEvent(
 }
 
 /**
+ * Creates a value:settle event
+ *
+ * @param value - The settled value
+ * @param index - The index of the settled item
+ * @param hadMomentum - Whether this was after momentum (true) or direct snap (false)
+ * @param timestamp - Optional timestamp (defaults to Date.now())
+ * @returns SettleEvent
+ */
+export function createSettleEvent(
+  value: string | number,
+  index: number,
+  hadMomentum: boolean,
+  timestamp: number = Date.now()
+): SettleEvent {
+  return {
+    type: 'value:settle',
+    timestamp,
+    value,
+    index,
+    hadMomentum,
+  };
+}
+
+/**
  * Creates a gesture event emitter that safely handles optional handlers
  *
  * @param handler - Optional gesture handler function
@@ -165,6 +190,11 @@ export function createGestureEmitter(handler?: PickerGestureHandler) {
     /** Emit value:commit event */
     valueCommit: (value: string | number, index: number) => {
       emit(createValueCommitEvent(value, index));
+    },
+
+    /** Emit value:settle event */
+    settle: (value: string | number, index: number, hadMomentum: boolean) => {
+      emit(createSettleEvent(value, index, hadMomentum));
     },
 
     /** Direct emit (for custom events or testing) */
