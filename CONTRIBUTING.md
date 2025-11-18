@@ -306,7 +306,7 @@ Enable debug logging in the browser console:
 enableAllDebugNamespaces()
 
 // Or enable specific namespaces
-window.__QNI_DEBUG__ = true           // CollapsibleNumberPicker
+window.__QNI_DEBUG__ = true           // CollapsiblePicker
 window.__QNI_PICKER_DEBUG__ = true    // Picker physics
 window.__QNI_SNAP_DEBUG__ = true      // Snap physics
 window.__QNI_STATE_DEBUG__ = true     // State machine

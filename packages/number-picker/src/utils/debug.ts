@@ -30,10 +30,10 @@ declare const window: DebugWindow;
  * How to enable (development/staging only):
  * ```javascript
  * // In browser console or before component mount:
- * window.__QNI_DEBUG__ = true;          // CollapsibleNumberPicker logs
+ * window.__QNI_DEBUG__ = true;          // CollapsiblePicker logs
  * window.__QNI_SNAP_DEBUG__ = true;     // Snap physics logs
  * window.__QNI_STATE_DEBUG__ = true;    // State machine logs
- * window.__QNI_WHEEL_DEBUG__ = true;    // StandaloneWheelPicker logs
+ * window.__QNI_WHEEL_DEBUG__ = true;    // Picker logs
  * window.__QNI_ANIMATION_DEBUG__ = true; // Animation lifecycle logs
  *
  * // Or enable all at once:
@@ -145,7 +145,7 @@ const logger = new DebugLogger();
 
 // ============ Namespace Registration ============
 
-export const DEBUG_QNI = logger.register('CollapsibleNumberPicker', () =>
+export const DEBUG_QNI = logger.register('CollapsiblePicker', () =>
   resolveDebugFlag('__QNI_DEBUG__')
 );
 
@@ -157,7 +157,7 @@ export const DEBUG_STATE_MACHINE = logger.register('StateMachine', () =>
   resolveDebugFlag('__QNI_STATE_DEBUG__')
 );
 
-export const DEBUG_WHEEL_PICKER = logger.register('StandaloneWheelPicker', () =>
+export const DEBUG_WHEEL_PICKER = logger.register('Picker', () =>
   resolveDebugFlag('__QNI_WHEEL_DEBUG__')
 );
 
@@ -172,7 +172,7 @@ export const DEBUG_PICKER = logger.register('PickerPhysics', () =>
 // ============ Convenience Exports ============
 
 /**
- * CollapsibleNumberPicker debug logging (production: no-op, tree-shaken)
+ * CollapsiblePicker debug logging (production: no-op, tree-shaken)
  *
  * Enable in dev: window.__QNI_DEBUG__ = true
  * @example debugLog('Picker opened', { value: 42 });
@@ -196,7 +196,7 @@ export const debugSnapLog = (...args: unknown[]) => logger.log(DEBUG_SNAP, ...ar
 export const debugStateLog = (...args: unknown[]) => logger.log(DEBUG_STATE_MACHINE, ...args);
 
 /**
- * StandaloneWheelPicker debug logging (production: no-op, tree-shaken)
+ * Picker debug logging (production: no-op, tree-shaken)
  *
  * Enable in dev: window.__QNI_WHEEL_DEBUG__ = true
  * @example debugWheelLog('Wheel scrolled', { delta: 100 });

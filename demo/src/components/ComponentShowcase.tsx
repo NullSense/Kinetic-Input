@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import {
-  CollapsibleNumberPicker,
-  StandaloneWheelPicker,
+  CollapsiblePicker,
+  Picker,
 } from '@tensil/kinetic-input';
 import { Code2 } from 'lucide-react';
 import { DEMO_PICKERS } from '../config/pickerDefaults';
@@ -41,7 +41,7 @@ export function ComponentShowcase() {
 
         {/* Components Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6x">
-          {/* CollapsibleNumberPicker */}
+          {/* CollapsiblePicker */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -52,7 +52,7 @@ export function ComponentShowcase() {
             <div className="flex items-start justify-between mb-4x">
               <div>
                 <h3 className="text-xl font-semibold text-fg mb-1x">
-                  CollapsibleNumberPicker
+                  CollapsiblePicker
                 </h3>
                 <p className="text-sm text-muted">
                   Animated input with modal expansion
@@ -62,7 +62,7 @@ export function ComponentShowcase() {
             </div>
 
             <div className="space-y-4x">
-              <CollapsibleNumberPicker
+              <CollapsiblePicker
                 {...DEMO_PICKERS.weight}
                 value={weight}
                 onChange={setWeight}
@@ -80,7 +80,7 @@ export function ComponentShowcase() {
             </div>
           </motion.div>
 
-          {/* StandaloneWheelPicker */}
+          {/* Picker */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -91,7 +91,7 @@ export function ComponentShowcase() {
             <div className="flex items-start justify-between mb-4x">
               <div>
                 <h3 className="text-xl font-semibold text-fg mb-1x">
-                  StandaloneWheelPicker
+                  Picker
                 </h3>
                 <p className="text-sm text-muted">
                   Lightweight wheel without chrome
@@ -101,7 +101,7 @@ export function ComponentShowcase() {
             </div>
 
             <div className="space-y-4x">
-              <StandaloneWheelPicker
+              <Picker
                 {...DEMO_PICKERS.distance}
                 value={distance}
                 onChange={setDistance}

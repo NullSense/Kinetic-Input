@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CollapsibleNumberPicker } from '@tensil/kinetic-input';
+import { CollapsiblePicker } from '@tensil/kinetic-input';
 import { Palette, X, ExternalLink, Code2, Copy, Check } from 'lucide-react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus, vs } from 'react-syntax-highlighter/dist/esm/styles/prism';
@@ -51,7 +51,7 @@ const iosTheme = buildTheme({
   fadeColor: '#f1f5f9',
 });
 
-<CollapsibleNumberPicker
+<CollapsiblePicker
   value={weight}
   onChange={setWeight}
   label="WEIGHT"
@@ -95,7 +95,7 @@ const materialTheme = buildTheme({
   fadeColor: '#eef2ff',
 });
 
-<CollapsibleNumberPicker
+<CollapsiblePicker
   value={weight}
   onChange={setWeight}
   label="WEIGHT"
@@ -139,7 +139,7 @@ const brutalistTheme = buildTheme({
   fadeColor: '#facc15',
 });
 
-<CollapsibleNumberPicker
+<CollapsiblePicker
   value={weight}
   onChange={setWeight}
   label="WEIGHT"
@@ -183,7 +183,7 @@ const neonTheme = buildTheme({
   fadeColor: '#3b0764',
 });
 
-<CollapsibleNumberPicker
+<CollapsiblePicker
   value={weight}
   onChange={setWeight}
   label="WEIGHT"
@@ -227,7 +227,7 @@ const monochromeTheme = buildTheme({
   fadeColor: '#ffffff',
 });
 
-<CollapsibleNumberPicker
+<CollapsiblePicker
   value={weight}
   onChange={setWeight}
   label="WEIGHT"
@@ -271,7 +271,7 @@ const gamingTheme = buildTheme({
   fadeColor: '#0f172a',
 });
 
-<CollapsibleNumberPicker
+<CollapsiblePicker
   value={weight}
   onChange={setWeight}
   label="WEIGHT"
@@ -326,7 +326,7 @@ export function PresetsGallery() {
 
   const openInStackBlitz = (preset: Preset) => {
     const appCode = `import { useState } from 'react';
-import { CollapsibleNumberPicker } from '@tensil/kinetic-input';
+import { CollapsiblePicker } from '@tensil/kinetic-input';
 ${preset.codeSnippet.includes('buildTheme') ? "import { buildTheme } from '@tensil/kinetic-input';" : ''}
 
 export default function App() {
@@ -336,7 +336,7 @@ ${preset.codeSnippet.split('\n').filter(line => line.includes('buildTheme')).joi
 
   return (
     <div style={{ padding: '2rem', background: '${preset.theme.bg.replace('bg-', '#')}', minHeight: '100vh' }}>
-      ${preset.codeSnippet.split('\n').filter(line => line.includes('<CollapsibleNumberPicker')).join('\n        ')}
+      ${preset.codeSnippet.split('\n').filter(line => line.includes('<CollapsiblePicker')).join('\n        ')}
     </div>
   );
 }`;
@@ -508,7 +508,7 @@ createRoot(document.getElementById('root')!).render(
                   <div className="block text-sm font-medium mb-2x uppercase">
                     Try it out
                   </div>
-                  <CollapsibleNumberPicker
+                  <CollapsiblePicker
                     {...DEMO_PICKERS.weight}
                     value={presetValue}
                     onChange={setPresetValue}

@@ -1,8 +1,8 @@
 import React, { useMemo, type CSSProperties } from 'react';
 import { LazyMotion, domAnimation, m } from 'framer-motion';
 import { ChevronDown, ChevronUp } from './icons';
-import { PickerBody, type PickerBodyProps } from './CollapsibleNumberPicker.pickerBody';
-import type { CollapsibleNumberPickerTheme } from './types';
+import { PickerBody, type PickerBodyProps } from './CollapsiblePicker.pickerBody';
+import type { CollapsiblePickerTheme } from './types';
 
 export type CSSVariableStyles = CSSProperties & Record<`--${string}`, string>;
 
@@ -42,13 +42,11 @@ export interface LayoutProps {
 
 export interface PickerStateProps {
     showPicker: boolean;
-    showBackdrop: boolean;
     selectedIndex: number;
     totalValues: number;
 }
 
 export interface InteractionHandlers {
-    onBackdropClick: () => void;
     onPointerDown: (event: React.PointerEvent) => void;
     onKeyDown: React.KeyboardEventHandler;
 }
@@ -70,10 +68,10 @@ export interface QuickNumberPresenterViewModel {
     pickerBodyProps: PickerBodyProps;
     valueDisplay: ValueDisplayProps;
     cssVariables: CSSVariableStyles;
-    theme: CollapsibleNumberPickerTheme;
+    theme: CollapsiblePickerTheme;
 }
 
-interface CollapsibleNumberPickerPresenterProps {
+interface CollapsiblePickerPresenterProps {
     viewModel: QuickNumberPresenterViewModel;
 }
 
@@ -84,10 +82,10 @@ interface CollapsibleNumberPickerPresenterProps {
  * Memoized to prevent unnecessary re-renders when parent updates but viewModel is unchanged.
  *
  * @component
- * @param {CollapsibleNumberPickerPresenterProps} props
+ * @param {CollapsiblePickerPresenterProps} props
  * @returns {React.ReactElement}
  */
-export const CollapsibleNumberPickerPresenter = React.memo(function CollapsibleNumberPickerPresenter({ viewModel }: CollapsibleNumberPickerPresenterProps) {
+export const CollapsiblePickerPresenter = React.memo(function CollapsiblePickerPresenter({ viewModel }: CollapsiblePickerPresenterProps) {
     const {
         labelProps,
         ariaProps,
@@ -114,8 +112,8 @@ export const CollapsibleNumberPickerPresenter = React.memo(function CollapsibleN
     } = ariaProps;
     const { wrapperRef, interactiveRef, pickerRef, highlightRef } = refs;
     const { collapsedHeight, pickerWindowHeight, pickerTranslate } = layout;
-    const { showPicker, showBackdrop, selectedIndex, totalValues } = pickerState;
-    const { onBackdropClick, onPointerDown, onKeyDown } = handlers;
+    const { showPicker, selectedIndex, totalValues } = pickerState;
+    const { onPointerDown, onKeyDown } = handlers;
     const { valueNode, maxSampleString } = valueDisplay;
     const closedHasValue = currentValue !== undefined;
 
@@ -223,8 +221,6 @@ export const CollapsibleNumberPickerPresenter = React.memo(function CollapsibleN
                         </div>
                     </div>
                 </div>
-
-                {showPicker && showBackdrop && <div className="picker-backdrop" onClick={onBackdropClick} />}
 
                 <div
                     className="absolute top-0 left-0 right-0 overflow-hidden focus:outline-hidden picker-surface"

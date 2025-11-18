@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { CollapsibleNumberPicker } from '@tensil/kinetic-input';
+import { CollapsiblePicker } from '@tensil/kinetic-input';
 import { Layers, Smartphone, Zap, Code2 } from 'lucide-react';
 import { CapabilitiesIndicator } from './CapabilitiesIndicator';
 import { DEMO_PICKERS } from '../config/pickerDefaults';
@@ -87,13 +87,13 @@ export function Hero() {
           </div>
 
           <div className="space-y-4x">
-            <CollapsibleNumberPicker
+            <CollapsiblePicker
               {...DEMO_PICKERS.weight}
               value={weight}
               onChange={setWeight}
             />
 
-            <CollapsibleNumberPicker
+            <CollapsiblePicker
               {...DEMO_PICKERS.reps}
               value={reps}
               onChange={setReps}

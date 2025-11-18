@@ -2,8 +2,8 @@
 
 High-performance numeric scrubber components for React. The package exposes:
 
-- `CollapsibleNumberPicker` – animated momentum picker with modal expansion
-- `StandaloneWheelPicker` – lightweight list/range picker without modal chrome
+- `CollapsiblePicker` – animated momentum picker with modal expansion
+- `Picker` – lightweight list/range picker without modal chrome
 - `PickerGroup` – bare-bones wheel primitive that powers both components
 - Supporting hooks, theme builders, and configuration presets
 
@@ -42,24 +42,24 @@ import '@tensil/kinetic-input/styles/all.css'
 ```tsx
 // Pick only what you need:
 import '@tensil/kinetic-input/styles/picker.css'  // Base (required for all)
-import '@tensil/kinetic-input/styles/quick.css'   // CollapsibleNumberPicker
-import '@tensil/kinetic-input/styles/wheel.css'   // StandaloneWheelPicker
+import '@tensil/kinetic-input/styles/quick.css'   // CollapsiblePicker
+import '@tensil/kinetic-input/styles/wheel.css'   // Picker
 ```
 
 The convenience bundle includes all styles (~6KB gzipped). Use granular imports if you only need specific components.
 
 ## Usage
 
-### CollapsibleNumberPicker
+### CollapsiblePicker
 
 ```tsx
-import CollapsibleNumberPicker from '@tensil/kinetic-input'
+import CollapsiblePicker from '@tensil/kinetic-input'
 
 export function WeightField() {
   const [weight, setWeight] = useState(70)
 
   return (
-    <CollapsibleNumberPicker
+    <CollapsiblePicker
       label="Weight"
       value={weight}
       onChange={setWeight}
@@ -76,8 +76,8 @@ Need lower-level control? Import the named utilities:
 
 ```ts
 import {
-  CollapsibleNumberPicker,
-  StandaloneWheelPicker,
+  CollapsiblePicker,
+  Picker,
   PickerGroup,
   DEFAULT_THEME,
   buildTheme,
@@ -85,10 +85,10 @@ import {
 } from '@tensil/kinetic-input'
 ```
 
-### StandaloneWheelPicker example
+### Picker example
 
 ```tsx
-import { StandaloneWheelPicker } from '@tensil/kinetic-input'
+import { Picker } from '@tensil/kinetic-input'
 
 const colorOptions = [
   { value: 'rest', label: 'Rest Day', accentColor: '#8E77B5' },
@@ -98,7 +98,7 @@ const colorOptions = [
 
 export function SessionPicker({ value, onChange }) {
   return (
-    <StandaloneWheelPicker
+    <Picker
       value={value}
       onChange={onChange}
       options={colorOptions}
@@ -109,7 +109,7 @@ export function SessionPicker({ value, onChange }) {
 }
 ```
 
-## CollapsibleNumberPicker Features
+## CollapsiblePicker Features
 
 - Momentum-based wheel/touch scrolling with mixed pointer + wheel support
 - Smart auto-close timing (150 ms pointer, 800 ms wheel, 1.5 s idle)
@@ -134,7 +134,7 @@ export function SessionPicker({ value, onChange }) {
 | `onRequestOpen` / `onRequestClose` | `() => void` | - | Required when `isOpen` is provided |
 | `showBackdrop` | `boolean` | `false` | Dim background when open |
 | `itemHeight` | `number` | `40` | Row height (px) |
-| `theme` | `Partial<CollapsibleNumberPickerTheme>` | - | Override palette/typography |
+| `theme` | `Partial<CollapsiblePickerTheme>` | - | Override palette/typography |
 | `renderValue` / `renderItem` | custom renderers | default layout | Hook into value/item rendering |
 | `helperText` | `ReactNode` | - | Optional caption below the input |
 | `enableSnapPhysics` | `boolean` | `false` | Experimental magnetic snap for slow drags |
@@ -151,7 +151,7 @@ Every color, font, and spacing can be customized via the `theme` prop. The libra
 #### Theme Interface
 
 ```ts
-interface CollapsibleNumberPickerTheme {
+interface CollapsiblePickerTheme {
   // Picker rows (when open)
   textColor: string                  // Non-selected rows
   activeTextColor: string            // Currently selected row
@@ -214,7 +214,7 @@ import { DEFAULT_THEME } from '@tensil/kinetic-input'
 
 **Minimal override (just accent color):**
 ```tsx
-<CollapsibleNumberPicker
+<CollapsiblePicker
   value={weight}
   onChange={setWeight}
   theme={{
@@ -245,7 +245,7 @@ const iosTheme = {
   fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
 }
 
-<CollapsibleNumberPicker theme={iosTheme} />
+<CollapsiblePicker theme={iosTheme} />
 ```
 
 **Design system integration:**
@@ -260,7 +260,7 @@ const theme = {
   fontFamily: 'var(--font-sans)',
 }
 
-<CollapsibleNumberPicker theme={theme} />
+<CollapsiblePicker theme={theme} />
 ```
 
 #### Theme Builder
@@ -275,7 +275,7 @@ const myTheme = buildTheme({
   // Unspecified properties use DEFAULT_THEME
 })
 
-<CollapsibleNumberPicker theme={myTheme} />
+<CollapsiblePicker theme={myTheme} />
 ```
 
 #### Common Patterns
@@ -284,7 +284,7 @@ const myTheme = buildTheme({
 ```tsx
 // If your picker opens in a yellow modal
 <div className="bg-yellow-400">
-  <CollapsibleNumberPicker
+  <CollapsiblePicker
     theme={{
       fadeColor: '#facc15',              // yellow-400
       closedBackgroundColor: 'rgba(250,204,21,0.9)',
@@ -308,12 +308,12 @@ const darkTheme = {
   fadeColor: '#0a0b0d',
 }
 
-<CollapsibleNumberPicker theme={isDark ? darkTheme : lightTheme} />
+<CollapsiblePicker theme={isDark ? darkTheme : lightTheme} />
 ```
 
 **Brutalist high contrast:**
 ```tsx
-<CollapsibleNumberPicker
+<CollapsiblePicker
   theme={{
     activeTextColor: '#000000',
     textColor: '#000000',
@@ -344,7 +344,7 @@ The `BOUNDARY_SETTLE_DELAY` constant (150 ms) is exported for tweaking the overs
 const [isOpen, setIsOpen] = useState(false)
 const [reps, setReps] = useState(10)
 
-<CollapsibleNumberPicker
+<CollapsiblePicker
   label="Reps"
   value={reps}
   onChange={setReps}
@@ -366,11 +366,11 @@ Debug logging is **disabled by default** to prevent console spam. Enable it when
 
 **In browser console:**
 ```javascript
-window.__QNI_DEBUG__ = true;           // CollapsibleNumberPicker events
+window.__QNI_DEBUG__ = true;           // CollapsiblePicker events
 window.__QNI_PICKER_DEBUG__ = true;    // Picker physics & pointer events
 window.__QNI_SNAP_DEBUG__ = true;      // Snap physics calculations
 window.__QNI_STATE_DEBUG__ = true;     // State machine transitions
-window.__QNI_WHEEL_DEBUG__ = true;     // StandaloneWheelPicker events
+window.__QNI_WHEEL_DEBUG__ = true;     // Picker events
 window.__QNI_ANIMATION_DEBUG__ = true; // Animation lifecycle
 
 // Then reload the page
@@ -393,7 +393,7 @@ if (typeof window !== 'undefined' && import.meta.env.DEV) {
 Control auto-close behavior with presets:
 
 ```tsx
-<CollapsibleNumberPicker
+<CollapsiblePicker
   timingPreset="fast"    // Quick auto-close timing
   // Available: "instant", "fast", "balanced" (default), "patient"
 />
@@ -408,13 +408,13 @@ import { getRecommendedTiming } from '@tensil/kinetic-input/config';
 // - prefers-reduced-motion setting
 // - Touch device detection
 // - Screen size (mobile vs desktop)
-<CollapsibleNumberPicker timingPreset={getRecommendedTiming()} />
+<CollapsiblePicker timingPreset={getRecommendedTiming()} />
 ```
 
 ### Custom Timing
 
 ```tsx
-<CollapsibleNumberPicker
+<CollapsiblePicker
   timingConfig={{
     settleGracePeriod: 200,  // ms after pointer release
     wheelIdleTimeout: 1000,  // ms after wheel scroll
@@ -428,7 +428,7 @@ import { getRecommendedTiming } from '@tensil/kinetic-input/config';
 Enable magnetic snapping for slow drags:
 
 ```tsx
-<CollapsibleNumberPicker
+<CollapsiblePicker
   enableSnapPhysics
   snapPhysicsConfig={{
     snapRange: 0.3,          // 30% of item height

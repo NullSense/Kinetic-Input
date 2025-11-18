@@ -1,9 +1,9 @@
 import { act, render, fireEvent } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import userEvent from '@testing-library/user-event';
-import CollapsibleNumberPicker from '../CollapsibleNumberPicker';
+import CollapsiblePicker from '../CollapsiblePicker';
 
-describe('CollapsibleNumberPicker click-to-open', () => {
+describe('CollapsiblePicker click-to-open', () => {
   const baseProps = {
     label: 'Weight',
     unit: 'kg',
@@ -13,7 +13,7 @@ describe('CollapsibleNumberPicker click-to-open', () => {
 
   it('opens when clicking on the picker surface', async () => {
     const { getByTestId } = render(
-      <CollapsibleNumberPicker {...baseProps} />,
+      <CollapsiblePicker {...baseProps} />,
     );
 
     const surface = getByTestId('picker-surface');
@@ -35,7 +35,7 @@ describe('CollapsibleNumberPicker click-to-open', () => {
   it('opens when using userEvent.click', async () => {
     const user = userEvent.setup();
     const { getByTestId } = render(
-      <CollapsibleNumberPicker {...baseProps} />,
+      <CollapsiblePicker {...baseProps} />,
     );
 
     const surface = getByTestId('picker-surface');
@@ -52,7 +52,7 @@ describe('CollapsibleNumberPicker click-to-open', () => {
 
   it('opens with touch pointer type', async () => {
     const { getByTestId } = render(
-      <CollapsibleNumberPicker {...baseProps} />,
+      <CollapsiblePicker {...baseProps} />,
     );
 
     const surface = getByTestId('picker-surface');
@@ -77,7 +77,7 @@ describe('CollapsibleNumberPicker click-to-open', () => {
 
   it('opens with pen pointer type', async () => {
     const { getByTestId } = render(
-      <CollapsibleNumberPicker {...baseProps} />,
+      <CollapsiblePicker {...baseProps} />,
     );
 
     const surface = getByTestId('picker-surface');
@@ -103,7 +103,7 @@ describe('CollapsibleNumberPicker click-to-open', () => {
     const onRequestClose = vi.fn();
 
     const { getByTestId, rerender } = render(
-      <CollapsibleNumberPicker
+      <CollapsiblePicker
         {...baseProps}
         isOpen={false}
         onRequestOpen={onRequestOpen}
@@ -128,7 +128,7 @@ describe('CollapsibleNumberPicker click-to-open', () => {
 
     // Now open it by changing the prop
     rerender(
-      <CollapsibleNumberPicker
+      <CollapsiblePicker
         {...baseProps}
         isOpen={true}
         onRequestOpen={onRequestOpen}
@@ -143,7 +143,7 @@ describe('CollapsibleNumberPicker click-to-open', () => {
   it('calls onChange when closed (uncontrolled mode)', async () => {
     const onChange = vi.fn();
     const { getByTestId } = render(
-      <CollapsibleNumberPicker {...baseProps} value={10} onChange={onChange} />,
+      <CollapsiblePicker {...baseProps} value={10} onChange={onChange} />,
     );
 
     const surface = getByTestId('picker-surface');

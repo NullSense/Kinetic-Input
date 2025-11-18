@@ -62,7 +62,7 @@ export const pickerActions = {
   },
   logWatchdogTimeout: () => {
     if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test') {
-      console.warn('[CollapsibleNumberPicker] Forcing settle - vendor callback timeout');
+      console.warn('[CollapsiblePicker] Forcing settle - vendor callback timeout');
     }
   },
 };

@@ -4,14 +4,14 @@ import type { TimingPreset, TimingConfig } from '../config/timing';
 import type { AudioAdapterOptions, FeedbackAdapters, HapticAdapterOptions } from './feedback';
 
 /**
- * Theme configuration for CollapsibleNumberPicker visual styling.
+ * Theme configuration for CollapsiblePicker visual styling.
  *
  * Controls colors, typography, and visual states. All color properties accept any valid CSS color.
  * Use `buildTheme()` helper to override specific properties while keeping defaults.
  *
  * @see {@link buildTheme} for creating custom themes
  */
-export interface CollapsibleNumberPickerTheme {
+export interface CollapsiblePickerTheme {
     /** Text color for non-selected items */
     textColor: string;
     /** Text color for the active/selected item */
@@ -65,7 +65,7 @@ export interface CollapsibleNumberPickerTheme {
  *
  * @see {@link RenderValueFn}
  */
-export interface CollapsibleNumberPickerRenderValueContext {
+export interface CollapsiblePickerRenderValueContext {
     /** Unit suffix (e.g., 'kg') */
     unit: string;
     /** Whether picker is currently open/expanded */
@@ -79,7 +79,7 @@ export interface CollapsibleNumberPickerRenderValueContext {
  *
  * @see {@link RenderItemFn}
  */
-export interface CollapsibleNumberPickerRenderItemState {
+export interface CollapsiblePickerRenderItemState {
     /** True if this item is the current value */
     selected: boolean;
     /** True if this item is centered in viewport (may differ from selected during scrolling) */
@@ -90,6 +90,7 @@ export interface CollapsibleNumberPickerRenderItemState {
     deselecting: boolean;
 }
 
+
 /**
  * Custom renderer for the collapsed/closed value display.
  *
@@ -99,7 +100,7 @@ export interface CollapsibleNumberPickerRenderItemState {
  *
  * @example
  * ```tsx
- * <CollapsibleNumberPicker
+ * <CollapsiblePicker
  *   renderValue={(value, { unit }) => (
  *     <span className="custom-value">{value} {unit}</span>
  *   )}
@@ -108,7 +109,7 @@ export interface CollapsibleNumberPickerRenderItemState {
  */
 export type RenderValueFn = (
     displayValue: string | number,
-    context: CollapsibleNumberPickerRenderValueContext
+    context: CollapsiblePickerRenderValueContext
 ) => ReactNode;
 
 /**
@@ -120,7 +121,7 @@ export type RenderValueFn = (
  *
  * @example
  * ```tsx
- * <CollapsibleNumberPicker
+ * <CollapsiblePicker
  *   renderItem={(value, { selected, unit }) => (
  *     <div className={selected ? 'active' : ''}>
  *       {value} <span className="unit">{unit}</span>
@@ -129,9 +130,15 @@ export type RenderValueFn = (
  * />
  * ```
  */
-export type RenderItemFn = (value: string, state: CollapsibleNumberPickerRenderItemState) => ReactNode;
+export type RenderItemFn = (value: string, state: CollapsiblePickerRenderItemState) => ReactNode;
 
-export interface CollapsibleNumberPickerProps {
+/**
+ * Props for CollapsiblePicker component
+ *
+ * Primary interface for the interactive collapsible picker.
+ * Renamed from CollapsiblePickerProps for clarity (works with any values, not just numbers).
+ */
+export interface CollapsiblePickerProps {
     label: string;
     value: number | undefined;
     onChange: (value: number) => void;
@@ -145,9 +152,8 @@ export interface CollapsibleNumberPickerProps {
     isOpen?: boolean;
     onRequestOpen?: () => void;
     onRequestClose?: () => void;
-    showBackdrop?: boolean;
     itemHeight?: number;
-    theme?: Partial<CollapsibleNumberPickerTheme>;
+    theme?: Partial<CollapsiblePickerTheme>;
     renderValue?: RenderValueFn;
     renderItem?: RenderItemFn;
     helperText?: ReactNode;
@@ -160,8 +166,9 @@ export interface CollapsibleNumberPickerProps {
     wheelDeltaCap?: number;
     timingPreset?: TimingPreset;
     timingConfig?: Readonly<TimingConfig>;
-    visualTweaks?: CollapsibleNumberPickerVisualTweaks;
+    visualTweaks?: CollapsiblePickerVisualTweaks;
 }
+
 
 /**
  * Configuration for haptic and audio feedback systems.
@@ -187,7 +194,7 @@ export interface QuickPickerFeedbackConfig {
  * Fine-tune timing, scaling, and easing functions for item animations.
  * Most users should rely on defaults.
  */
-export interface CollapsibleNumberPickerVisualTweaks {
+export interface CollapsiblePickerVisualTweaks {
     /** Scale multiplier for active/selected item (default: 1.0) */
     activeScale?: number;
     /** Scale multiplier for deselecting item (default: 0.8) */

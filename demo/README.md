@@ -18,7 +18,7 @@ npm run dev:demo
 
 ```tsx
 import { useState } from 'react'
-import CollapsibleNumberPicker from '@tensil/kinetic-input'
+import CollapsiblePicker from '@tensil/kinetic-input'
 import '@tensil/kinetic-input/styles/all.css'
 
 export function CompleteExample() {
@@ -27,7 +27,7 @@ export function CompleteExample() {
   const [isOpen, setIsOpen] = useState(false)
 
   return (
-    <CollapsibleNumberPicker
+    <CollapsiblePicker
       // Required props
       label="Weight"
       value={weight}
@@ -131,14 +131,14 @@ export function CompleteExample() {
 ### Minimal Configuration
 
 ```tsx
-import CollapsibleNumberPicker from '@tensil/kinetic-input'
+import CollapsiblePicker from '@tensil/kinetic-input'
 import '@tensil/kinetic-input/styles/all.css'
 
 export function MinimalExample() {
   const [value, setValue] = useState(10)
 
   return (
-    <CollapsibleNumberPicker
+    <CollapsiblePicker
       label="Reps"
       value={value}
       onChange={setValue}
@@ -149,10 +149,10 @@ export function MinimalExample() {
 }
 ```
 
-### StandaloneWheelPicker Example
+### Picker Example
 
 ```tsx
-import { StandaloneWheelPicker } from '@tensil/kinetic-input'
+import { Picker } from '@tensil/kinetic-input'
 import '@tensil/kinetic-input/styles/all.css'
 
 const sessionTypes = [
@@ -167,7 +167,7 @@ export function SessionPicker() {
   const [session, setSession] = useState('easy')
 
   return (
-    <StandaloneWheelPicker
+    <Picker
       value={session}
       onChange={setSession}
       options={sessionTypes}
@@ -200,7 +200,7 @@ demo/
 
 ## Key Features Demonstrated
 
-- **All component variants**: CollapsibleNumberPicker, StandaloneWheelPicker, PickerGroup
+- **All component variants**: CollapsiblePicker, Picker, PickerGroup
 - **Live code editing**: Edit React code and see changes instantly
 - **Theme customization**: Visual theme editor with preset gallery
 - **Timing presets**: Compare instant, fast, balanced, and patient modes

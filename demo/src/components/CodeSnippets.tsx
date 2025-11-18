@@ -20,7 +20,7 @@ const snippets: Snippet[] = [
     title: 'Quick Start',
     description: 'Minimal setup - just value, onChange, and label',
     code: `import { useState } from 'react';
-import { CollapsibleNumberPicker } from '@tensil/kinetic-input';
+import { CollapsiblePicker } from '@tensil/kinetic-input';
 // IMPORTANT: Import CSS styles (required)
 import '@tensil/kinetic-input/styles/all.css';
 
@@ -29,7 +29,7 @@ export default function App() {
 
   return (
     <div style={{ padding: '2rem' }}>
-      <CollapsibleNumberPicker
+      <CollapsiblePicker
         value={weight}
         onChange={setWeight}
         min={0}
@@ -46,7 +46,7 @@ export default function App() {
     title: 'With Physics & Feedback',
     description: 'Magnetic snap, haptics, and audio (enabled by default)',
     code: `import { useState } from 'react';
-import { CollapsibleNumberPicker } from '@tensil/kinetic-input';
+import { CollapsiblePicker } from '@tensil/kinetic-input';
 import '@tensil/kinetic-input/styles/all.css';
 
 export default function App() {
@@ -54,7 +54,7 @@ export default function App() {
 
   return (
     <div style={{ padding: '2rem' }}>
-      <CollapsibleNumberPicker
+      <CollapsiblePicker
         value={reps}
         onChange={setReps}
         min={1}
@@ -81,7 +81,7 @@ export default function App() {
     title: 'Custom Theme',
     description: 'Match your design system with buildTheme',
     code: `import { useState } from 'react';
-import { CollapsibleNumberPicker, buildTheme } from '@tensil/kinetic-input';
+import { CollapsiblePicker, buildTheme } from '@tensil/kinetic-input';
 import '@tensil/kinetic-input/styles/all.css';
 
 // Build a custom theme (iOS-inspired light mode)
@@ -100,7 +100,7 @@ export default function App() {
 
   return (
     <div style={{ padding: '2rem', background: '#f1f5f9', minHeight: '100vh' }}>
-      <CollapsibleNumberPicker
+      <CollapsiblePicker
         value={weight}
         onChange={setWeight}
         min={0}
@@ -124,7 +124,7 @@ export default function App() {
     title: 'Advanced Configuration',
     description: 'Fine-tune snap physics and wheel behavior',
     code: `import { useState } from 'react';
-import { CollapsibleNumberPicker } from '@tensil/kinetic-input';
+import { CollapsiblePicker } from '@tensil/kinetic-input';
 import '@tensil/kinetic-input/styles/all.css';
 
 export default function App() {
@@ -132,7 +132,7 @@ export default function App() {
 
   return (
     <div style={{ padding: '2rem' }}>
-      <CollapsibleNumberPicker
+      <CollapsiblePicker
         value={distance}
         onChange={setDistance}
         min={0}
@@ -392,8 +392,8 @@ export function CodeSnippets() {
               <p className="text-sm font-medium text-fg mb-2x">Option 2: Granular Imports</p>
               <code className="block bg-black/30 p-3x font-mono text-sm text-muted">
                 {`import '@tensil/kinetic-input/styles/picker.css'; // Base picker`}<br />
-                {`import '@tensil/kinetic-input/styles/quick.css';  // CollapsibleNumberPicker`}<br />
-                {`import '@tensil/kinetic-input/styles/wheel.css';  // StandaloneWheelPicker`}
+                {`import '@tensil/kinetic-input/styles/quick.css';  // CollapsiblePicker`}<br />
+                {`import '@tensil/kinetic-input/styles/wheel.css';  // Picker`}
               </code>
               <p className="text-xs text-muted mt-1x">Import only what you need</p>
             </div>

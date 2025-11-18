@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { m } from 'framer-motion';
-import type { CollapsibleNumberPickerProps, CollapsibleNumberPickerRenderValueContext } from '../types';
+import type { CollapsiblePickerProps, CollapsiblePickerRenderValueContext } from '../types';
 
 interface ValueDisplayTheme {
   textColor: string;
@@ -18,7 +18,7 @@ type ValueDisplayOptions = {
   theme: ValueDisplayTheme;
   formatValue: FormatValueFn;
   formattedValueMap: Map<string, string>;
-  renderValue?: CollapsibleNumberPickerProps['renderValue'];
+  renderValue?: CollapsiblePickerProps['renderValue'];
   showPicker: boolean;
 };
 
@@ -84,7 +84,7 @@ export const useValueDisplay = ({
     [formatValue, formattedDisplayValue, max, min]
   );
 
-  const renderValueContext: CollapsibleNumberPickerRenderValueContext = useMemo(
+  const renderValueContext: CollapsiblePickerRenderValueContext = useMemo(
     () => ({
       unit,
       showPicker,

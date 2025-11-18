@@ -3,8 +3,8 @@ import { useFormattedValues } from './useFormattedValues';
 import { useResolvedVisualTweaks } from './useResolvedVisualTweaks';
 import { useHighlightMetrics } from './useHighlightMetrics';
 import { useValueDisplay } from './useValueDisplay';
-import type { CollapsibleNumberPickerVisualTweaks, CollapsibleNumberPickerTheme, RenderValueFn } from '../types';
-import type { CSSVariableStyles } from '../CollapsibleNumberPicker.presenter';
+import type { CollapsiblePickerVisualTweaks, CollapsiblePickerTheme, RenderValueFn } from '../types';
+import type { CSSVariableStyles } from '../CollapsiblePicker.presenter';
 
 interface UseQuickNumberPresentationArgs {
     value: number | undefined;
@@ -16,8 +16,8 @@ interface UseQuickNumberPresentationArgs {
     initialValue?: number;
     showPicker: boolean;
     unit?: string;
-    theme: CollapsibleNumberPickerTheme;
-    visualTweaks?: CollapsibleNumberPickerVisualTweaks;
+    theme: CollapsiblePickerTheme;
+    visualTweaks?: CollapsiblePickerVisualTweaks;
     itemHeightPx: number;
     pickerWindowHeight: number;
     renderValue?: RenderValueFn;

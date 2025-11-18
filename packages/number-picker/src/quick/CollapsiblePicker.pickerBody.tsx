@@ -1,6 +1,6 @@
 import React, { useMemo, useCallback } from 'react';
 import { PickerGroup, type PickerOption } from '../picker';
-import type { CollapsibleNumberPickerRenderItemState } from './types';
+import type { CollapsiblePickerRenderItemState } from './types';
 import type { SnapPhysicsConfig } from '../picker/types/snapPhysics';
 import type { PickerGestureHandler } from '../picker/gestures';
 
@@ -10,7 +10,7 @@ const EMPTY_PROPS = {};
 export interface PickerBodyProps {
     values: string[];
     unit?: string;
-    renderItem: (value: string, state: CollapsibleNumberPickerRenderItemState) => React.ReactNode | undefined;
+    renderItem: (value: string, state: CollapsiblePickerRenderItemState) => React.ReactNode | undefined;
     hasCustomRenderItem: boolean;
     pickerWindowHeight: number;
     itemHeightPx: number;
@@ -92,7 +92,7 @@ export const PickerBody = React.memo(function PickerBody({
 interface PickerValueRowProps {
     value: string;
     unit?: string;
-    renderItem: (value: string, state: CollapsibleNumberPickerRenderItemState) => React.ReactNode | undefined;
+    renderItem: (value: string, state: CollapsiblePickerRenderItemState) => React.ReactNode | undefined;
     hasCustomRenderItem: boolean;
     state: { selected: boolean; visuallySelected: boolean };
 }
@@ -109,7 +109,7 @@ export const PickerValueRow: React.FC<PickerValueRowProps> = React.memo(
         const derivedSelected = state.selected;
         const derivedVisuallySelected = state.visuallySelected;
 
-        const renderState: CollapsibleNumberPickerRenderItemState = useMemo(
+        const renderState: CollapsiblePickerRenderItemState = useMemo(
             () => ({
                 selected: derivedSelected,
                 visuallySelected: derivedVisuallySelected,

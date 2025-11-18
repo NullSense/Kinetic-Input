@@ -23,7 +23,7 @@
 
 ### 1. **lucide-react** ❌ EASILY REMOVABLE
 **Used for**: 2 chevron icons (ChevronDown, ChevronUp)
-**Location**: `src/quick/CollapsibleNumberPicker.presenter.tsx:217, 220`
+**Location**: `src/quick/CollapsiblePicker.presenter.tsx:217, 220`
 **Bundle Impact**: ~1-2 KB when tree-shaken, but forces users to install 600 KB package
 
 #### Recommendation: **REMOVE**
@@ -83,7 +83,7 @@ const ChevronUp = ({ className }: { className?: string }) => (
 **Locations**:
 - `src/picker/utils/frictionMomentum.ts` - Core physics engine
 - `src/picker/PickerColumn.tsx` - Scroll animations
-- `src/quick/CollapsibleNumberPicker.presenter.tsx` - Expand/collapse animations
+- `src/quick/CollapsiblePicker.presenter.tsx` - Expand/collapse animations
 - `src/quick/hooks/useValueDisplay.tsx` - Value transitions
 
 **Current Size**: ~34 KB (using `motion` component)
@@ -124,7 +124,7 @@ import { LazyMotion, domAnimation, m } from 'framer-motion';
 ---
 
 ### 3. **xstate + @xstate/react** ⚠️ POTENTIALLY REMOVABLE
-**Used for**: Auto-close state machine for CollapsibleNumberPicker
+**Used for**: Auto-close state machine for CollapsiblePicker
 **Locations**:
 - `src/quick/hooks/pickerStateMachine.machine.ts` - State machine definition
 - `src/quick/hooks/pickerStateMachine.actions.ts` - State actions
@@ -280,7 +280,7 @@ Currently shipping 3 CSS files:
 import '@tensil/kinetic-input/styles/all.css';
 
 // Use
-import '@tensil/kinetic-input/styles/quick.css'; // Only for CollapsibleNumberPicker
+import '@tensil/kinetic-input/styles/quick.css'; // Only for CollapsiblePicker
 ```
 
 **Savings**: ~3-5 KB for users who only need one component type
@@ -318,7 +318,7 @@ This allows users to install only what they need, but adds maintenance overhead.
 
 | Component | Core | Peer Deps | Total (min+gzip) |
 |-----------|------|-----------|------------------|
-| CollapsibleNumberPicker | ~4 KB | ~4.6 KB (framer-motion) | **~8.6 KB** |
+| CollapsiblePicker | ~4 KB | ~4.6 KB (framer-motion) | **~8.6 KB** |
 | WheelPicker | ~3 KB | ~4.6 KB (framer-motion) | **~7.6 KB** |
 | PickerGroup | ~5 KB | ~4.6 KB (framer-motion) | **~9.6 KB** |
 
@@ -327,11 +327,11 @@ Only import what you need to minimize bundle size:
 
 ```tsx
 // ✅ Good - Import specific component
-import { CollapsibleNumberPicker } from '@tensil/kinetic-input/quick';
+import { CollapsiblePicker } from '@tensil/kinetic-input/quick';
 import '@tensil/kinetic-input/styles/quick.css';
 
 // ❌ Avoid - Imports everything
-import { CollapsibleNumberPicker } from '@tensil/kinetic-input';
+import { CollapsiblePicker } from '@tensil/kinetic-input';
 import '@tensil/kinetic-input/styles/all.css';
 ```
 

@@ -151,7 +151,7 @@ Use XState transitions to detect flicking → idle:
 
 ### User Configuration
 ```typescript
-<CollapsibleNumberPicker
+<CollapsiblePicker
   enableHaptics={true}
   feedbackOverrides={{
     haptics: {

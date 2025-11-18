@@ -1,11 +1,11 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
-import CollapsibleNumberPicker from '../CollapsibleNumberPicker'
+import CollapsiblePicker from '../CollapsiblePicker'
 import type { DEFAULT_THEME } from '../theme'
 
 function setup({ value = 10, unit = 'kg' as string | undefined } = {}) {
   return render(
-    <CollapsibleNumberPicker
+    <CollapsiblePicker
       label="Test"
       value={value}
       onChange={vi.fn()}
@@ -23,7 +23,7 @@ describe('PickerBody memoization and CSS variable unit styling', () => {
     const { rerender } = setup({ value: 10 })
     // Change label (display-only) to simulate unrelated parent update
     rerender(
-      <CollapsibleNumberPicker
+      <CollapsiblePicker
         label="Test 2"
         value={10}
         onChange={vi.fn()}
@@ -45,7 +45,7 @@ describe('PickerBody memoization and CSS variable unit styling', () => {
 
     // Change theme via overrides (unit color)
     rerender(
-      <CollapsibleNumberPicker
+      <CollapsiblePicker
         label="Test"
         value={10}
         onChange={vi.fn()}

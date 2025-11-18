@@ -2,10 +2,10 @@ import React from 'react';
 import { renderHook } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { useQuickNumberPresenterViewModel } from '../useQuickNumberPresenterViewModel';
-import type { CollapsibleNumberPickerTheme } from '../../types';
-import type { PickerBodyProps } from '../../CollapsibleNumberPicker.pickerBody';
+import type { CollapsiblePickerTheme } from '../../types';
+import type { PickerBodyProps } from '../../CollapsiblePicker.pickerBody';
 
-const THEME: CollapsibleNumberPickerTheme = {
+const THEME: CollapsiblePickerTheme = {
     textColor: '#fff',
     activeTextColor: '#0ff',
     unitColor: '#ccc',
@@ -69,11 +69,10 @@ describe('useQuickNumberPresenterViewModel', () => {
                 unit: 'kg',
                 onUseLastValue: () => undefined,
                 layout: { collapsedHeight: 48, pickerWindowHeight: 200, pickerTranslate: 0 },
-                pickerState: { showPicker: true, showBackdrop: true, selectedIndex: 1, totalValues: 2 },
+                pickerState: { showPicker: true, selectedIndex: 1, totalValues: 2 },
                 aria: { min: 0, max: 20, valueNow: 12, valueText: '12 kg' },
                 refs,
                 handlers: {
-                    onBackdropClick: () => undefined,
                     onPointerDown: () => undefined,
                     onKeyDown: () => undefined,
                 },

@@ -4,8 +4,8 @@
  *
  * This bundles:
  * - picker-base.css (base protections for all pickers)
- * - quick-number-input.css (CollapsibleNumberPicker styles)
- * - wheel-picker.css (StandaloneWheelPicker styles)
+ * - quick-number-input.css (CollapsiblePicker styles)
+ * - wheel-picker.css (Picker styles)
  *
  * Usage:
  *   import '@tensil/kinetic-input/styles/all.css'

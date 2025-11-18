@@ -1,7 +1,7 @@
 import React from 'react';
 import { render } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
-import { PickerValueRow } from '../CollapsibleNumberPicker.pickerBody';
+import { PickerValueRow } from '../CollapsiblePicker.pickerBody';
 import { PickerConfigProvider } from '../../picker/context';
 import PickerGroup from '../../picker/PickerGroup';
 

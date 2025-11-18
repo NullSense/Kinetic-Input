@@ -13,8 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Initial public release of `@tensil/kinetic-input`
-- `CollapsibleNumberPicker` component with momentum scrolling
-- `StandaloneWheelPicker` component for list/range selection
+- `CollapsiblePicker` component with momentum scrolling
+- `Picker` component for list/range selection
 - Smart auto-close timing with configurable presets (instant/fast/balanced/patient)
 - XState v5 powered state machine for interaction tracking
 - Controlled and uncontrolled modes
