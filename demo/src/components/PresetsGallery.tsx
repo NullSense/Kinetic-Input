@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CollapsibleNumberPicker } from '@tensil/kinetic-input';
-import { Palette, X, ExternalLink } from 'lucide-react';
+import { Palette, X, ExternalLink, Code2 } from 'lucide-react';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { DEMO_PICKERS } from '../config/pickerDefaults';
 import sdk from '@stackblitz/sdk';
 
@@ -463,10 +465,10 @@ createRoot(document.getElementById('root')!).render(
                 transition={{ duration: 0.2 }}
                 onClick={(e) => e.stopPropagation()}
                 className={`
-                  relative max-w-2xl w-full p-8x
+                  relative max-w-4xl w-full p-8x
                   ${selectedPreset.theme.bg} ${selectedPreset.theme.fg}
                   ${selectedPreset.theme.border} border-2
-                  max-h-[90vh] overflow-y-auto
+                  max-h-[90vh] overflow-y-auto rounded-sm
                 `}
               >
                 {/* Close Button */}
@@ -502,6 +504,33 @@ createRoot(document.getElementById('root')!).render(
                     onChange={setPresetValue}
                     theme={selectedPreset.pickerTheme}
                   />
+                </div>
+
+                {/* Code Example */}
+                <div className="mt-6x">
+                  <div className="flex items-center gap-2 mb-3x">
+                    <Code2 className="w-4 h-4 opacity-70" strokeWidth={2} />
+                    <div className="text-sm font-medium uppercase">
+                      Code Example
+                    </div>
+                  </div>
+                  <SyntaxHighlighter
+                    language="typescript"
+                    style={vscDarkPlus}
+                    customStyle={{
+                      margin: 0,
+                      borderRadius: '2px',
+                      fontSize: '0.8125rem',
+                      lineHeight: '1.5',
+                      border: '1px solid rgba(0, 0, 0, 0.2)',
+                      backgroundColor: 'rgba(0, 0, 0, 0.3)',
+                      maxHeight: '300px',
+                    }}
+                    showLineNumbers={false}
+                    wrapLines
+                  >
+                    {selectedPreset.codeSnippet}
+                  </SyntaxHighlighter>
                 </div>
 
                 {/* Open in StackBlitz */}

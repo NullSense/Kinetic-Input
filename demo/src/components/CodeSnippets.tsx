@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Code2, Play } from 'lucide-react';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { PlaygroundModal } from './PlaygroundModal';
 
 type SnippetId = 'quickstart' | 'basic' | 'theming' | 'advanced';
@@ -237,18 +239,29 @@ export function CodeSnippets() {
             </p>
           </div>
 
-          {/* Code Display */}
+          {/* Code Display with Syntax Highlighting */}
           <div className="relative">
-            <pre className="bg-black/50 p-6x rounded-sm overflow-x-auto border border-hairline">
-              <code className="text-sm font-mono text-fg leading-relaxed">
-                {currentSnippet.code}
-              </code>
-            </pre>
+            <SyntaxHighlighter
+              language="typescript"
+              style={vscDarkPlus}
+              customStyle={{
+                margin: 0,
+                borderRadius: '2px',
+                fontSize: '0.875rem',
+                lineHeight: '1.6',
+                border: '1px solid rgba(62, 220, 255, 0.2)',
+                backgroundColor: 'rgba(0, 0, 0, 0.5)',
+              }}
+              showLineNumbers
+              wrapLines
+            >
+              {currentSnippet.code}
+            </SyntaxHighlighter>
 
             {/* Try it Live Button */}
             <button
               onClick={() => setPlaygroundOpen(true)}
-              className="absolute top-4 right-4 flex items-center gap-2 px-4 py-2 bg-accent/20 hover:bg-accent/30 border border-accent/40 hover:border-accent/60 text-accent font-medium text-sm transition-all duration-instant focus-accent rounded-xs"
+              className="absolute top-4 right-4 flex items-center gap-2 px-4 py-2 bg-accent/20 hover:bg-accent/30 border border-accent/40 hover:border-accent/60 text-accent font-medium text-sm transition-all duration-instant focus-accent rounded-xs shadow-lg backdrop-blur-sm"
             >
               <Play className="w-4 h-4" strokeWidth={2} />
               TRY IT LIVE

@@ -71,7 +71,7 @@ root.render(
           files: projectFiles,
         },
         {
-          height: 600,
+          height: 700,
           openFile: 'src/App.js',
           view: 'default',
           theme: 'dark',
@@ -102,13 +102,13 @@ root.render(
             className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50"
           />
 
-          {/* Modal */}
+          {/* Modal - Large and Wide */}
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="fixed inset-4 md:inset-8 lg:inset-16 z-50 flex flex-col glass-heavy rounded-sm overflow-hidden border border-accent/30"
+            className="fixed inset-2 md:inset-4 lg:inset-8 z-50 flex flex-col glass-heavy rounded-sm overflow-hidden border border-accent/30 max-w-[95vw] mx-auto"
           >
             {/* Header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-hairline bg-bg/80 backdrop-blur-sm">
