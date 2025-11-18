@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CollapsibleNumberPicker } from '@tensil/kinetic-input';
-import { Palette, X, ExternalLink, Code2 } from 'lucide-react';
+import { Palette, X, ExternalLink, Code2, Copy, Check } from 'lucide-react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus, vs } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { DEMO_PICKERS } from '../config/pickerDefaults';
@@ -312,6 +312,17 @@ const gamingTheme = buildTheme({
 export function PresetsGallery() {
   const [selectedPreset, setSelectedPreset] = useState<Preset | null>(null);
   const [presetValue, setPresetValue] = useState(DEMO_PICKERS.weight.initialValue);
+  const [copiedPresetCode, setCopiedPresetCode] = useState(false);
+
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedPresetCode(true);
+      setTimeout(() => setCopiedPresetCode(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
+  };
 
   const openInStackBlitz = (preset: Preset) => {
     const appCode = `import { useState } from 'react';
@@ -507,11 +518,31 @@ createRoot(document.getElementById('root')!).render(
 
                 {/* Code Example */}
                 <div className="mt-6x">
-                  <div className="flex items-center gap-2 mb-3x">
-                    <Code2 className="w-4 h-4 opacity-70" strokeWidth={2} />
-                    <div className="text-sm font-medium uppercase">
-                      Code Example
+                  <div className="flex items-center justify-between mb-3x">
+                    <div className="flex items-center gap-2">
+                      <Code2 className="w-4 h-4 opacity-70" strokeWidth={2} />
+                      <div className="text-sm font-medium uppercase">
+                        Code Example
+                      </div>
                     </div>
+                    {/* Copy Button */}
+                    <button
+                      onClick={() => copyToClipboard(selectedPreset.codeSnippet)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-black/30 hover:bg-black/40 border border-white/20 hover:border-white/30 text-white/90 font-medium text-xs transition-all duration-instant focus-accent rounded-xs"
+                      title="Copy code"
+                    >
+                      {copiedPresetCode ? (
+                        <>
+                          <Check className="w-3.5 h-3.5" strokeWidth={2} />
+                          <span>COPIED</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-3.5 h-3.5" strokeWidth={2} />
+                          <span>COPY</span>
+                        </>
+                      )}
+                    </button>
                   </div>
                   <SyntaxHighlighter
                     language="typescript"

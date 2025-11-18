@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Code2, Play } from 'lucide-react';
+import { Code2, Play, Copy, Check } from 'lucide-react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { PlaygroundModal } from './PlaygroundModal';
@@ -180,8 +180,19 @@ export default function App() {
 export function CodeSnippets() {
   const [activeSnippet, setActiveSnippet] = useState<SnippetId>('quickstart');
   const [playgroundOpen, setPlaygroundOpen] = useState(false);
+  const [copiedCode, setCopiedCode] = useState(false);
 
   const currentSnippet = snippets.find((s) => s.id === activeSnippet) || snippets[0];
+
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedCode(true);
+      setTimeout(() => setCopiedCode(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
+  };
 
   return (
     <section id="snippets" className="py-16 px-4x bg-bg">
@@ -263,14 +274,36 @@ export function CodeSnippets() {
               {currentSnippet.code}
             </SyntaxHighlighter>
 
-            {/* Try it Live Button */}
-            <button
-              onClick={() => setPlaygroundOpen(true)}
-              className="absolute top-4 right-4 flex items-center gap-2 px-4 py-2 bg-accent/20 hover:bg-accent/30 border border-accent/40 hover:border-accent/60 text-accent font-medium text-sm transition-all duration-instant focus-accent rounded-xs shadow-lg backdrop-blur-sm"
-            >
-              <Play className="w-4 h-4" strokeWidth={2} />
-              TRY IT LIVE
-            </button>
+            {/* Action Buttons */}
+            <div className="absolute top-4 right-4 flex items-center gap-2">
+              {/* Copy Code Button */}
+              <button
+                onClick={() => copyToClipboard(currentSnippet.code)}
+                className="flex items-center gap-2 px-3 py-2 bg-white/10 hover:bg-white/20 border border-white/20 hover:border-white/30 text-white font-medium text-sm transition-all duration-instant focus-accent rounded-xs shadow-lg backdrop-blur-sm"
+                title="Copy code"
+              >
+                {copiedCode ? (
+                  <>
+                    <Check className="w-4 h-4" strokeWidth={2} />
+                    <span className="text-xs">COPIED</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-4 h-4" strokeWidth={2} />
+                    <span className="text-xs">COPY</span>
+                  </>
+                )}
+              </button>
+
+              {/* Try it Live Button */}
+              <button
+                onClick={() => setPlaygroundOpen(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-accent/20 hover:bg-accent/30 border border-accent/40 hover:border-accent/60 text-accent font-medium text-sm transition-all duration-instant focus-accent rounded-xs shadow-lg backdrop-blur-sm"
+              >
+                <Play className="w-4 h-4" strokeWidth={2} />
+                TRY IT LIVE
+              </button>
+            </div>
           </div>
 
           <div className="mt-4x grid md:grid-cols-3 gap-3x text-xs">
