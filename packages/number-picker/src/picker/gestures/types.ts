@@ -78,6 +78,22 @@ export interface ValueCommitEvent {
 }
 
 /**
+ * Emitted when picker settles to final position after momentum/animation
+ * (useful for stronger haptic feedback to indicate completion)
+ */
+export interface SettleEvent {
+  type: 'value:settle';
+  /** Timestamp when settle completed */
+  timestamp: number;
+  /** The settled value */
+  value: string | number;
+  /** Index of the settled item */
+  index: number;
+  /** Whether this was after momentum (true) or direct snap (false) */
+  hadMomentum: boolean;
+}
+
+/**
  * Union of all gesture events
  */
 export type PickerGestureEvent =
@@ -85,7 +101,8 @@ export type PickerGestureEvent =
   | DragEndEvent
   | BoundaryHitEvent
   | VisualValueChangeEvent
-  | ValueCommitEvent;
+  | ValueCommitEvent
+  | SettleEvent;
 
 // ============ Event Handler Type ============
 

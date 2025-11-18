@@ -1,4 +1,4 @@
-import React, { useMemo, useCallback, type CSSProperties } from 'react';
+import React, { useMemo, useCallback, useRef, type CSSProperties } from 'react';
 import PickerGroup, { type PickerOption as PickerGroupOption } from '../picker';
 import type { SnapPhysicsConfig } from '../picker/types/snapPhysics';
 import {
@@ -8,6 +8,8 @@ import {
   type PickerOption,
   type NormalizedPickerOption,
 } from '../utils/pickerOptions';
+import { createFeedbackAdapters, type FeedbackAdapters } from '../quick/feedback';
+import type { PickerGestureHandler } from '../picker/gestures';
 
 // Shared empty props object to avoid allocations for large datasets
 const EMPTY_PROPS = {};
@@ -33,6 +35,25 @@ export interface StandaloneWheelPickerProps {
     option: NormalizedPickerOption,
     state: { selected: boolean; visuallySelected: boolean }
   ) => React.ReactNode;
+  /** Enable haptic feedback on value changes (requires device support) */
+  enableHaptics?: boolean;
+  /** Enable audio feedback on value commit (requires user interaction) */
+  enableAudioFeedback?: boolean;
+  /** Override default feedback patterns and adapters */
+  feedbackOverrides?: {
+    haptics?: {
+      pattern?: number | number[];
+      settlePattern?: number | number[];
+    };
+    audio?: {
+      frequency?: number;
+      waveform?: OscillatorType;
+      attackMs?: number;
+      decayMs?: number;
+      durationMs?: number;
+      peakGain?: number;
+    };
+  };
 }
 
 // Re-export PickerOption for backwards compatibility
@@ -109,7 +130,24 @@ const StandaloneWheelPicker: React.FC<StandaloneWheelPickerProps> = ({
   wheelSensitivity,
   wheelDeltaCap,
   renderItem,
+  enableHaptics = false,
+  enableAudioFeedback = false,
+  feedbackOverrides,
 }) => {
+  // Create feedback adapters (only when enabled)
+  const adapters = useMemo<FeedbackAdapters>(
+    () =>
+      createFeedbackAdapters({
+        enableHaptics,
+        enableAudioFeedback,
+        hapticsOptions: feedbackOverrides?.haptics,
+        audioOptions: feedbackOverrides?.audio,
+      }),
+    [enableHaptics, enableAudioFeedback, feedbackOverrides]
+  );
+
+  // Track last haptic value to avoid duplicate vibrations
+  const lastHapticValueRef = useRef<string | number | null>(null);
   const normalizedOptions = useMemo<NormalizedPickerOption[]>(() => {
     if (options && options.length > 0) {
       return normalizeOptions(options);
@@ -195,6 +233,35 @@ const StandaloneWheelPicker: React.FC<StandaloneWheelPickerProps> = ({
     [mergedHighlight]
   );
 
+  // Handle gesture events for feedback
+  const handleGesture: PickerGestureHandler = useCallback(
+    (event) => {
+      // Trigger haptic feedback on visual value changes
+      if (event.type === 'value:visual') {
+        const next = String(event.value);
+        if (next !== lastHapticValueRef.current) {
+          lastHapticValueRef.current = next;
+          adapters.haptics?.trigger(false);
+        }
+      }
+
+      // Trigger settle haptic (stronger feedback when picker comes to rest after momentum)
+      if (event.type === 'value:settle' && event.hadMomentum) {
+        const next = String(event.value);
+        if (next !== lastHapticValueRef.current) {
+          lastHapticValueRef.current = next;
+          adapters.haptics?.trigger(true);
+        }
+      }
+
+      // Trigger audio confirmation on value commit
+      if (event.type === 'value:commit') {
+        adapters.audio?.playConfirmation();
+      }
+    },
+    [adapters]
+  );
+
   return (
     <div className={`np-wheel-picker ${className}`} style={containerStyle}>
       <div className="np-wheel-container">
@@ -206,7 +273,12 @@ const StandaloneWheelPicker: React.FC<StandaloneWheelPickerProps> = ({
           wheelSensitivity={wheelSensitivity}
           wheelDeltaCap={wheelDeltaCap}
         >
-          <PickerGroup.Column name="value" snapConfig={mergedSnapConfig} options={pickerOptions} />
+          <PickerGroup.Column
+            name="value"
+            snapConfig={mergedSnapConfig}
+            options={pickerOptions}
+            onGesture={handleGesture}
+          />
         </PickerGroup>
       </div>
     </div>

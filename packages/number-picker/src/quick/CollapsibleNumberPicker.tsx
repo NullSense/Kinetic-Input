@@ -214,6 +214,12 @@ const CollapsibleNumberPickerComponent: React.FC<CollapsibleNumberPickerProps> =
             if (event.type === 'value:visual') {
                 handleVisualValueChange(event.value);
             }
+            // Trigger settle haptic (stronger feedback when picker comes to rest)
+            if (event.type === 'value:settle' && event.hadMomentum) {
+                // Only trigger settle haptic after momentum (flicking)
+                // Direct snaps (keyboard, tap) use regular haptic
+                handleVisualValueChange(event.value, { isSettle: true });
+            }
             // Forward to orchestration
             onGesture(event);
         },

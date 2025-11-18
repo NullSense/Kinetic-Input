@@ -352,6 +352,13 @@ export function usePickerPhysics({
             activeTargetIndexRef.current = null;
             commitValueAtIndex(clampedIndex);
             yRaw.set(target);  // Only snap if we committed (no race with new animation)
+
+            // Emit settle event (direct settle without momentum)
+            const settledValue = options[clampedIndex]?.value;
+            if (settledValue !== undefined) {
+              emitter.settle(settledValue, clampedIndex, false);
+            }
+
             onComplete?.();
           }
         },
@@ -360,7 +367,7 @@ export function usePickerPhysics({
       // Set controls ref after animate() (controls can't be used in synchronous onComplete anyway)
       activeAnimationRef.current = controls;
     },
-    [commitValueAtIndex, itemHeight, lastIndex, maxTranslate, options.length, stopActiveAnimation, yRaw],
+    [commitValueAtIndex, emitter, itemHeight, lastIndex, maxTranslate, options, stopActiveAnimation, yRaw],
   );
 
   const settleFromY = useCallback(
@@ -414,6 +421,12 @@ export function usePickerPhysics({
           activeTargetIndexRef.current = null;
           activeFrictionMomentumRef.current = null;
 
+          // Emit settle event (momentum settle after flicking)
+          const settledValue = options[finalIndex]?.value;
+          if (settledValue !== undefined) {
+            emitter.settle(settledValue, finalIndex, true);
+          }
+
           onComplete?.();
         },
         snapSpring: {
@@ -433,10 +446,12 @@ export function usePickerPhysics({
     },
     [
       commitValueAtIndex,
+      emitter,
       itemHeight,
       lastIndex,
       maxTranslate,
       minTranslate,
+      options,
       settleToIndex,
       stopActiveAnimation,
       yRaw,
