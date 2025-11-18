@@ -1,5 +1,6 @@
-import { motion } from 'framer-motion';
-import { Github } from 'lucide-react';
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Github, X, Menu } from 'lucide-react';
 
 /**
  * Navigation Component
@@ -8,13 +9,18 @@ import { Github } from 'lucide-react';
  * - Fixed header with hairline border
  * - Anta display font for logo
  * - Minimal, precise navigation
+ * - Functional mobile menu with slide-in animation
  */
 export function Navigation() {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
   const navLinks = [
     { label: 'Examples', href: '#snippets' },
     { label: 'Components', href: '#components' },
     { label: 'Presets', href: '#presets' },
   ];
+
+  const closeMobileMenu = () => setMobileMenuOpen(false);
 
   return (
     <motion.nav
@@ -29,11 +35,12 @@ export function Navigation() {
           <a
             href="#"
             className="font-display text-2xl text-accent hover:text-accent/80 transition-colors duration-instant"
+            onClick={closeMobileMenu}
           >
             KINETIC INPUT
           </a>
 
-          {/* Navigation Links */}
+          {/* Desktop Navigation Links */}
           <div className="hidden md:flex items-center gap-6x">
             {navLinks.map((link) => (
               <a
@@ -62,23 +69,55 @@ export function Navigation() {
           <button
             className="md:hidden p-2 text-muted hover:text-fg transition-colors duration-instant focus-accent"
             aria-label="Toggle menu"
+            aria-expanded={mobileMenuOpen}
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           >
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={2}
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M4 6h16M4 12h16M4 18h16"
-              />
-            </svg>
+            {mobileMenuOpen ? (
+              <X className="w-6 h-6" strokeWidth={2} />
+            ) : (
+              <Menu className="w-6 h-6" strokeWidth={2} />
+            )}
           </button>
         </div>
       </div>
+
+      {/* Mobile Menu Dropdown */}
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
+            className="md:hidden border-t border-hairline bg-bg/95 backdrop-blur-xs overflow-hidden"
+          >
+            <div className="container mx-auto px-4x py-4x space-y-3x">
+              {navLinks.map((link) => (
+                <a
+                  key={link.href}
+                  href={link.href}
+                  onClick={closeMobileMenu}
+                  className="block text-sm font-medium text-muted hover:text-fg transition-colors duration-instant py-2"
+                >
+                  {link.label}
+                </a>
+              ))}
+
+              <a
+                href="https://github.com/NullSense/Kinetic-Input"
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={closeMobileMenu}
+                className="flex items-center gap-2 px-3x py-2x border border-hairline hover:border-accent/30 hover:bg-accent/5 transition-all duration-fast focus-accent mt-2"
+                aria-label="View on GitHub"
+              >
+                <Github className="w-4 h-4" strokeWidth={2} />
+                <span className="text-sm font-medium">GitHub</span>
+              </a>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.nav>
   );
 }
