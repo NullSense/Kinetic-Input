@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Code2, Play } from 'lucide-react';
-import { StackBlitzEmbed } from './StackBlitzEmbed';
+import { PlaygroundModal } from './PlaygroundModal';
 
 type SnippetId = 'quickstart' | 'basic' | 'theming' | 'advanced';
 
@@ -165,12 +165,14 @@ export default function App() {
  * Code Snippets Section
  *
  * Design: Cyber-Editorial Brutalism
- * - Now with fully interactive StackBlitz embeds
- * - Users can modify and test code live
- * - Real working examples with live preview
+ * - Clean code displays with syntax highlighting
+ * - Single conditional playground modal for live editing
+ * - Copy-paste ready examples with "Try it Live" button
+ * - Optimized UX: view code first, play when ready
  */
 export function CodeSnippets() {
   const [activeSnippet, setActiveSnippet] = useState<SnippetId>('quickstart');
+  const [playgroundOpen, setPlaygroundOpen] = useState(false);
 
   const currentSnippet = snippets.find((s) => s.id === activeSnippet) || snippets[0];
 
@@ -235,21 +237,56 @@ export function CodeSnippets() {
             </p>
           </div>
 
-          {/* StackBlitz Embed */}
-          <StackBlitzEmbed
-            title={currentSnippet.title}
-            description={currentSnippet.description}
-            code={currentSnippet.code}
-            height="600px"
-            openFile="src/App.js"
-          />
+          {/* Code Display */}
+          <div className="relative">
+            <pre className="bg-black/50 p-6x rounded-sm overflow-x-auto border border-hairline">
+              <code className="text-sm font-mono text-fg leading-relaxed">
+                {currentSnippet.code}
+              </code>
+            </pre>
 
-          <div className="mt-4x pt-4x border-t border-hairline">
-            <p className="text-xs text-muted">
-              💡 Edit the code above and see changes instantly • Fork the project to save your changes
-            </p>
+            {/* Try it Live Button */}
+            <button
+              onClick={() => setPlaygroundOpen(true)}
+              className="absolute top-4 right-4 flex items-center gap-2 px-4 py-2 bg-accent/20 hover:bg-accent/30 border border-accent/40 hover:border-accent/60 text-accent font-medium text-sm transition-all duration-instant focus-accent rounded-xs"
+            >
+              <Play className="w-4 h-4" strokeWidth={2} />
+              TRY IT LIVE
+            </button>
+          </div>
+
+          <div className="mt-4x grid md:grid-cols-3 gap-3x text-xs">
+            <div className="flex items-start gap-2 p-3x bg-black/20 rounded-xs border border-hairline">
+              <Code2 className="w-4 h-4 text-accent mt-0.5" strokeWidth={2} />
+              <div>
+                <p className="text-fg font-medium mb-1">Copy & Paste Ready</p>
+                <p className="text-muted">Complete working example</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-2 p-3x bg-black/20 rounded-xs border border-hairline">
+              <Play className="w-4 h-4 text-success mt-0.5" strokeWidth={2} />
+              <div>
+                <p className="text-fg font-medium mb-1">Interactive Playground</p>
+                <p className="text-muted">Edit and test live</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-2 p-3x bg-black/20 rounded-xs border border-hairline">
+              <Code2 className="w-4 h-4 text-warning mt-0.5" strokeWidth={2} />
+              <div>
+                <p className="text-fg font-medium mb-1">Zero Config</p>
+                <p className="text-muted">Works out of the box</p>
+              </div>
+            </div>
           </div>
         </motion.div>
+
+        {/* Playground Modal */}
+        <PlaygroundModal
+          isOpen={playgroundOpen}
+          onClose={() => setPlaygroundOpen(false)}
+          title={currentSnippet.title}
+          code={currentSnippet.code}
+        />
 
         {/* Installation */}
         <motion.div
