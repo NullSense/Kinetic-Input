@@ -11,6 +11,7 @@ import {
   type ReactNode,
   type KeyboardEvent,
 } from 'react';
+import { LazyMotion, domAnimation } from 'framer-motion';
 
 const DEFAULT_HEIGHT = 216;
 const DEFAULT_ITEM_HEIGHT = 36;
@@ -326,42 +327,44 @@ function PickerGroupRoot<TType extends PickerValue>(props: PickerGroupRootProps<
   // which always prevents default to avoid page scrolling
 
   return (
-    <div
-      ref={containerRef}
-      className="picker-surface"
-      style={mergedContainerStyle}
-      onKeyDownCapture={handleContainerKeyDown}
-      onTouchMove={(e) => {
-        e.preventDefault();
-        e.stopPropagation();
-      }}
-      {...restProps}
-    >
-      <PickerGroupActionsContext.Provider value={pickerGroupActions}>
-        <PickerGroupDataContext.Provider value={pickerGroupData}>{children}</PickerGroupDataContext.Provider>
-      </PickerGroupActionsContext.Provider>
-      {/* Overlay gradients (cheaper than mask-image) */}
+    <LazyMotion features={domAnimation} strict>
       <div
-        aria-hidden
-        style={topGradientStyle}
-      />
-      <div
-        aria-hidden
-        style={bottomGradientStyle}
-      />
-      {showHighlightLines && (
-        <div className="picker-highlight-hitbox" style={highlightStyle}>
-          <div
-            className="picker-highlight-line-top"
-            style={highlightBorderTopStyle}
-          />
-          <div
-            className="picker-highlight-line-bottom"
-            style={highlightBorderBottomStyle}
-          />
-        </div>
-      )}
-    </div>
+        ref={containerRef}
+        className="picker-surface"
+        style={mergedContainerStyle}
+        onKeyDownCapture={handleContainerKeyDown}
+        onTouchMove={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+        }}
+        {...restProps}
+      >
+        <PickerGroupActionsContext.Provider value={pickerGroupActions}>
+          <PickerGroupDataContext.Provider value={pickerGroupData}>{children}</PickerGroupDataContext.Provider>
+        </PickerGroupActionsContext.Provider>
+        {/* Overlay gradients (cheaper than mask-image) */}
+        <div
+          aria-hidden
+          style={topGradientStyle}
+        />
+        <div
+          aria-hidden
+          style={bottomGradientStyle}
+        />
+        {showHighlightLines && (
+          <div className="picker-highlight-hitbox" style={highlightStyle}>
+            <div
+              className="picker-highlight-line-top"
+              style={highlightBorderTopStyle}
+            />
+            <div
+              className="picker-highlight-line-bottom"
+              style={highlightBorderBottomStyle}
+            />
+          </div>
+        )}
+      </div>
+    </LazyMotion>
   );
 }
 
