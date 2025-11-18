@@ -85,7 +85,7 @@ Edit `packages/number-picker/package.json`:
 ```json
 {
   "name": "@tensil/kinetic-input",
-  "version": "0.1.0",  // ← Update this before publishing
+  "version": "0.0.2",  // ← Update this before publishing (using 0.0.x for beta)
   "description": "Kinetic iOS-style wheel picker with momentum, haptics, and audio",
   "author": "Your Name",
   "license": "MIT",
@@ -117,9 +117,10 @@ Edit `packages/number-picker/package.json`:
 cd packages/number-picker
 
 # 1. Bump version (choose one)
-npm version patch  # 0.1.0 → 0.1.1 (bug fixes)
-npm version minor  # 0.1.0 → 0.2.0 (new features, backward compatible)
-npm version major  # 0.1.0 → 1.0.0 (breaking changes)
+# Note: Using 0.0.x for beta releases
+npm version patch  # 0.0.1 → 0.0.2 (beta releases, bug fixes)
+npm version minor  # 0.0.x → 0.1.0 (first stable pre-release)
+npm version major  # 0.x.x → 1.0.0 (stable release)
 
 # 2. Build package
 npm run build
@@ -197,7 +198,7 @@ cd /home/user/Kinetic-Input/demo
 # Edit demo/package.json:
 {
   "dependencies": {
-    "@tensil/kinetic-input": "^0.1.0"  // Change from "*"
+    "@tensil/kinetic-input": "^0.0.2"  // Change from "*"
   }
 }
 
@@ -226,14 +227,21 @@ git push origin v0.1.0
 ### Semantic Versioning Guide
 | Version | Use Case | Example Changes |
 |---------|----------|-----------------|
-| **Patch** (0.1.0 → 0.1.1) | Bug fixes, docs | Fix haptic timing bug |
-| **Minor** (0.1.0 → 0.2.0) | New features (backward compatible) | Add settle haptic feedback |
-| **Major** (0.1.0 → 1.0.0) | Breaking changes | Change prop names, remove APIs |
+| **0.0.x** (Beta) | Active development, testing | Initial releases, bug fixes, experiments |
+| **0.1.x** (Pre-release) | Feature complete, stabilizing | Polish, documentation, final API tweaks |
+| **1.0.0** (Stable) | Production ready | First stable public release |
+
+### Project-Specific Strategy
+- **0.0.1**: Initial beta release
+- **0.0.2**: Bug fixes and improvements (current)
+- **0.1.0**: Feature complete, API stable
+- **1.0.0**: Production ready, documented, tested
 
 ### Pre-1.0.0 Considerations
-- Version `0.x.x` signals "in development"
-- Breaking changes allowed in minor versions
-- Stable API = bump to `1.0.0`
+- Version `0.0.x` signals "beta / in active development"
+- Version `0.x.x` signals "pre-release / stabilizing"
+- Breaking changes allowed in any 0.x.x release
+- Stable API + comprehensive docs = bump to `1.0.0`
 
 ---
 
@@ -341,20 +349,28 @@ npm install -D semantic-release
 
 ## Quick Reference
 
-### First-Time Publish
+### First-Time Publish (Beta)
 ```bash
 cd packages/number-picker
-npm version 0.1.0
+npm version 0.0.2  # Beta release
 npm run build
-npm publish --access public
+npm publish --access public --tag beta
 ```
 
-### Subsequent Releases
+### Subsequent Beta Releases
 ```bash
 cd packages/number-picker
-npm version patch  # or minor/major
+npm version patch  # 0.0.2 → 0.0.3
 npm run build
-npm publish
+npm publish --tag beta
+```
+
+### Stable Release (When Ready)
+```bash
+cd packages/number-picker
+npm version minor  # 0.0.x → 0.1.0
+npm run build
+npm publish --tag latest  # Remove beta tag
 ```
 
 ### Check Published Package
