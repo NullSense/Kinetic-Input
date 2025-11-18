@@ -179,10 +179,10 @@ describe('usePickerPhysics velocity wiring', () => {
       result.current.handlePointerUp(pointerEvent(80));
     });
 
-    // Friction momentum should be called with scaled velocity (880 * 0.25 = 220)
+    // Friction momentum should be called with scaled velocity (880 * 0.22 = 193.6)
     const momentumCall = frictionMomentumMock.animateMomentumWithFriction.mock.calls.at(-1);
     expect(momentumCall).toBeDefined();
-    expect(momentumCall![0].initialVelocity).toBeCloseTo(880 * 0.25, 1);
+    expect(momentumCall![0].initialVelocity).toBeCloseTo(880 * 0.22, 1);
   });
 
   // NOTE: rangeScale config test removed - friction momentum uses simpler physics
@@ -395,8 +395,8 @@ describe('usePickerPhysics velocity wiring', () => {
     expect(Math.abs(slowVelocityUsed)).toBeGreaterThan(0);
     expect(Math.abs(fastVelocityUsed)).toBeGreaterThan(0);
 
-    // Verify friction momentum was called with scaled velocities (velocity * 0.25)
-    expect(Math.abs(slowVelocityUsed)).toBeCloseTo(200 * 0.25, 0);
-    expect(Math.abs(fastVelocityUsed)).toBeCloseTo(3000 * 0.25, 0);
+    // Verify friction momentum was called with scaled velocities (velocity * 0.22)
+    expect(Math.abs(slowVelocityUsed)).toBeCloseTo(200 * 0.22, 0);
+    expect(Math.abs(fastVelocityUsed)).toBeCloseTo(3000 * 0.22, 0);
   });
 });
