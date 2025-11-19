@@ -1,7 +1,5 @@
 # @tensil/kinetic-input
 
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/NullSense/Kinetic-Input/tree/main?configPath=demo)
-
 High-performance numeric scrubber components for React. The package exposes:
 
 - `CollapsiblePicker` – animated momentum picker with modal expansion

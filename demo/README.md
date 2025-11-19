@@ -1,15 +1,9 @@
 # Kinetic Input Demo
 
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/NullSense/Kinetic-Input/tree/main?configPath=demo)
-
 Interactive demo showcasing all features of `@tensil/kinetic-input` with live code editing and theme customization.
 
 ## Quick Start
 
-**Try it instantly in StackBlitz** (no install required):
-- Click the badge above to open in your browser
-
-**Or run locally:**
 ```bash
 # From project root
 npm install
