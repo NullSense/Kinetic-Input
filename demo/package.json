@@ -9,7 +9,6 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@stackblitz/sdk": "^1.11.0",
     "@tensil/kinetic-input": "*",
     "@types/react-syntax-highlighter": "^15.5.13",
     "@xstate/react": "^6.0.0",
