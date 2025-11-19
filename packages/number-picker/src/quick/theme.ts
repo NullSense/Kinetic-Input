@@ -1,6 +1,6 @@
-import { CollapsibleNumberPickerTheme } from './types';
+import type { CollapsiblePickerTheme } from './types';
 
-export const DEFAULT_THEME: CollapsibleNumberPickerTheme = {
+export const DEFAULT_THEME: CollapsiblePickerTheme = {
     textColor: '#9DB1BE',
     activeTextColor: '#3EDCFF',
     unitColor: '#8E77B5',
@@ -27,7 +27,26 @@ export const DEFAULT_THEME: CollapsibleNumberPickerTheme = {
     focusRingColor: 'rgba(62, 220, 255, 0.7)',
 };
 
-export const buildTheme = (overrides?: Partial<CollapsibleNumberPickerTheme>): CollapsibleNumberPickerTheme => ({
+/**
+ * Creates a theme by merging custom overrides with the default theme.
+ *
+ * Use this helper to customize specific theme properties while keeping defaults for others.
+ *
+ * @param {Partial<CollapsiblePickerTheme>} [overrides] - Theme properties to override
+ * @returns {CollapsiblePickerTheme} Complete theme object with all required properties
+ *
+ * @example
+ * ```tsx
+ * const customTheme = buildTheme({
+ *   activeTextColor: '#FF6B6B',
+ *   highlightBorderColor: 'rgba(255, 107, 107, 0.5)',
+ *   fadeColor: '#1A1A1A',
+ * });
+ *
+ * <CollapsiblePicker theme={customTheme} ... />
+ * ```
+ */
+export const buildTheme = (overrides?: Partial<CollapsiblePickerTheme>): CollapsiblePickerTheme => ({
     ...DEFAULT_THEME,
     ...overrides
 });

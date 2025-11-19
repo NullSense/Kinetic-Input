@@ -5,11 +5,14 @@
  * haptics are enabled via the enableHaptics prop.
  */
 
+type VibratePattern = number | number[];
+
 export interface HapticAdapter {
   /**
-   * Trigger a subtle haptic pulse for value changes
+   * Trigger a haptic pulse for value changes
+   * @param isSettle - Whether this is a settle event (stronger feedback)
    */
-  trigger: () => void;
+  trigger: (isSettle?: boolean) => void;
 
   /**
    * Cleanup resources (no-op for haptics, but included for consistency)
@@ -30,7 +33,17 @@ export interface HapticAdapter {
  * }
  * ```
  */
-export function createHapticAdapter(): HapticAdapter | null {
+export interface HapticAdapterOptions {
+  /** Pattern for regular scroll haptics */
+  pattern?: VibratePattern;
+  /** Pattern for settle haptics (stronger feedback when picker comes to rest) */
+  settlePattern?: VibratePattern;
+}
+
+const DEFAULT_PATTERN: VibratePattern = [3, 2, 1];
+const DEFAULT_SETTLE_PATTERN: VibratePattern = [8, 3, 5];
+
+export function createHapticAdapter(options: HapticAdapterOptions = {}): HapticAdapter | null {
   // SSR guard
   if (typeof navigator === 'undefined') {
     return null;
@@ -42,11 +55,12 @@ export function createHapticAdapter(): HapticAdapter | null {
   }
 
   return {
-    trigger: () => {
+    trigger: (isSettle?: boolean) => {
       try {
-        // Subtle triple-pulse pattern (3ms, pause 2ms, 1ms)
-        // This is gentle enough for rapid scrolling but noticeable
-        navigator.vibrate([3, 2, 1]);
+        const pattern = isSettle
+          ? (options.settlePattern ?? DEFAULT_SETTLE_PATTERN)
+          : (options.pattern ?? DEFAULT_PATTERN);
+        navigator.vibrate(pattern);
       } catch {
         // Ignore vibration failures (e.g., permissions, battery saver mode)
       }

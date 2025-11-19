@@ -1,3 +1,17 @@
+// Extend Window interface with debug flags
+interface DebugWindow extends Window {
+  __QNI_DEBUG__?: boolean;
+  __QNI_SNAP_DEBUG__?: boolean;
+  __QNI_STATE_DEBUG__?: boolean;
+  __QNI_WHEEL_DEBUG__?: boolean;
+  __QNI_ANIMATION_DEBUG__?: boolean;
+  __QNI_PICKER_DEBUG__?: boolean;
+  __animationDebugger?: unknown;
+  [key: string]: unknown; // Allow indexing by string
+}
+
+declare const window: DebugWindow;
+
 /**
  * Unified debug logging system for number-picker package
  *
@@ -11,10 +25,10 @@
  * How to enable (development/staging only):
  * ```javascript
  * // In browser console or before component mount:
- * window.__QNI_DEBUG__ = true;          // CollapsibleNumberPicker logs
+ * window.__QNI_DEBUG__ = true;          // CollapsiblePicker logs
  * window.__QNI_SNAP_DEBUG__ = true;     // Snap physics logs
  * window.__QNI_STATE_DEBUG__ = true;    // State machine logs
- * window.__QNI_WHEEL_DEBUG__ = true;    // StandaloneWheelPicker logs
+ * window.__QNI_WHEEL_DEBUG__ = true;    // Picker logs
  * window.__QNI_ANIMATION_DEBUG__ = true; // Animation lifecycle logs
  *
  * // Or enable all at once:
@@ -75,20 +89,15 @@ class DebugLogger {
 /**
  * Check if we're in a production environment
  * Used to completely disable debug logging in production (tree-shaking)
+ *
+ * Note: Relies on process.env.NODE_ENV which bundlers (Vite, webpack, etc.)
+ * replace at build time. import.meta is intentionally NOT used to maintain
+ * compatibility with all JavaScript environments including StackBlitz/WebContainers.
  */
 const isProduction = (): boolean => {
   // Check process.env (bundlers replace this at build time)
   if (typeof process !== 'undefined' && process.env?.NODE_ENV === 'production') {
     return true;
-  }
-
-  // Check import.meta.env (Vite)
-  try {
-    if (typeof import.meta !== 'undefined' && (import.meta as any).env?.PROD) {
-      return true;
-    }
-  } catch {
-    // import.meta not available
   }
 
   return false;
@@ -112,7 +121,7 @@ const resolveDebugFlag = (key: string): boolean => {
   }
 
   // Development/Test: Only enable if explicitly set via window flag
-  if (typeof window !== 'undefined' && (window as any)[key] === true) {
+  if (typeof window !== 'undefined' && window[key] === true) {
     return true;
   }
 
@@ -126,7 +135,7 @@ const logger = new DebugLogger();
 
 // ============ Namespace Registration ============
 
-export const DEBUG_QNI = logger.register('CollapsibleNumberPicker', () =>
+export const DEBUG_QNI = logger.register('CollapsiblePicker', () =>
   resolveDebugFlag('__QNI_DEBUG__')
 );
 
@@ -138,7 +147,7 @@ export const DEBUG_STATE_MACHINE = logger.register('StateMachine', () =>
   resolveDebugFlag('__QNI_STATE_DEBUG__')
 );
 
-export const DEBUG_WHEEL_PICKER = logger.register('StandaloneWheelPicker', () =>
+export const DEBUG_WHEEL_PICKER = logger.register('Picker', () =>
   resolveDebugFlag('__QNI_WHEEL_DEBUG__')
 );
 
@@ -146,10 +155,14 @@ export const DEBUG_ANIMATION = logger.register('Animation', () =>
   resolveDebugFlag('__QNI_ANIMATION_DEBUG__')
 );
 
+export const DEBUG_PICKER = logger.register('PickerPhysics', () =>
+  resolveDebugFlag('__QNI_PICKER_DEBUG__')
+);
+
 // ============ Convenience Exports ============
 
 /**
- * CollapsibleNumberPicker debug logging (production: no-op, tree-shaken)
+ * CollapsiblePicker debug logging (production: no-op, tree-shaken)
  *
  * Enable in dev: window.__QNI_DEBUG__ = true
  * @example debugLog('Picker opened', { value: 42 });
@@ -173,7 +186,7 @@ export const debugSnapLog = (...args: unknown[]) => logger.log(DEBUG_SNAP, ...ar
 export const debugStateLog = (...args: unknown[]) => logger.log(DEBUG_STATE_MACHINE, ...args);
 
 /**
- * StandaloneWheelPicker debug logging (production: no-op, tree-shaken)
+ * Picker debug logging (production: no-op, tree-shaken)
  *
  * Enable in dev: window.__QNI_WHEEL_DEBUG__ = true
  * @example debugWheelLog('Wheel scrolled', { delta: 100 });
@@ -187,6 +200,14 @@ export const debugWheelLog = (...args: unknown[]) => logger.log(DEBUG_WHEEL_PICK
  * @example debugAnimationLog('Animation started', { animationId: 'abc123', target: 100 });
  */
 export const debugAnimationLog = (...args: unknown[]) => logger.log(DEBUG_ANIMATION, ...args);
+
+/**
+ * Picker physics debug logging (production: no-op, tree-shaken)
+ *
+ * Enable in dev: window.__QNI_PICKER_DEBUG__ = true
+ * @example debugPickerLog('Pointer down', { pointerId: 1, clientY: 100 });
+ */
+export const debugPickerLog = (...args: unknown[]) => logger.log(DEBUG_PICKER, ...args);
 
 // ============ Smart Event Debugger Framework ============
 
@@ -418,7 +439,7 @@ export const animationDebugger = new AnimationDebugger();
 
 // Expose to window for manual inspection
 if (typeof window !== 'undefined' && !isProduction()) {
-  (window as any).__animationDebugger = animationDebugger;
+  window.__animationDebugger = animationDebugger;
 }
 
 // ============ Advanced API ============
@@ -444,11 +465,11 @@ export { logger as debugLogger };
  */
 export const enableAllDebugNamespaces = () => {
   if (typeof window !== 'undefined' && !isProduction()) {
-    (window as any).__QNI_DEBUG__ = true;
-    (window as any).__QNI_SNAP_DEBUG__ = true;
-    (window as any).__QNI_STATE_DEBUG__ = true;
-    (window as any).__QNI_WHEEL_DEBUG__ = true;
-    (window as any).__QNI_ANIMATION_DEBUG__ = true;
+    window.__QNI_DEBUG__ = true;
+    window.__QNI_SNAP_DEBUG__ = true;
+    window.__QNI_STATE_DEBUG__ = true;
+    window.__QNI_WHEEL_DEBUG__ = true;
+    window.__QNI_ANIMATION_DEBUG__ = true;
     console.log('[Debug] All number-picker namespaces enabled:', logger.getNamespaces());
     console.log('[Debug] Reload page for changes to take effect');
   } else if (isProduction()) {
@@ -468,11 +489,11 @@ export const enableAllDebugNamespaces = () => {
  */
 export const disableAllDebugNamespaces = () => {
   if (typeof window !== 'undefined') {
-    (window as any).__QNI_DEBUG__ = false;
-    (window as any).__QNI_SNAP_DEBUG__ = false;
-    (window as any).__QNI_STATE_DEBUG__ = false;
-    (window as any).__QNI_WHEEL_DEBUG__ = false;
-    (window as any).__QNI_ANIMATION_DEBUG__ = false;
+    window.__QNI_DEBUG__ = false;
+    window.__QNI_SNAP_DEBUG__ = false;
+    window.__QNI_STATE_DEBUG__ = false;
+    window.__QNI_WHEEL_DEBUG__ = false;
+    window.__QNI_ANIMATION_DEBUG__ = false;
     console.log('[Debug] All number-picker namespaces disabled');
     console.log('[Debug] Reload page for changes to take effect');
   }

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { debugLog } from '../../utils/debug';
 import { createFeedbackAdapters, type FeedbackAdapters } from '../feedback';
+import type { QuickPickerFeedbackConfig } from '../types';
 
 type PickerValue = { value: string };
 
@@ -11,6 +12,7 @@ type UsePickerFeedbackArgs = {
     selectedValue: PickerValue;
     setSelectedValue: (value: PickerValue) => void;
     onChange: (value: number) => void;
+    feedbackOverrides?: QuickPickerFeedbackConfig;
 };
 
 /**
@@ -30,6 +32,7 @@ export const usePickerFeedback = ({
     selectedValue,
     setSelectedValue,
     onChange,
+    feedbackOverrides,
 }: UsePickerFeedbackArgs) => {
     // Create feedback adapters (memoized to avoid recreating on every render)
     const adapters = useMemo<FeedbackAdapters>(
@@ -37,8 +40,17 @@ export const usePickerFeedback = ({
             createFeedbackAdapters({
                 enableHaptics,
                 enableAudioFeedback,
+                hapticsOptions: feedbackOverrides?.haptics,
+                audioOptions: feedbackOverrides?.audio,
+                adapters: feedbackOverrides?.adapters,
             }),
-        [enableHaptics, enableAudioFeedback]
+        [
+            enableHaptics,
+            enableAudioFeedback,
+            feedbackOverrides?.adapters,
+            feedbackOverrides?.audio,
+            feedbackOverrides?.haptics,
+        ]
     );
 
     // Track state for haptic feedback (avoid duplicate vibrations)
@@ -60,8 +72,8 @@ export const usePickerFeedback = ({
     }, [selectedValue.value]);
 
     // Trigger haptic feedback on value scroll
-    const triggerHaptics = useCallback(() => {
-        adapters.haptics?.trigger();
+    const triggerHaptics = useCallback((isSettle?: boolean) => {
+        adapters.haptics?.trigger(isSettle);
     }, [adapters.haptics]);
 
     // Trigger audio confirmation on value commit
@@ -83,14 +95,14 @@ export const usePickerFeedback = ({
 
     // Handle visual value changes (scrolling) - triggers haptics
     const handleVisualValueChange = useCallback(
-        (value: string | number) => {
+        (value: string | number, meta?: { isSettle?: boolean }) => {
             const next = String(value);
             // Track visual value for audio confirmation on close
             lastVisualValueRef.current = next;
 
             if (next !== lastHapticValueRef.current) {
                 lastHapticValueRef.current = next;
-                triggerHaptics();
+                triggerHaptics(meta?.isSettle);
             }
         },
         [triggerHaptics]

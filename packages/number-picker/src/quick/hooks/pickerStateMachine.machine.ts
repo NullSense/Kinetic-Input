@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { setup } from 'xstate';
 import { pickerActions } from './pickerStateMachine.actions';
 import {
@@ -19,7 +18,7 @@ export const pickerStateMachine = setup({
     input: {} as PickerStateMachineConfig,
   },
   guards: pickerGuards,
-  actions: pickerActions as any,
+  actions: pickerActions,
   delays: {
     autoCloseDelay: ({ context }: { context: PickerContext }): number => {
       if (context.atBoundary) {

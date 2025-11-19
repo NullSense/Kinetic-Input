@@ -8,7 +8,13 @@ export default defineConfig({
     'config/index': 'src/config/index.ts',
     'types/index': 'src/types/index.ts'
   },
-  dts: false,
+  dts: {
+    compilerOptions: {
+      composite: false,
+      customConditions: []
+    }
+  },
+  tsconfig: 'tsconfig.dts.json',
   format: ['esm'],
   treeshake: true,
   sourcemap: true,

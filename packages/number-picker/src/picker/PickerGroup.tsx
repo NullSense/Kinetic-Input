@@ -1,8 +1,4 @@
 import {
-  CSSProperties,
-  HTMLProps,
-  MutableRefObject,
-  ReactNode,
   createContext,
   useCallback,
   useContext,
@@ -10,11 +6,17 @@ import {
   useMemo,
   useReducer,
   useRef,
+  type CSSProperties,
+  type HTMLProps,
+  type ReactNode,
+  type KeyboardEvent,
 } from 'react';
+import { LazyMotion, domAnimation } from 'framer-motion';
 
 const DEFAULT_HEIGHT = 216;
 const DEFAULT_ITEM_HEIGHT = 36;
-const DEFAULT_WHEEL_MODE = 'off';
+const DEFAULT_WHEEL_SENSITIVITY = 1;
+const DEFAULT_WHEEL_DELTA_CAP = 1.25;
 
 interface Option {
   value: string | number;
@@ -34,14 +36,16 @@ export interface PickerGroupRootProps<TType extends PickerValue>
   onChange: (value: TType, key: string) => void;
   height?: number;
   itemHeight?: number;
-  wheelMode?: 'off' | 'natural' | 'inverted';
+  wheelSensitivity?: number;
+  wheelDeltaCap?: number;
   showHighlightLines?: boolean;
 }
 
 const PickerGroupDataContext = createContext<{
   height: number;
   itemHeight: number;
-  wheelMode: 'off' | 'natural' | 'inverted';
+  wheelSensitivity: number;
+  wheelDeltaCap: number;
   value: PickerValue;
   optionGroups: { [key: string]: Option[] };
 } | null>(null);
@@ -107,6 +111,35 @@ function pickerGroupReducer(
   }
 }
 
+/**
+ * Multi-column picker container with shared state and keyboard navigation.
+ *
+ * Provides context for child PickerColumn components, manages value synchronization,
+ * and handles cross-column keyboard navigation (ArrowLeft/ArrowRight).
+ *
+ * @template TType - Shape of the picker value object (e.g., `{ hours: number; minutes: number }`)
+ *
+ * @param {TType} props.value - Current selected values for all columns
+ * @param {(value: TType, key: string) => void} props.onChange - Callback when any column value changes
+ * @param {number} [props.height=216] - Total picker height in pixels
+ * @param {number} [props.itemHeight=36] - Height of each individual item in pixels
+ * @param {number} [props.wheelSensitivity=1] - Mouse wheel scroll speed multiplier
+ * @param {number} [props.wheelDeltaCap=1.25] - Maximum wheel delta per event (prevents over-scrolling)
+ * @param {boolean} [props.showHighlightLines=true] - Show selection highlight borders
+ *
+ * @example
+ * ```tsx
+ * <PickerGroup
+ *   value={{ hours: 14, minutes: 30 }}
+ *   onChange={(value) => setTime(value)}
+ *   height={216}
+ *   itemHeight={36}
+ * >
+ *   <PickerColumn name="hours" options={hourOptions} />
+ *   <PickerColumn name="minutes" options={minuteOptions} />
+ * </PickerGroup>
+ * ```
+ */
 function PickerGroupRoot<TType extends PickerValue>(props: PickerGroupRootProps<TType>) {
   const {
     style,
@@ -115,7 +148,8 @@ function PickerGroupRoot<TType extends PickerValue>(props: PickerGroupRootProps<
     onChange,
     height = DEFAULT_HEIGHT,
     itemHeight = DEFAULT_ITEM_HEIGHT,
-    wheelMode = DEFAULT_WHEEL_MODE,
+    wheelSensitivity = DEFAULT_WHEEL_SENSITIVITY,
+    wheelDeltaCap = DEFAULT_WHEEL_DELTA_CAP,
     showHighlightLines = true,
     ...restProps
   } = props;
@@ -148,8 +182,8 @@ function PickerGroupRoot<TType extends PickerValue>(props: PickerGroupRootProps<
   const [optionGroups, dispatch] = useReducer(pickerGroupReducer, {});
 
   const pickerGroupData = useMemo(
-    () => ({ height, itemHeight, wheelMode, value, optionGroups }),
-    [height, itemHeight, value, optionGroups, wheelMode],
+    () => ({ height, itemHeight, wheelSensitivity, wheelDeltaCap, value, optionGroups }),
+    [height, itemHeight, optionGroups, value, wheelDeltaCap, wheelSensitivity],
   );
 
   const valueRef = useRef(value);
@@ -241,41 +275,96 @@ function PickerGroupRoot<TType extends PickerValue>(props: PickerGroupRootProps<
     []
   );
 
-  return (
-    <div
-      style={mergedContainerStyle}
-      onTouchMove={(e) => {
+  // Cross-column keyboard navigation
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const handleContainerKeyDown = useCallback((e: KeyboardEvent<HTMLDivElement>) => {
+    // Only intercept ArrowLeft/ArrowRight for multi-column navigation
+    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') {
+      return;
+    }
+
+    const container = containerRef.current;
+    if (!container) return;
+
+    // Find all focusable columns
+    const columns = Array.from(container.querySelectorAll('.picker-column')) as HTMLElement[];
+    if (columns.length <= 1) {
+      // Single column - let the column handle left/right as up/down
+      return;
+    }
+
+    // Multi-column picker - use left/right to navigate between columns
+    const activeElement = document.activeElement as HTMLElement;
+    const currentIndex = columns.indexOf(activeElement);
+
+    if (currentIndex === -1) {
+      // No column focused, focus the first one
+      columns[0]?.focus();
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+
+    if (e.key === 'ArrowLeft') {
+      const prevIndex = currentIndex - 1;
+      if (prevIndex >= 0) {
+        columns[prevIndex].focus();
         e.preventDefault();
         e.stopPropagation();
-      }}
-      onTouchStart={(e) => {
+      }
+    } else if (e.key === 'ArrowRight') {
+      const nextIndex = currentIndex + 1;
+      if (nextIndex < columns.length) {
+        columns[nextIndex].focus();
+        e.preventDefault();
         e.stopPropagation();
-      }}
-      {...restProps}
-    >
-      <PickerGroupActionsContext.Provider value={pickerGroupActions}>
-        <PickerGroupDataContext.Provider value={pickerGroupData}>{children}</PickerGroupDataContext.Provider>
-      </PickerGroupActionsContext.Provider>
-      {/* Overlay gradients (cheaper than mask-image) */}
+      }
+    }
+  }, []);
+
+  // Wheel event handling is managed by column's native listener
+  // which always prevents default to avoid page scrolling
+
+  return (
+    <LazyMotion features={domAnimation} strict>
       <div
-        aria-hidden
-        style={topGradientStyle}
-      />
-      <div
-        aria-hidden
-        style={bottomGradientStyle}
-      />
-      {showHighlightLines && (
-        <div style={highlightStyle}>
-          <div
-            style={highlightBorderTopStyle}
-          />
-          <div
-            style={highlightBorderBottomStyle}
-          />
-        </div>
-      )}
-    </div>
+        ref={containerRef}
+        className="picker-surface"
+        style={mergedContainerStyle}
+        onKeyDownCapture={handleContainerKeyDown}
+        onTouchMove={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+        }}
+        {...restProps}
+      >
+        <PickerGroupActionsContext.Provider value={pickerGroupActions}>
+          <PickerGroupDataContext.Provider value={pickerGroupData}>{children}</PickerGroupDataContext.Provider>
+        </PickerGroupActionsContext.Provider>
+        {/* Overlay gradients (cheaper than mask-image) */}
+        <div
+          aria-hidden
+          style={topGradientStyle}
+        />
+        <div
+          aria-hidden
+          style={bottomGradientStyle}
+        />
+        {showHighlightLines && (
+          <div className="picker-highlight-hitbox" style={highlightStyle}>
+            <div
+              className="picker-highlight-line-top"
+              style={highlightBorderTopStyle}
+            />
+            <div
+              className="picker-highlight-line-bottom"
+              style={highlightBorderBottomStyle}
+            />
+          </div>
+        )}
+      </div>
+    </LazyMotion>
   );
 }
 

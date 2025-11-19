@@ -53,8 +53,8 @@ export const pickerActions = {
       atBoundary: context.atBoundary,
     });
   },
-  notifyExternalClose: ({ context, event }: { context: PickerContext; event: { type: string; reason?: string } }) => {
-    const reason = (event as any).reason || 'external-close';
+  notifyExternalClose: ({ context, event }: { context: PickerContext; event: Extract<PickerEvent, { type: 'EXTERNAL_CLOSE' }> }) => {
+    const reason = event.reason || 'external-close';
     context.config.onRequestClose({
       reason,
       atBoundary: context.atBoundary,
@@ -62,7 +62,7 @@ export const pickerActions = {
   },
   logWatchdogTimeout: () => {
     if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test') {
-      console.warn('[CollapsibleNumberPicker] Forcing settle - vendor callback timeout');
+      console.warn('[CollapsiblePicker] Forcing settle - vendor callback timeout');
     }
   },
 };

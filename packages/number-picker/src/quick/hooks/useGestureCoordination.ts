@@ -1,5 +1,4 @@
-import type React from 'react';
-import { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { debugLog } from '../../utils/debug';
 import { BOUNDARY_SETTLE_DELAY, WHEEL_CLOSE_DELAY } from '../../config/ui';
 import type { usePickerStateMachine } from './usePickerStateMachine.xstate';
@@ -48,6 +47,8 @@ export const useGestureCoordination = ({
     isOpeningInteraction,
     deferGestureCloseRef,
 }: UsePickerGesturesArgs): UsePickerGesturesResult => {
+    // Wheel input is always enabled (inverted scroll mode)
+    const wheelEnabled = true;
     const showPickerRef = useRef(showPicker);
     useEffect(() => {
         showPickerRef.current = showPicker;
@@ -105,6 +106,9 @@ export const useGestureCoordination = ({
     }, [clearWheelIdleTimer, handleWheelIdleTimeout, wheelIdleTimeout]);
 
     const handleWheel = useCallback(() => {
+        if (!wheelEnabled) {
+            return;
+        }
         clearBoundaryCloseTimer();
         clearWheelIdleTimer();
 
@@ -121,13 +125,23 @@ export const useGestureCoordination = ({
         }
 
         scheduleWheelIdle();
-    }, [clearBoundaryCloseTimer, clearWheelIdleTimer, handlePickerOpen, scheduleWheelIdle, stateMachine]);
+    }, [
+        clearBoundaryCloseTimer,
+        clearWheelIdleTimer,
+        handlePickerOpen,
+        scheduleWheelIdle,
+        stateMachine,
+        wheelEnabled,
+    ]);
 
     useEffect(() => {
         const node = wrapperRef.current;
-        if (!node) return undefined;
+        if (!node || !wheelEnabled) return undefined;
 
         const nativeWheelHandler = (event: WheelEvent) => {
+            if (event.ctrlKey) {
+                return;
+            }
             event.preventDefault();
             handleWheel();
         };
@@ -138,14 +152,22 @@ export const useGestureCoordination = ({
         return () => {
             node.removeEventListener('wheel', nativeWheelHandler, wheelListenerOptions.capture ?? false);
         };
-    }, [handleWheel, wrapperRef]);
+    }, [handleWheel, wheelEnabled, wrapperRef]);
 
     const handlePointerDown = useCallback(
         (event: React.PointerEvent) => {
+            debugLog('handlePointerDown CALLED', {
+                showPicker: showPickerRef.current,
+                target: event.target,
+                currentTarget: event.currentTarget,
+                pointerType: event.pointerType,
+            });
+
             clearBoundaryCloseTimer();
             clearWheelIdleTimer();
 
             if (!showPickerRef.current) {
+                debugLog('pointerDownToOpen - OPENING PICKER', {});
                 handlePickerOpen();
                 openedViaRef.current = 'pointer';
                 isOpeningInteraction.current = true;

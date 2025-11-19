@@ -3,6 +3,11 @@ import type { MotionValue } from 'framer-motion';
 import { clampIndex, indexFromY } from './utils/math';
 
 /**
+ * Server-side snapshot always returns 0 (initial index)
+ */
+const getServerSnapshot = () => 0;
+
+/**
  * Exposes the snapped picker index via a useSyncExternalStore bridge backed by a MotionValue.
  * @param {MotionValue<number>} ySnap
  * @param {number} rowHeight
@@ -59,7 +64,6 @@ export function useSnappedIndexStore(
   };
 
   const getSnapshot = () => indexRef.current;
-  const getServerSnapshot = () => 0;
 
   return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 }

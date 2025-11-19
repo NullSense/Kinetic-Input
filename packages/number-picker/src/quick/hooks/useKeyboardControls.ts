@@ -1,5 +1,4 @@
-import { useCallback, useMemo } from 'react';
-import type { MutableRefObject } from 'react';
+import { useCallback, useMemo, type MutableRefObject } from 'react';
 import type { usePickerStateMachine } from './usePickerStateMachine.xstate';
 
 type KeyboardGestureSource = 'pointer' | 'wheel' | 'keyboard';

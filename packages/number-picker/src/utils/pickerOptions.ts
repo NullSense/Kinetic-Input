@@ -1,6 +1,6 @@
 /**
  * Shared utilities for generating and normalizing picker options.
- * Used by both CollapsibleNumberPicker and StandaloneWheelPicker to eliminate duplication.
+ * Used by both CollapsiblePicker and Picker to eliminate duplication.
  */
 
 import type { SnapPhysicsConfig } from '../picker/types/snapPhysics';
@@ -147,7 +147,7 @@ export const mergeSnapConfig = (
 
   return {
     ...DEFAULT_SNAP_PHYSICS,
-    ...(config ?? {}),
+    ...config,
     enabled: true,
   };
 };

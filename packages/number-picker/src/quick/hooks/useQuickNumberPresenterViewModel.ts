@@ -1,6 +1,5 @@
-import { useMemo } from 'react';
-import type { ReactNode } from 'react';
-import type { CollapsibleNumberPickerTheme } from '../types';
+import { useMemo, type ReactNode } from 'react';
+import type { CollapsiblePickerTheme } from '../types';
 import type {
     AriaProps,
     CSSVariableStyles,
@@ -10,8 +9,8 @@ import type {
     QuickNumberPresenterViewModel,
     SurfaceRefs,
     ValueDisplayProps,
-} from '../CollapsibleNumberPicker.presenter';
-import type { PickerBodyProps } from '../CollapsibleNumberPicker.pickerBody';
+} from '../CollapsiblePicker.presenter';
+import type { PickerBodyProps } from '../CollapsiblePicker.pickerBody';
 
 interface UseQuickNumberPresenterViewModelArgs {
     label: ReactNode;
@@ -29,7 +28,6 @@ interface UseQuickNumberPresenterViewModelArgs {
     layout: LayoutProps;
     pickerState: {
         showPicker: boolean;
-        showBackdrop: boolean;
         selectedIndex: number;
         totalValues: number;
     };
@@ -45,7 +43,7 @@ interface UseQuickNumberPresenterViewModelArgs {
     pickerBodyProps: PickerBodyProps;
     valueDisplay: ValueDisplayProps;
     cssVariables: CSSVariableStyles;
-    theme: CollapsibleNumberPickerTheme;
+    theme: CollapsiblePickerTheme;
 }
 
 /**
