@@ -138,33 +138,17 @@ export function SessionPicker({ value, onChange }) {
 | `placeholder` | `string` | `'—'` | Display when `value` is `undefined` |
 | `isOpen` | `boolean` | uncontrolled | Controlled open state |
 | `onRequestOpen` / `onRequestClose` | `() => void` | - | Required when `isOpen` is provided |
-| `showBackdrop` | `boolean` | `false` | Dim background when open |
 | `itemHeight` | `number` | `40` | Row height (px) |
 | `theme` | `Partial<CollapsiblePickerTheme>` | - | Override palette/typography |
 | `renderValue` / `renderItem` | custom renderers | default layout | Hook into value/item rendering |
 | `helperText` | `ReactNode` | - | Optional caption below the input |
 | `enableSnapPhysics` | `boolean` | `false` | Experimental magnetic snap for slow drags |
 | `snapPhysicsConfig` | `Partial<SnapPhysicsConfig>` | defaults | Override snap parameters |
-| `wheelMode` | `'natural' \| 'inverted' \| 'off'` | `'inverted'` | Mouse wheel/touchpad mode. `'natural'` respects OS direction, `'inverted'` mimics iOS pickers, and `'off'` removes the wheel listeners entirely so the host page keeps scrolling. |
-| `wheelSensitivity` | `number` | `1` | Multiplier for wheel/touchpad deltas. Raise it (>1) to make slow trackpads move further per gesture, lower it (<1) to tame hypersensitive hardware. |
-| `wheelDeltaCap` | `number` | `1.25` | Upper bound (in rows) per wheel frame to keep single touchpad spikes from skipping multiple rows. Any excess delta is carried over to the next frame so fast scrubs still feel responsive. |
+| `wheelSensitivity` | `number` | `1` | Wheel/trackpad scroll speed multiplier. Raise it (>1) to make slow trackpads move further per gesture, lower it (<1) to tame hypersensitive hardware. |
+| `wheelDeltaCap` | `number` | `1.25` | Upper bound (in rows) per wheel frame to prevent touchpad spikes from skipping multiple rows. Excess delta is carried over to the next frame so fast scrubs stay responsive. |
 | `enableHaptics` | `boolean` | `true` | Vibration feedback on selection (mobile) |
 | `enableAudioFeedback` | `boolean` | `true` | Audio clicks on selection |
 | `feedbackConfig` | `QuickPickerFeedbackConfig` | - | Override audio/haptic adapters, patterns, or disable features per instance |
-
-#### Wheel & touchpad behavior
-
-- `wheelMode="off"` now removes the wheel listeners entirely so embedded pickers no longer block the page scroll or synthetic scroll containers. Use this when the quick picker sits next to scrollable content.
-- When wheel input is enabled (`'natural'` or `'inverted'`) we still call `preventDefault` to keep focus inside the picker, but pinch-to-zoom gestures (which surface as `ctrlKey` + wheel on macOS trackpads) now pass through untouched so browser zoom shortcuts keep working.
-- Pick `wheelMode="natural"` when you want OS-style scrolling (positive delta = scroll down) and `wheelMode="inverted"` to mimic the native iOS picker where scrolling down increments the value. Both modes will automatically open the picker on first wheel input.
-- Tune `wheelSensitivity` on `CollapsiblePicker` or `PickerGroup` to match your hardware. The default `1` keeps deltas 1:1 with incoming pixels/lines, >1 amplifies tiny trackpad deltas, and <1 slows aggressive desktop wheels without touching the physics stack.
-- Use `wheelDeltaCap` to cap any single wheel frame to roughly a row (default `1.25` rows). Excess delta is rolled into the next frame so slow touchpads stay smooth while still allowing high-speed scrubs across long lists.
-- The same guard powers both `CollapsiblePicker` and bare `PickerGroup`, so standalone wheel pickers opt into wheel capture explicitly while every other instance remains passive by default.
-
-#### Performance notes
-
-- Wheel listeners are only attached when `wheelMode` is `'natural'` or `'inverted'`, and they use `passive: false` deliberately so `preventDefault` can stop accidental page scrolling without forcing reflows on unrelated nodes.
-- Deltas stay in raw MotionValues until a settle frame runs, avoiding React state churn while still sampling velocity for momentum projection. The virtualization window (`slotCount` × `overscan`) means only a handful of rows render at any time, so long option lists keep layout and paint work bounded.
 
 ### Theming
 
@@ -494,19 +478,14 @@ window.__QNI_WHEEL_DEBUG__ = true;    // Picker events
 location.reload();
 ```
 
-**Programmatically:**
+**Programmatically (before app initialization):**
 ```typescript
-import { enableAllDebugNamespaces } from '@tensil/kinetic-input/utils';
-
-if (import.meta.env.DEV) {
-  enableAllDebugNamespaces();
+// Set debug flags before your app loads
+if (typeof window !== 'undefined' && import.meta.env.DEV) {
+  window.__QNI_DEBUG__ = true;
+  window.__QNI_SNAP_DEBUG__ = true;
+  // ... set other flags as needed
 }
-```
-
-**Disable all:**
-```typescript
-import { disableAllDebugNamespaces } from '@tensil/kinetic-input/utils';
-disableAllDebugNamespaces();
 ```
 
 ## Advanced Configuration
@@ -517,8 +496,8 @@ Control auto-close behavior with presets:
 
 ```tsx
 <CollapsiblePicker
-  timingPreset="fast"    // 100ms pointer, 600ms wheel, 1s idle
-  // or "balanced" (default), "slow", "accessible"
+  timingPreset="fast"    // 100ms pointer, 500ms wheel, 2.5s idle
+  // Available: "instant", "fast", "balanced" (default), "patient"
 />
 ```
 
