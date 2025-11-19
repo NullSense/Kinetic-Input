@@ -155,22 +155,6 @@ export function ComponentShowcase() {
           </motion.div>
         </div>
 
-        {/* Bottom CTA */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.4, delay: 0.4 }}
-          className="text-center mt-12"
-        >
-          <a
-            href="#snippets"
-            className="inline-flex items-center gap-2x px-6x py-3x border border-accent/30 text-accent font-semibold hover:bg-accent/10 transition-all duration-fast focus-accent"
-          >
-            <Code2 className="w-5 h-5" strokeWidth={2} />
-            Try Playground
-          </a>
-        </motion.div>
       </div>
     </section>
   );

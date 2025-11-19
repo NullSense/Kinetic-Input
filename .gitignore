@@ -38,3 +38,9 @@ coverage/
 .cache/
 .temp/
 .tmp/
+
+# Build artifacts
+*.tgz
+
+# Debug/test artifacts
+test-wheel-direction.js

@@ -22,16 +22,16 @@ export function Footer() {
           {/* Links */}
           <div className="flex items-center gap-6x text-sm">
             <a
-              href="#docs"
+              href="#examples"
               className="text-muted hover:text-fg transition-colors duration-instant"
             >
-              Documentation
+              Examples
             </a>
             <a
-              href="#playground"
+              href="#components"
               className="text-muted hover:text-fg transition-colors duration-instant"
             >
-              Playground
+              Components
             </a>
             <a
               href="https://github.com/NullSense/Kinetic-Input"

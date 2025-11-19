@@ -1,11 +1,10 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CollapsiblePicker } from '@tensil/kinetic-input';
-import { Palette, X, ExternalLink, Code2, Copy, Check } from 'lucide-react';
+import { Palette, X, Code2, Copy, Check } from 'lucide-react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus, vs } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { DEMO_PICKERS } from '../config/pickerDefaults';
-import sdk from '@stackblitz/sdk';
 
 type Preset = {
   id: string;
@@ -320,85 +319,8 @@ export function PresetsGallery() {
       setCopiedPresetCode(true);
       setTimeout(() => setCopiedPresetCode(false), 2000);
     } catch (err) {
-      console.error('Failed to copy:', err);
+      // Silent fail - clipboard API may not be available
     }
-  };
-
-  const openInStackBlitz = (preset: Preset) => {
-    const appCode = `import { useState } from 'react';
-import { CollapsiblePicker } from '@tensil/kinetic-input';
-${preset.codeSnippet.includes('buildTheme') ? "import { buildTheme } from '@tensil/kinetic-input';" : ''}
-
-export default function App() {
-  const [weight, setWeight] = useState(70);
-
-${preset.codeSnippet.split('\n').filter(line => line.includes('buildTheme')).join('\n')}
-
-  return (
-    <div style={{ padding: '2rem', background: '${preset.theme.bg.replace('bg-', '#')}', minHeight: '100vh' }}>
-      ${preset.codeSnippet.split('\n').filter(line => line.includes('<CollapsiblePicker')).join('\n        ')}
-    </div>
-  );
-}`;
-
-    sdk.openProject({
-      title: `Kinetic Input - ${preset.name}`,
-      description: preset.description,
-      template: 'node',
-      files: {
-        'package.json': JSON.stringify({
-          name: preset.id,
-          version: '1.0.0',
-          private: true,
-          dependencies: {
-            'react': '^18.2.0',
-            'react-dom': '^18.2.0',
-            '@tensil/kinetic-input': 'latest',
-            'framer-motion': '^11.0.0',
-            '@xstate/react': '^6.0.0',
-            'xstate': '^5.0.0',
-          },
-          scripts: {
-            dev: 'vite',
-            build: 'vite build',
-          },
-          devDependencies: {
-            '@vitejs/plugin-react': '^5.1.1',
-            'vite': '^6.4.1',
-            'typescript': '^5.9.3',
-          },
-        }, null, 2),
-        'vite.config.ts': `import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
-
-export default defineConfig({
-  plugins: [react()],
-});`,
-        'index.html': `<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>${preset.name}</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
-</html>`,
-        'src/main.tsx': `import { StrictMode } from 'react';
-import { createRoot } from 'react-dom/client';
-import App from './App';
-import '@tensil/kinetic-input/styles/all.css';
-
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <App />
-  </StrictMode>
-);`,
-        'src/App.tsx': appCode,
-      },
-    });
   };
 
   return (
@@ -563,20 +485,6 @@ createRoot(document.getElementById('root')!).render(
                   >
                     {selectedPreset.codeSnippet}
                   </SyntaxHighlighter>
-                </div>
-
-                {/* Open in StackBlitz */}
-                <div className="mt-6x">
-                  <button
-                    onClick={() => openInStackBlitz(selectedPreset)}
-                    className="w-full flex items-center justify-center gap-2x px-4x py-3x bg-accent/20 hover:bg-accent/30 border border-accent/30 transition-colors duration-fast focus-accent text-accent font-medium text-sm"
-                  >
-                    <ExternalLink className="w-4 h-4" strokeWidth={2} />
-                    <span>Open Interactive Example in StackBlitz</span>
-                  </button>
-                  <p className="mt-2x text-xs text-muted opacity-70">
-                    Edit, run, and fork the code in a full development environment
-                  </p>
                 </div>
 
                 <div className="mt-6x pt-6x border-t opacity-50">

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { CollapsiblePicker } from '@tensil/kinetic-input';
-import { Layers, Smartphone, Zap, Code2 } from 'lucide-react';
+import { Layers, Smartphone, Zap } from 'lucide-react';
 import { CapabilitiesIndicator } from './CapabilitiesIndicator';
 import { DEMO_PICKERS } from '../config/pickerDefaults';
 
@@ -131,22 +131,6 @@ export function Hero() {
               </div>
             </div>
           ))}
-        </motion.div>
-
-        {/* CTA Button */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.4, delay: 0.6 }}
-          className="flex justify-center mt-12"
-        >
-          <a
-            href="#snippets"
-            className="inline-flex items-center gap-2x px-6x py-3x border border-accent/30 text-accent font-semibold hover:bg-accent/10 transition-all duration-fast focus-accent"
-          >
-            <Code2 className="w-5 h-5" strokeWidth={2} />
-            Try Playground
-          </a>
         </motion.div>
       </div>
     </section>
