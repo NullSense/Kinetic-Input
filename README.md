@@ -1,40 +1,65 @@
-# @tensil/number-picker
+# @tensil/kinetic-input
 
 High-performance numeric scrubber components for React. The package exposes:
 
-- `CollapsibleNumberPicker` – animated momentum picker with modal expansion
-- `StandaloneWheelPicker` – lightweight list/range picker without modal chrome
+- `CollapsiblePicker` – animated momentum picker with modal expansion
+- `Picker` – lightweight list/range picker without modal chrome
 - `PickerGroup` – bare-bones wheel primitive that powers both components
 - Supporting hooks, theme builders, and configuration presets
+
+**📚 Documentation:**
+- [ARCHITECTURE.md](./ARCHITECTURE.md) - In-depth architecture guide
+- [CONTRIBUTING.md](./CONTRIBUTING.md) - Development setup and contributing guidelines
 
 All component docs now live in this README.
 
 ## Installation
 
 ```bash
-npm install @tensil/number-picker
+npm install @tensil/kinetic-input
 # or
-yarn add @tensil/number-picker
+yarn add @tensil/kinetic-input
 ```
 
 Peer dependencies you must provide in your host app:
 
 - `react` / `react-dom` (18 or 19)
-- `framer-motion`
-- `lucide-react`
+- `framer-motion` (^11.0.0)
+- `lucide-react` (^0.546.0)
+- `xstate` (^5.0.0)
+- `@xstate/react` (^6.0.0)
+
+## CSS Import (Required)
+
+Import the styles in your app's entry point (e.g., `main.tsx` or `App.tsx`):
+
+**Option 1: Convenience bundle (recommended)**
+```tsx
+import '@tensil/kinetic-input/styles/all.css'
+```
+
+**Option 2: Granular imports (for optimization)**
+```tsx
+// Pick only what you need:
+import '@tensil/kinetic-input/styles/picker.css'  // Base (required for all)
+import '@tensil/kinetic-input/styles/quick.css'   // CollapsiblePicker
+import '@tensil/kinetic-input/styles/wheel.css'   // Picker
+```
+
+The convenience bundle includes all styles (~6KB gzipped). Use granular imports if you only need specific components.
 
 ## Usage
 
-### CollapsibleNumberPicker
+### CollapsiblePicker
 
 ```tsx
-import CollapsibleNumberPicker from '@tensil/number-picker'
+import CollapsiblePicker from '@tensil/kinetic-input'
 
 export function WeightField() {
   const [weight, setWeight] = useState(70)
 
   return (
-    <CollapsibleNumberPicker
+    <CollapsiblePicker
       label="Weight"
       value={weight}
       onChange={setWeight}
@@ -51,19 +76,19 @@ Need lower-level control? Import the named utilities:
 
 ```ts
 import {
-  CollapsibleNumberPicker,
-  StandaloneWheelPicker,
+  CollapsiblePicker,
+  Picker,
   PickerGroup,
   DEFAULT_THEME,
   buildTheme,
   BOUNDARY_SETTLE_DELAY,
-} from '@tensil/number-picker'
+} from '@tensil/kinetic-input'
 ```
 
-### StandaloneWheelPicker example
+### Picker example
 
 ```tsx
-import { StandaloneWheelPicker } from '@tensil/number-picker'
+import { Picker } from '@tensil/kinetic-input'
 
 const colorOptions = [
   { value: 'rest', label: 'Rest Day', accentColor: '#8E77B5' },
@@ -73,7 +98,7 @@ const colorOptions = [
 
 export function SessionPicker({ value, onChange }) {
   return (
-    <StandaloneWheelPicker
+    <Picker
       value={value}
       onChange={onChange}
       options={colorOptions}
@@ -84,7 +109,7 @@ export function SessionPicker({ value, onChange }) {
 }
 ```
 
-## CollapsibleNumberPicker Features
+## CollapsiblePicker Features
 
 - Momentum-based wheel/touch scrolling with mixed pointer + wheel support
 - Smart auto-close timing (150 ms pointer, 800 ms wheel, 1.5 s idle)
@@ -109,14 +134,15 @@ export function SessionPicker({ value, onChange }) {
 | `onRequestOpen` / `onRequestClose` | `() => void` | - | Required when `isOpen` is provided |
 | `showBackdrop` | `boolean` | `false` | Dim background when open |
 | `itemHeight` | `number` | `40` | Row height (px) |
-| `theme` | `Partial<CollapsibleNumberPickerTheme>` | - | Override palette/typography |
+| `theme` | `Partial<CollapsiblePickerTheme>` | - | Override palette/typography |
 | `renderValue` / `renderItem` | custom renderers | default layout | Hook into value/item rendering |
 | `helperText` | `ReactNode` | - | Optional caption below the input |
 | `enableSnapPhysics` | `boolean` | `false` | Experimental magnetic snap for slow drags |
 | `snapPhysicsConfig` | `Partial<SnapPhysicsConfig>` | defaults | Override snap parameters |
-| `wheelMode` | `'natural' \| 'inverted' \| 'off'` | `'inverted'` | Mouse wheel scroll direction (inverted: down=increment) |
+| `wheelSensitivity` | `number` | `1` | Mouse wheel scroll speed multiplier |
+| `wheelDeltaCap` | `number` | `1.25` | Maximum wheel delta per event (prevents jumps) |
 | `enableHaptics` | `boolean` | `true` | Vibration feedback on selection (mobile) |
-| `enableAudioFeedback` | `boolean` | `false` | Audio clicks on selection |
+| `enableAudioFeedback` | `boolean` | `true` | Audio clicks on selection |
 
 ### Theming
 
@@ -125,7 +151,7 @@ Every color, font, and spacing can be customized via the `theme` prop. The libra
 #### Theme Interface
 
 ```ts
-interface CollapsibleNumberPickerTheme {
+interface CollapsiblePickerTheme {
   // Picker rows (when open)
   textColor: string                  // Non-selected rows
   activeTextColor: string            // Currently selected row
@@ -166,7 +192,7 @@ interface CollapsibleNumberPickerTheme {
 #### Default Theme
 
 ```ts
-import { DEFAULT_THEME } from '@tensil/number-picker'
+import { DEFAULT_THEME } from '@tensil/kinetic-input'
 
 // Default values:
 {
@@ -188,7 +214,7 @@ import { DEFAULT_THEME } from '@tensil/number-picker'
 
 **Minimal override (just accent color):**
 ```tsx
-<CollapsibleNumberPicker
+<CollapsiblePicker
   value={weight}
   onChange={setWeight}
   theme={{
@@ -219,7 +245,7 @@ const iosTheme = {
   fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
 }
 
-<CollapsibleNumberPicker theme={iosTheme} />
+<CollapsiblePicker theme={iosTheme} />
 ```
 
 **Design system integration:**
@@ -234,7 +260,7 @@ const theme = {
   fontFamily: 'var(--font-sans)',
 }
 
-<CollapsibleNumberPicker theme={theme} />
+<CollapsiblePicker theme={theme} />
 ```
 
 #### Theme Builder
@@ -242,14 +268,14 @@ const theme = {
 Use `buildTheme` for type-safe overrides:
 
 ```tsx
-import { buildTheme } from '@tensil/number-picker'
+import { buildTheme } from '@tensil/kinetic-input'
 
 const myTheme = buildTheme({
   activeTextColor: '#ff0000',
   // Unspecified properties use DEFAULT_THEME
 })
 
-<CollapsibleNumberPicker theme={myTheme} />
+<CollapsiblePicker theme={myTheme} />
 ```
 
 #### Common Patterns
@@ -258,7 +284,7 @@ const myTheme = buildTheme({
 ```tsx
 // If your picker opens in a yellow modal
 <div className="bg-yellow-400">
-  <CollapsibleNumberPicker
+  <CollapsiblePicker
     theme={{
       fadeColor: '#facc15',              // yellow-400
       closedBackgroundColor: 'rgba(250,204,21,0.9)',
@@ -282,12 +308,12 @@ const darkTheme = {
   fadeColor: '#0a0b0d',
 }
 
-<CollapsibleNumberPicker theme={isDark ? darkTheme : lightTheme} />
+<CollapsiblePicker theme={isDark ? darkTheme : lightTheme} />
 ```
 
 **Brutalist high contrast:**
 ```tsx
-<CollapsibleNumberPicker
+<CollapsiblePicker
   theme={{
     activeTextColor: '#000000',
     textColor: '#000000',
@@ -318,7 +344,7 @@ The `BOUNDARY_SETTLE_DELAY` constant (150 ms) is exported for tweaking the overs
 const [isOpen, setIsOpen] = useState(false)
 const [reps, setReps] = useState(10)
 
-<CollapsibleNumberPicker
+<CollapsiblePicker
   label="Reps"
   value={reps}
   onChange={setReps}
@@ -340,10 +366,12 @@ Debug logging is **disabled by default** to prevent console spam. Enable it when
 
 **In browser console:**
 ```javascript
-window.__QNI_DEBUG__ = true;          // CollapsibleNumberPicker events
-window.__QNI_SNAP_DEBUG__ = true;     // Snap physics calculations
-window.__QNI_STATE_DEBUG__ = true;    // State machine transitions
-window.__QNI_WHEEL_DEBUG__ = true;    // StandaloneWheelPicker events
+window.__QNI_DEBUG__ = true;           // CollapsiblePicker events
+window.__QNI_PICKER_DEBUG__ = true;    // Picker physics & pointer events
+window.__QNI_SNAP_DEBUG__ = true;      // Snap physics calculations
+window.__QNI_STATE_DEBUG__ = true;     // State machine transitions
+window.__QNI_WHEEL_DEBUG__ = true;     // Picker events
+window.__QNI_ANIMATION_DEBUG__ = true; // Animation lifecycle
 
 // Then reload the page
 location.reload();
@@ -351,17 +379,11 @@ location.reload();
 
 **Programmatically:**
 ```typescript
-import { enableAllDebugNamespaces } from '@tensil/number-picker/utils';
-
-if (import.meta.env.DEV) {
-  enableAllDebugNamespaces();
+// Debug utilities are available via browser console only
+// Set window.__QNI_DEBUG__ = true and other debug flags before your app loads
+if (typeof window !== 'undefined' && import.meta.env.DEV) {
+  window.__QNI_DEBUG__ = true;
 }
-```
-
-**Disable all:**
-```typescript
-import { disableAllDebugNamespaces } from '@tensil/number-picker/utils';
-disableAllDebugNamespaces();
 ```
 
 ## Advanced Configuration
@@ -371,24 +393,28 @@ disableAllDebugNamespaces();
 Control auto-close behavior with presets:
 
 ```tsx
-<CollapsibleNumberPicker
-  timingPreset="fast"    // 100ms pointer, 600ms wheel, 1s idle
-  // or "balanced" (default), "slow", "accessible"
+<CollapsiblePicker
+  timingPreset="fast"    // Quick auto-close timing
+  // Available: "instant", "fast", "balanced" (default), "patient"
 />
 ```
 
 Auto-detect based on device + user preferences:
 
 ```typescript
-import { getRecommendedTiming } from '@tensil/number-picker/config';
+import { getRecommendedTiming } from '@tensil/kinetic-input/config';
 
-<CollapsibleNumberPicker timingPreset={getRecommendedTiming()} />
+// Auto-selects timing based on:
+// - prefers-reduced-motion setting
+// - Touch device detection
+// - Screen size (mobile vs desktop)
+<CollapsiblePicker timingPreset={getRecommendedTiming()} />
 ```
 
 ### Custom Timing
 
 ```tsx
-<CollapsibleNumberPicker
+<CollapsiblePicker
   timingConfig={{
     settleGracePeriod: 200,  // ms after pointer release
     wheelIdleTimeout: 1000,  // ms after wheel scroll
@@ -402,7 +428,7 @@ import { getRecommendedTiming } from '@tensil/number-picker/config';
 Enable magnetic snapping for slow drags:
 
 ```tsx
-<CollapsibleNumberPicker
+<CollapsiblePicker
   enableSnapPhysics
   snapPhysicsConfig={{
     snapRange: 0.3,          // 30% of item height
@@ -425,25 +451,134 @@ npm run dev:demo     # Run demo at http://localhost:3001
 
 The demo app lives in `demo/` and showcases all features with an interactive code playground.
 
+## Project Structure
+
+This is an **npm workspaces monorepo** with unified tooling and configuration:
+
+```
+Kinetic-Input/                     # Root workspace
+├── packages/
+│   └── number-picker/             # Core library (@tensil/kinetic-input npm package)
+│       ├── src/                   # Source code
+│       ├── dist/                  # Build output (gitignored)
+│       ├── package.json           # Package dependencies & scripts
+│       ├── tsconfig.json          # TypeScript config (extends root)
+│       ├── tsup.config.ts         # Build config (ESM bundles)
+│       └── vitest.config.ts       # Test config
+├── demo/                          # Demo application (Vite + React)
+│   ├── src/                       # Demo source
+│   ├── dist/                      # Build output (gitignored)
+│   ├── package.json               # Demo dependencies & scripts
+│   ├── vite.config.ts             # Vite config with HMR for library
+│   └── tsconfig.json              # TypeScript config (extends root)
+├── package.json                   # Root workspace orchestration
+├── tsconfig.json                  # Base TypeScript config
+├── .oxlintrc.json                 # Unified linting rules
+├── .lintstagedrc.json             # Pre-commit linting
+└── .husky/                        # Git hooks
+
+```
+
+### Configuration Philosophy
+
+**Unified at root level** (single source of truth):
+- ✅ Linting (oxlint) - Same rules for library & demo
+- ✅ Type checking (TypeScript base config) - Shared compiler options
+- ✅ Git hooks (husky) - Pre-commit quality gates
+- ✅ Dev dependencies - Shared testing & linting tools
+
+**Separate per workspace** (domain-specific):
+- 📦 Build tools - `tsup` for library, `Vite` for demo app
+- 📦 Runtime dependencies - Demo uses Tailwind, library doesn't
+- 📦 Scripts - Each workspace has its own dev/build workflows
+
+This structure enables:
+- **Consistency** - Same lint & type rules across all code
+- **Efficiency** - Shared `node_modules` for faster installs
+- **Flexibility** - Each workspace optimized for its purpose
+- **Portability** - Library can be easily extracted if needed
+
 ## Development
 
-This monorepo structure:
+### Quick Start
 
+```bash
+# Install all workspace dependencies
+npm install
+
+# Start demo with live library reloading
+npm run dev:demo
+
+# Open http://localhost:3001
 ```
-kinetic-input/
-├── packages/number-picker/    # The library (@tensil/number-picker)
-└── demo/                       # Interactive demo website
-```
+
+### Common Commands
 
 | Command | Description |
 | ------- | ----------- |
-| `npm install` | Install all workspace dependencies |
-| `npm run build` | Build the library package |
-| `npm run dev:demo` | Run demo with HMR (watches library changes) |
+| `npm run dev` | Alias for `dev:demo` - start demo |
+| `npm run build` | Build library package only |
 | `npm run build:demo` | Build demo for production |
+| `npm run build:all` | Build both library and demo |
+| `npm test` | Run all tests |
+| `npm run lint` | Lint all code with oxlint |
+| `npm run lint:fix` | Auto-fix linting issues |
 | `npm run typecheck` | Type check all workspaces |
+| `npm run validate` | Full check (typecheck + lint + test) |
 
-Changes in `packages/number-picker/src` hot-reload in the demo via Vite workspace configuration.
+### Development Workflow
+
+**Working on the library:**
+```bash
+# Edit files in packages/number-picker/src/
+# Tests run automatically via git hooks
+npm test                    # Run all tests manually
+npm run test:ui             # Open Vitest UI for TDD
+```
+
+**Working on the demo:**
+```bash
+npm run dev:demo            # Start with HMR
+# Edit files in demo/src/
+# Changes hot-reload automatically
+```
+
+**Library changes reflect in demo instantly** via Vite workspace configuration (no rebuild needed during development).
+
+### Testing
+
+Tests are in the library package only (demo is a showcase, not production code):
+
+```bash
+npm test                    # Run all tests
+npm run test:ui             # Interactive UI
+npm run test:coverage       # Coverage report
+```
+
+All tests must pass before commits (enforced by git hooks).
+
+### Code Quality
+
+Pre-commit hooks automatically:
+- ✅ Lint staged files with oxlint
+- ✅ Type check all workspaces (manual: `npm run typecheck`)
+- ✅ Run tests on changed files (manual: `npm test`)
+
+```bash
+npm run lint                # Check all files
+npm run lint:fix            # Auto-fix issues
+npm run lint:dead-code      # Find unused exports
+```
+
+## Browser Support
+
+This library works in all modern browsers with:
+
+- **Desktop**: Chrome 90+, Firefox 88+, Safari 14+, Edge 90+
+- **Mobile**: iOS 14+, Android Chrome 90+
+- **Required APIs**: Pointer Events, CSS Grid (supported by all modern browsers)
+
+See [ARCHITECTURE.md](./ARCHITECTURE.md#browser-support) for detailed compatibility information.
 
 ## License
 
