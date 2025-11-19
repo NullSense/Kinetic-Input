@@ -2,6 +2,40 @@ import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Smartphone, AlertCircle, ChevronDown, Check, X } from 'lucide-react';
 
+// Extend Window interface for webkit prefixed AudioContext
+interface WindowWithWebkit extends Window {
+  webkitAudioContext?: typeof AudioContext;
+}
+
+/**
+ * Detect if device is actually mobile (not just API support)
+ */
+const checkMobile = () => {
+  // Check multiple signals for mobile device
+  const hasTouchScreen = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+  const isMobileUserAgent = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+    navigator.userAgent
+  );
+  const hasSmallScreen = window.innerWidth < 768;
+
+  // Must have touch AND (mobile UA OR small screen)
+  return hasTouchScreen && (isMobileUserAgent || hasSmallScreen);
+};
+
+/**
+ * Check audio API availability (without invoking - no user gesture needed)
+ */
+const checkAudioAvailability = () => {
+  return !!(window.AudioContext || (window as WindowWithWebkit).webkitAudioContext);
+};
+
+/**
+ * Check haptics availability (without invoking - no user gesture needed)
+ */
+const checkHapticsAvailability = () => {
+  return 'vibrate' in navigator && typeof navigator.vibrate === 'function';
+};
+
 /**
  * Device Capabilities Indicator
  *
@@ -11,9 +45,10 @@ import { Smartphone, AlertCircle, ChevronDown, Check, X } from 'lucide-react';
  * - Expandable for details
  */
 export function CapabilitiesIndicator() {
-  const [isMobile, setIsMobile] = useState<boolean | null>(null);
-  const [hapticsSupported, setHapticsSupported] = useState<boolean | null>(null);
-  const [audioAllowed, setAudioAllowed] = useState<boolean | null>(null);
+  // Initialize with default values so component renders immediately
+  const [isMobile, setIsMobile] = useState<boolean>(false);
+  const [hapticsSupported, setHapticsSupported] = useState<boolean>(false);
+  const [audioAllowed, setAudioAllowed] = useState<boolean>(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
 
@@ -25,67 +60,15 @@ export function CapabilitiesIndicator() {
     mediaQuery.addEventListener('change', handleChange);
 
     // Detect if actually mobile (not just API support)
-    const checkMobile = () => {
-      // Check multiple signals for mobile device
-      const hasTouchScreen = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-      const isMobileUserAgent = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-        navigator.userAgent
-      );
-      const hasSmallScreen = window.innerWidth < 768;
-      
-      // Must have touch AND (mobile UA OR small screen)
-      return hasTouchScreen && (isMobileUserAgent || hasSmallScreen);
-    };
+    const mobile = checkMobile();
+    setIsMobile(mobile);
 
-    setIsMobile(checkMobile());
-
-    // Check haptics support (only meaningful on mobile)
-    const checkHaptics = () => {
-      if (!checkMobile()) return false; // Desktop can't vibrate even if API exists
-      
-      const hasVibration = 'vibrate' in navigator;
-      if (!hasVibration) return false;
-
-      try {
-        return navigator.vibrate(0) !== false;
-      } catch {
-        return false;
-      }
-    };
-
-    setHapticsSupported(checkHaptics());
-
-    // Check audio permissions (requires user gesture)
-    const checkAudio = async () => {
-      try {
-        // Try to create audio context
-        const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
-        if (!AudioContext) return false;
-
-        const ctx = new AudioContext();
-        const allowed = ctx.state === 'running';
-        ctx.close();
-        return allowed;
-      } catch {
-        return false;
-      }
-    };
-
-    checkAudio().then(setAudioAllowed);
-
-    // Re-check on interaction (permissions may change)
-    const handleInteraction = () => {
-      checkAudio().then(setAudioAllowed);
-      setHapticsSupported(checkHaptics());
-    };
-    
-    window.addEventListener('click', handleInteraction, { once: true });
-    window.addEventListener('touchstart', handleInteraction, { once: true });
+    // Check API availability on mount (no user gesture needed - just check existence)
+    setHapticsSupported(mobile && checkHapticsAvailability());
+    setAudioAllowed(checkAudioAvailability());
 
     return () => {
       mediaQuery.removeEventListener('change', handleChange);
-      window.removeEventListener('click', handleInteraction);
-      window.removeEventListener('touchstart', handleInteraction);
     };
   }, []);
 
@@ -97,7 +80,9 @@ export function CapabilitiesIndicator() {
 
   const testAudio = () => {
     try {
-      const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const AudioContextConstructor = window.AudioContext || (window as WindowWithWebkit).webkitAudioContext;
+      if (!AudioContextConstructor) return;
+      const audioCtx = new AudioContextConstructor();
       const oscillator = audioCtx.createOscillator();
       const gainNode = audioCtx.createGain();
       
@@ -118,10 +103,6 @@ export function CapabilitiesIndicator() {
       console.error('Audio test failed:', error);
     }
   };
-
-  if (isMobile === null || hapticsSupported === null || audioAllowed === null) {
-    return null;
-  }
 
   const capabilities = [
     { name: 'haptics', supported: hapticsSupported, relevant: isMobile },

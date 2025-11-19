@@ -1,8 +1,12 @@
 {
-  "name": "@tensil/number-picker",
-  "version": "0.0.1",
-  "private": true,
-  "description": "Experimental packaging scaffold for the QuickNumberInput scrubber.",
+  "name": "@tensil/kinetic-input",
+  "version": "0.0.4",
+  "private": false,
+  "description": "High-performance React number picker components with momentum scrolling, smart auto-close, and full theming support",
+  "author": "NullSense",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -28,6 +32,8 @@
       "types": "./dist/types/index.d.ts",
       "import": "./dist/types/index.js"
     },
+    "./styles/all.css": "./dist/all.css",
+    "./styles/picker.css": "./dist/picker-base.css",
     "./styles/quick.css": "./dist/quick-number-input.css",
     "./styles/wheel.css": "./dist/wheel-picker.css",
     "./reactMobilePicker": {
@@ -54,25 +60,59 @@
   "peerDependencies": {
     "@xstate/react": "^6.0.0",
     "framer-motion": "^11.0.0",
-    "lucide-react": "^0.546.0",
     "react": "^18.0.0 || ^19.0.0",
     "react-dom": "^18.0.0 || ^19.0.0",
     "xstate": "^5.0.0"
   },
   "scripts": {
-    "build": "tsup --config tsup.config.ts && tsc -p tsconfig.build.json --emitDeclarationOnly",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "build": "tsup --config tsup.config.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest run --coverage"
   },
   "devDependencies": {
-    "@types/node": "^22.14.0",
+    "@types/node": "^22.19.1",
     "tsup": "^8.3.0",
-    "typescript": "~5.8.2"
+    "typescript": "~5.8.3"
   },
   "keywords": [
-    "picker",
     "react",
+    "react-component",
+    "number-picker",
+    "number-input",
     "scrubber",
-    "number-input"
+    "wheel-picker",
+    "mobile-picker",
+    "touch",
+    "momentum",
+    "momentum-scrolling",
+    "kinetic",
+    "kinetic-scrolling",
+    "ios-picker",
+    "mobile",
+    "xstate",
+    "framer-motion",
+    "typescript",
+    "collapsible",
+    "modal",
+    "ui-component",
+    "form-input"
   ],
-  "type": "module"
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/NullSense/Kinetic-Input.git",
+    "directory": "packages/number-picker"
+  },
+  "homepage": "https://github.com/NullSense/Kinetic-Input/tree/main/packages/number-picker",
+  "bugs": {
+    "url": "https://github.com/NullSense/Kinetic-Input/issues"
+  },
+  "license": "MIT",
+  "type": "module",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  }
 }

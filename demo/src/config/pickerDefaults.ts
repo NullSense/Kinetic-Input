@@ -13,7 +13,6 @@ export const DEMO_PICKER_DEFAULTS = {
   enableSnapPhysics: true,
   enableHaptics: true,
   enableAudioFeedback: true,
-  wheelMode: 'inverted' as const,
 
   // Visual
   itemHeight: 40,
