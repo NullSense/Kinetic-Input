@@ -1,6 +1,6 @@
 {
   "name": "@tensil/kinetic-input",
-  "version": "0.0.2",
+  "version": "0.0.4",
   "private": false,
   "description": "High-performance React number picker components with momentum scrolling, smart auto-close, and full theming support",
   "author": "NullSense",

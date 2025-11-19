@@ -10,11 +10,6 @@ interface DebugWindow extends Window {
   [key: string]: unknown; // Allow indexing by string
 }
 
-// Extend ImportMeta for env check
-interface ImportMetaWithEnv {
-  env?: { PROD?: boolean };
-}
-
 declare const window: DebugWindow;
 
 /**
@@ -94,20 +89,15 @@ class DebugLogger {
 /**
  * Check if we're in a production environment
  * Used to completely disable debug logging in production (tree-shaking)
+ *
+ * Note: Relies on process.env.NODE_ENV which bundlers (Vite, webpack, etc.)
+ * replace at build time. import.meta is intentionally NOT used to maintain
+ * compatibility with all JavaScript environments including StackBlitz/WebContainers.
  */
 const isProduction = (): boolean => {
   // Check process.env (bundlers replace this at build time)
   if (typeof process !== 'undefined' && process.env?.NODE_ENV === 'production') {
     return true;
-  }
-
-  // Check import.meta.env (Vite)
-  try {
-    if (typeof import.meta !== 'undefined' && (import.meta as ImportMetaWithEnv).env?.PROD) {
-      return true;
-    }
-  } catch {
-    // import.meta not available
   }
 
   return false;
