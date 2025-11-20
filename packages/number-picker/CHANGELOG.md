@@ -9,7 +9,51 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!-- Add new changes here before publishing -->
 
-## [0.1.1] - 2025-01 (Current)
+## [0.0.5] - 2025-01-20
+
+### Changed
+- Updated all dependencies to latest versions
+  - Upgraded `framer-motion` from ^11.11.11 to ^12.23.24 (major)
+  - Upgraded `vite` from ^6.4.1 to ^7.2.4 (major)
+  - Upgraded `@types/node` from ^22.19.1 to ^24.10.1 (major)
+  - Upgraded `typescript` from ~5.8.3 to ~5.9.3 (minor)
+  - Upgraded `xstate` from ^5.0.0 to ^5.24.0 (minor)
+  - Upgraded `vitest` and related tools from ^4.0.10 to ^4.0.12 (patch)
+  - Upgraded `tsup` from ^8.3.0 to ^8.5.1 (minor)
+  - Upgraded `knip`, `lint-staged`, and other dev dependencies to latest
+- Updated peer dependency for `framer-motion` to support both v11 and v12 (^11.0.0 || ^12.0.0)
+
+### Fixed
+- Fixed TypeScript compatibility issues with newer TypeScript 5.9
+- Removed deprecated `wheelMode` prop (now always enabled with auto-detection)
+- Fixed type imports for presenter ViewModels
+- Added `showBackdrop` and deprecated `wheelMode` to `CollapsiblePickerProps`
+- Fixed optional chaining in test assertions for stricter TypeScript checks
+
+## [0.0.4] - 2025-01 (Previous)
+
+### Added
+- Initial public release of `@tensil/kinetic-input`
+- `CollapsiblePicker` component with momentum scrolling
+- `Picker` component for list/range selection
+- Smart auto-close timing with configurable presets (instant/fast/balanced/patient)
+- XState v5 powered state machine for interaction tracking
+- Controlled and uncontrolled modes
+- Full theming support via `buildTheme` utility and theme prop
+- Custom render hooks for values and items
+- Optional snap physics for magnetic item alignment
+- Comprehensive TypeScript types
+- Debug logging system with namespace controls
+- CSS convenience bundle (`all.css`) for simplified imports
+- Comprehensive test suite (220+ tests passing)
+
+### Fixed
+- Infinite loop bug in Firefox when navigating between wizard steps
+- Inconsistent auto-close timing on repeated interactions
+- State machine interaction counter not resetting after natural auto-close
+- Unstable callback references causing unnecessary re-renders
+
+## [0.1.1] - 2025-01 (Legacy Reference)
 
 ### Added
 - Initial public release of `@tensil/kinetic-input`

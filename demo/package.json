@@ -12,24 +12,24 @@
     "@tensil/kinetic-input": "*",
     "@types/react-syntax-highlighter": "^15.5.13",
     "@xstate/react": "^6.0.0",
-    "framer-motion": "^11.11.11",
-    "lucide-react": "^0.546.0",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
+    "framer-motion": "^12.23.24",
+    "lucide-react": "^0.554.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
     "react-syntax-highlighter": "^16.1.0",
-    "xstate": "^5.0.0"
+    "xstate": "^5.24.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.17",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@vitejs/plugin-react": "^5.1.1",
-    "autoprefixer": "^10.4.20",
-    "postcss": "^8.4.49",
+    "autoprefixer": "^10.4.22",
+    "postcss": "^8.5.6",
     "tailwindcss": "^4.1.17",
     "typescript": "^5.9.3",
-    "vite": "^6.4.1",
+    "vite": "^7.2.4",
     "vite-plugin-pwa": "^1.1.0",
-    "workbox-window": "^7.3.0"
+    "workbox-window": "^7.4.0"
   }
 }

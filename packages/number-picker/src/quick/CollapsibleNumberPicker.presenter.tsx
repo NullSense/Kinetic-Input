@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { PickerBody } from './CollapsibleNumberPicker.pickerBody';
 import type { PickerBodyProps } from './CollapsibleNumberPicker.pickerBody';
-import type { CollapsibleNumberPickerTheme } from './types';
+import type { CollapsiblePickerTheme } from './types';
 import type { CSSProperties } from 'react';
 
 export type CSSVariableStyles = CSSProperties & Record<`--${string}`, string>;
@@ -72,7 +72,7 @@ export interface QuickNumberPresenterViewModel {
     pickerBodyProps: PickerBodyProps;
     valueDisplay: ValueDisplayProps;
     cssVariables: CSSVariableStyles;
-    theme: CollapsibleNumberPickerTheme;
+    theme: CollapsiblePickerTheme;
 }
 
 interface CollapsibleNumberPickerPresenterProps {

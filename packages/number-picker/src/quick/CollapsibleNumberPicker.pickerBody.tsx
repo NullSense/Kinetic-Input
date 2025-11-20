@@ -1,6 +1,6 @@
 import React, { useMemo, useCallback } from 'react';
 import { PickerGroup } from '../picker';
-import type { CollapsibleNumberPickerRenderItemState } from './types';
+import type { CollapsiblePickerRenderItemState } from './types';
 import type { SnapPhysicsConfig } from '../picker/types/snapPhysics';
 import type { PickerGestureHandler } from '../picker/gestures';
 import { usePickerConfig, usePickerData, type PickerOption } from '../picker';
@@ -11,7 +11,7 @@ const EMPTY_PROPS = {};
 export interface PickerBodyProps {
     values: string[];
     unit?: string;
-    renderItem: (value: string, state: CollapsibleNumberPickerRenderItemState) => React.ReactNode | undefined;
+    renderItem: (value: string, state: CollapsiblePickerRenderItemState) => React.ReactNode | undefined;
     hasCustomRenderItem: boolean;
     pickerWindowHeight: number;
     itemHeightPx: number;
@@ -20,7 +20,6 @@ export interface PickerBodyProps {
     onGesture: PickerGestureHandler;
     showPicker: boolean;
     snapConfig?: SnapPhysicsConfig;
-    wheelMode?: 'off' | 'natural' | 'inverted';
 }
 
 /**
@@ -41,7 +40,6 @@ export const PickerBody = React.memo(function PickerBody({
     onGesture,
     showPicker,
     snapConfig,
-    wheelMode = 'inverted',
 }: PickerBodyProps) {
     // Shared render function eliminates 10,000 function closures for scalability
     const sharedRender = useCallback(
@@ -72,7 +70,6 @@ export const PickerBody = React.memo(function PickerBody({
         <PickerGroup
             value={selectedValue}
             onChange={handleValueChange}
-            wheelMode={wheelMode}
             height={pickerWindowHeight}
             itemHeight={itemHeightPx}
         >
@@ -90,7 +87,7 @@ export const PickerBody = React.memo(function PickerBody({
 interface PickerValueRowProps {
     value: string;
     unit?: string;
-    renderItem: (value: string, state: CollapsibleNumberPickerRenderItemState) => React.ReactNode | undefined;
+    renderItem: (value: string, state: CollapsiblePickerRenderItemState) => React.ReactNode | undefined;
     hasCustomRenderItem: boolean;
     state: { selected: boolean; visuallySelected: boolean };
 }
@@ -107,7 +104,7 @@ export const PickerValueRow: React.FC<PickerValueRowProps> = React.memo(
         const derivedSelected = state.selected;
         const derivedVisuallySelected = state.visuallySelected;
 
-        const renderState: CollapsibleNumberPickerRenderItemState = useMemo(
+        const renderState: CollapsiblePickerRenderItemState = useMemo(
             () => ({
                 selected: derivedSelected,
                 visuallySelected: derivedVisuallySelected,
