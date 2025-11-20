@@ -25,7 +25,6 @@ Peer dependencies you must provide in your host app:
 
 - `react` / `react-dom` (18 or 19)
 - `framer-motion` (^11.0.0)
-- `lucide-react` (^0.546.0)
 - `xstate` (^5.0.0)
 - `@xstate/react` (^6.0.0)
 
@@ -132,17 +131,17 @@ export function SessionPicker({ value, onChange }) {
 | `placeholder` | `string` | `'—'` | Display when `value` is `undefined` |
 | `isOpen` | `boolean` | uncontrolled | Controlled open state |
 | `onRequestOpen` / `onRequestClose` | `() => void` | - | Required when `isOpen` is provided |
-| `showBackdrop` | `boolean` | `false` | Dim background when open |
 | `itemHeight` | `number` | `40` | Row height (px) |
 | `theme` | `Partial<CollapsiblePickerTheme>` | - | Override palette/typography |
 | `renderValue` / `renderItem` | custom renderers | default layout | Hook into value/item rendering |
 | `helperText` | `ReactNode` | - | Optional caption below the input |
 | `enableSnapPhysics` | `boolean` | `false` | Experimental magnetic snap for slow drags |
 | `snapPhysicsConfig` | `Partial<SnapPhysicsConfig>` | defaults | Override snap parameters |
-| `wheelSensitivity` | `number` | `1` | Mouse wheel scroll speed multiplier |
-| `wheelDeltaCap` | `number` | `1.25` | Maximum wheel delta per event (prevents jumps) |
+| `wheelSensitivity` | `number` | `1` | Wheel/trackpad scroll speed multiplier (higher = faster) |
+| `wheelDeltaCap` | `number` | `1.25` | Maximum wheel delta per frame in rows (prevents jumps) |
 | `enableHaptics` | `boolean` | `true` | Vibration feedback on selection (mobile) |
 | `enableAudioFeedback` | `boolean` | `true` | Audio clicks on selection |
+| `feedbackConfig` | `QuickPickerFeedbackConfig` | - | Override audio/haptic adapters or patterns |
 
 ### Theming
 
@@ -370,19 +369,20 @@ window.__QNI_DEBUG__ = true;           // CollapsiblePicker events
 window.__QNI_PICKER_DEBUG__ = true;    // Picker physics & pointer events
 window.__QNI_SNAP_DEBUG__ = true;      // Snap physics calculations
 window.__QNI_STATE_DEBUG__ = true;     // State machine transitions
-window.__QNI_WHEEL_DEBUG__ = true;     // Picker events
+window.__QNI_WHEEL_DEBUG__ = true;     // Wheel picker events
 window.__QNI_ANIMATION_DEBUG__ = true; // Animation lifecycle
 
 // Then reload the page
 location.reload();
 ```
 
-**Programmatically:**
+**Programmatically (before app initialization):**
 ```typescript
-// Debug utilities are available via browser console only
-// Set window.__QNI_DEBUG__ = true and other debug flags before your app loads
+// Set debug flags before your app loads
 if (typeof window !== 'undefined' && import.meta.env.DEV) {
   window.__QNI_DEBUG__ = true;
+  window.__QNI_SNAP_DEBUG__ = true;
+  // ... set other flags as needed
 }
 ```
 
