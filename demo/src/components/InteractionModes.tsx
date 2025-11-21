@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { motion, useMotionValue, useSpring, useAnimationControls } from 'framer-motion';
+import { motion, useAnimationControls } from 'framer-motion';
 import { CollapsiblePicker } from '@tensil/kinetic-input';
 import { MousePointerClick, MousePointer2, Timer, Pause, Play } from 'lucide-react';
 
@@ -17,20 +17,27 @@ import { MousePointerClick, MousePointer2, Timer, Pause, Play } from 'lucide-rea
  * - Timing badges and countdown displays
  */
 
-interface AnimatedCursorProps {
+interface AnimatedDemoProps {
   isPlaying: boolean;
   mode: 'quick' | 'browse';
+  onPickerStateChange: (isOpen: boolean) => void;
+  onValueChange: (value: number) => void;
+  initialValue: number;
+  targetValue: number;
 }
 
-function AnimatedCursor({ isPlaying, mode }: AnimatedCursorProps) {
-  const cursorX = useMotionValue(0);
-  const cursorY = useMotionValue(0);
-
-  // Smooth spring physics for cursor movement
-  const springConfig = { damping: 25, stiffness: 150 };
-  const smoothX = useSpring(cursorX, springConfig);
-  const smoothY = useSpring(cursorY, springConfig);
-
+/**
+ * Coordinated animation that controls both cursor movement and picker state.
+ * This demonstrates the interaction by actually opening the picker and changing values.
+ */
+function AnimatedDemo({
+  isPlaying,
+  mode,
+  onPickerStateChange,
+  onValueChange,
+  initialValue,
+  targetValue
+}: AnimatedDemoProps) {
   const controls = useAnimationControls();
 
   useEffect(() => {
@@ -41,84 +48,136 @@ function AnimatedCursor({ isPlaying, mode }: AnimatedCursorProps) {
 
     const animate = async () => {
       if (mode === 'quick') {
-        // Quick Pick Animation: Single drag and release
+        // === Quick Pick Animation: Single gesture with immediate close ===
+
+        // Reset to initial state
+        onPickerStateChange(false);
+        onValueChange(initialValue);
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        // Cursor appears and moves toward picker
         await controls.start({
-          x: [0, 0, 0],
-          y: [0, 20, 50],
-          scale: [1, 0.9, 1],
-          opacity: [0, 1, 1],
-          transition: { duration: 0.5, ease: 'easeOut' }
-        });
-
-        // Hold at end position
-        await controls.start({
-          x: 0,
-          y: 50,
-          scale: 1,
-          opacity: 1,
-          transition: { duration: 0.8 }
-        });
-
-        // Release and fade
-        await controls.start({
-          scale: [1, 1.1, 1],
-          opacity: [1, 0.5, 0],
-          transition: { duration: 0.4 }
-        });
-
-        // Wait before loop
-        await new Promise(resolve => setTimeout(resolve, 1500));
-
-        // Reset and restart
-        controls.set({ x: 0, y: 0, scale: 1, opacity: 0 });
-        animate();
-
-      } else {
-        // Browse Mode: Multiple scroll gestures
-        await controls.start({
+          y: [0, 15],
           opacity: [0, 1],
+          scale: 1,
+          transition: { duration: 0.3, ease: 'easeOut' }
+        });
+
+        // Picker opens as cursor "touches" it
+        onPickerStateChange(true);
+        await new Promise(resolve => setTimeout(resolve, 150));
+
+        // Single drag gesture - cursor moves down while value changes
+        const dragDuration = 600;
+        const dragPromise = controls.start({
+          y: [15, 50],
+          scale: [1, 0.9, 1],
+          transition: { duration: dragDuration / 1000, ease: 'easeInOut' }
+        });
+
+        // Gradually change value during drag (simulating scroll)
+        const steps = 8;
+        const valueStep = (targetValue - initialValue) / steps;
+        for (let i = 1; i <= steps; i++) {
+          await new Promise(resolve => setTimeout(resolve, dragDuration / steps));
+          onValueChange(Math.round(initialValue + valueStep * i));
+        }
+        await dragPromise;
+
+        // Hold at end position briefly
+        await new Promise(resolve => setTimeout(resolve, 200));
+
+        // Release - picker closes immediately (150ms after release in real component)
+        onPickerStateChange(false);
+
+        // Cursor fades out
+        await controls.start({
+          opacity: 0,
+          scale: 1.1,
           transition: { duration: 0.3 }
         });
 
-        // First scroll
-        await controls.start({
-          y: [0, 30],
-          scale: [1, 0.95, 1],
-          transition: { duration: 0.6, ease: 'easeInOut' }
-        });
-
-        await new Promise(resolve => setTimeout(resolve, 300));
-
-        // Second scroll
-        await controls.start({
-          y: [30, 60],
-          scale: [1, 0.95, 1],
-          transition: { duration: 0.6, ease: 'easeInOut' }
-        });
-
-        await new Promise(resolve => setTimeout(resolve, 300));
-
-        // Third scroll
-        await controls.start({
-          y: [60, 45],
-          scale: [1, 0.95, 1],
-          transition: { duration: 0.6, ease: 'easeInOut' }
-        });
-
-        // Pause (idle time)
-        await new Promise(resolve => setTimeout(resolve, 1200));
-
-        // Fade out
-        await controls.start({
-          opacity: 0,
-          transition: { duration: 0.4 }
-        });
-
-        // Wait before loop
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // Wait before looping
+        await new Promise(resolve => setTimeout(resolve, 1500));
 
         // Reset and restart
-        controls.set({ x: 0, y: 0, scale: 1, opacity: 0 });
+        controls.set({ y: 0, opacity: 0, scale: 1 });
+        animate();
+
+      } else {
+        // === Browse Mode: Multiple gestures with idle timeout ===
+
+        // Reset to initial state
+        onPickerStateChange(false);
+        onValueChange(initialValue);
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        // Cursor appears and moves toward picker
+        await controls.start({
+          y: 0,
+          opacity: [0, 1],
+          scale: 1,
+          transition: { duration: 0.3 }
+        });
+
+        // Picker opens as cursor "touches" it
+        onPickerStateChange(true);
+        await new Promise(resolve => setTimeout(resolve, 150));
+
+        // First scroll gesture
+        const scroll1Duration = 500;
+        const scroll1Promise = controls.start({
+          y: [0, 25],
+          scale: [1, 0.95, 1],
+          transition: { duration: scroll1Duration / 1000, ease: 'easeInOut' }
+        });
+        // Change value during first scroll
+        await new Promise(resolve => setTimeout(resolve, scroll1Duration / 2));
+        onValueChange(initialValue + Math.floor((targetValue - initialValue) * 0.3));
+        await scroll1Promise;
+
+        await new Promise(resolve => setTimeout(resolve, 300));
+
+        // Second scroll gesture
+        const scroll2Promise = controls.start({
+          y: [25, 50],
+          scale: [1, 0.95, 1],
+          transition: { duration: 0.5, ease: 'easeInOut' }
+        });
+        await new Promise(resolve => setTimeout(resolve, 250));
+        onValueChange(initialValue + Math.floor((targetValue - initialValue) * 0.7));
+        await scroll2Promise;
+
+        await new Promise(resolve => setTimeout(resolve, 300));
+
+        // Third scroll gesture (fine-tuning)
+        const scroll3Promise = controls.start({
+          y: [50, 40],
+          scale: [1, 0.95, 1],
+          transition: { duration: 0.5, ease: 'easeInOut' }
+        });
+        await new Promise(resolve => setTimeout(resolve, 250));
+        onValueChange(targetValue);
+        await scroll3Promise;
+
+        // Idle pause - picker stays open, cursor stationary
+        // (simulating the 2.5s idle timeout)
+        await new Promise(resolve => setTimeout(resolve, 1200));
+
+        // Picker auto-closes after idle timeout
+        onPickerStateChange(false);
+
+        // Cursor fades out
+        await controls.start({
+          opacity: 0,
+          transition: { duration: 0.3 }
+        });
+
+        // Wait before looping
+        await new Promise(resolve => setTimeout(resolve, 1200));
+
+        // Reset and restart
+        controls.set({ y: 0, opacity: 0, scale: 1 });
         animate();
       }
     };
@@ -127,18 +186,17 @@ function AnimatedCursor({ isPlaying, mode }: AnimatedCursorProps) {
 
     return () => {
       controls.stop();
+      // Clean up - close picker and reset value
+      onPickerStateChange(false);
+      onValueChange(initialValue);
     };
-  }, [isPlaying, mode, controls]);
+  }, [isPlaying, mode, controls, onPickerStateChange, onValueChange, initialValue, targetValue]);
 
   return (
     <motion.div
       animate={controls}
-      style={{
-        x: smoothX,
-        y: smoothY,
-      }}
       className="absolute pointer-events-none z-50"
-      initial={{ x: 0, y: 0, scale: 1, opacity: 0 }}
+      initial={{ y: 0, opacity: 0, scale: 1 }}
     >
       {/* Cursor SVG */}
       <svg
@@ -168,7 +226,7 @@ function AnimatedCursor({ isPlaying, mode }: AnimatedCursorProps) {
         transition={{
           duration: 0.6,
           repeat: Infinity,
-          repeatDelay: mode === 'quick' ? 2.7 : 2.5,
+          repeatDelay: mode === 'quick' ? 2.7 : 3.5,
         }}
       />
     </motion.div>
@@ -204,9 +262,14 @@ function TimingBadge({ time, label, isActive }: TimingBadgeProps) {
 }
 
 export function InteractionModes() {
+  // Quick Pick state
   const [quickValue, setQuickValue] = useState(70);
-  const [browseValue, setBrowseValue] = useState(12);
+  const [quickIsOpen, setQuickIsOpen] = useState(false);
   const [quickPlaying, setQuickPlaying] = useState(true);
+
+  // Browse Mode state
+  const [browseValue, setBrowseValue] = useState(12);
+  const [browseIsOpen, setBrowseIsOpen] = useState(false);
   const [browsePlaying, setBrowsePlaying] = useState(true);
 
   return (
@@ -224,8 +287,8 @@ export function InteractionModes() {
             TWO INTERACTION MODES
           </h2>
           <p className="text-lg text-muted max-w-2xl mx-auto">
-            Users naturally discover and switch between quick selection and browsing modes.
-            Both work seamlessly with smart auto-close timing.
+            Watch the automated demo or interact with the pickers yourself!
+            The component automatically adapts between quick selection and browsing modes.
           </p>
         </motion.div>
 
@@ -265,21 +328,31 @@ export function InteractionModes() {
               </button>
             </div>
 
-            {/* Picker with Animated Overlay */}
+            {/* Picker with Animated Demo */}
             <div className="relative mb-4x" style={{ minHeight: '120px' }}>
-              {/* Animated Cursor Overlay */}
+              {/* Animated Demo - coordinates cursor and picker interaction */}
               {quickPlaying && (
                 <div className="absolute inset-0 flex items-start justify-center pt-8 pointer-events-none z-10">
-                  <AnimatedCursor isPlaying={quickPlaying} mode="quick" />
+                  <AnimatedDemo
+                    isPlaying={quickPlaying}
+                    mode="quick"
+                    onPickerStateChange={setQuickIsOpen}
+                    onValueChange={setQuickValue}
+                    initialValue={70}
+                    targetValue={95}
+                  />
                 </div>
               )}
 
-              {/* Real Picker */}
+              {/* Real Picker - controlled by animation when playing, user when paused */}
               <div className="relative z-0">
                 <CollapsiblePicker
                   label="Weight"
                   value={quickValue}
                   onChange={setQuickValue}
+                  isOpen={quickPlaying ? quickIsOpen : undefined}
+                  onRequestOpen={quickPlaying ? undefined : () => setQuickIsOpen(true)}
+                  onRequestClose={quickPlaying ? undefined : () => setQuickIsOpen(false)}
                   unit="kg"
                   min={40}
                   max={120}
@@ -336,21 +409,31 @@ export function InteractionModes() {
               </button>
             </div>
 
-            {/* Picker with Animated Overlay */}
+            {/* Picker with Animated Demo */}
             <div className="relative mb-4x" style={{ minHeight: '120px' }}>
-              {/* Animated Cursor Overlay */}
+              {/* Animated Demo - coordinates cursor and picker interaction */}
               {browsePlaying && (
                 <div className="absolute inset-0 flex items-start justify-center pt-8 pointer-events-none z-10">
-                  <AnimatedCursor isPlaying={browsePlaying} mode="browse" />
+                  <AnimatedDemo
+                    isPlaying={browsePlaying}
+                    mode="browse"
+                    onPickerStateChange={setBrowseIsOpen}
+                    onValueChange={setBrowseValue}
+                    initialValue={12}
+                    targetValue={20}
+                  />
                 </div>
               )}
 
-              {/* Real Picker */}
+              {/* Real Picker - controlled by animation when playing, user when paused */}
               <div className="relative z-0">
                 <CollapsiblePicker
                   label="Reps"
                   value={browseValue}
                   onChange={setBrowseValue}
+                  isOpen={browsePlaying ? browseIsOpen : undefined}
+                  onRequestOpen={browsePlaying ? undefined : () => setBrowseIsOpen(true)}
+                  onRequestClose={browsePlaying ? undefined : () => setBrowseIsOpen(false)}
                   unit="reps"
                   min={1}
                   max={30}
