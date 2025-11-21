@@ -310,7 +310,8 @@ export const useGestureCoordination = ({
                     break;
                 case 'value:visual':
                 case 'value:commit':
-                    // Visual value changes are handled by the picker itself
+                case 'value:settle':
+                    // Visual value changes and settle events are handled by the picker itself
                     break;
                 default:
                     // Exhaustiveness check

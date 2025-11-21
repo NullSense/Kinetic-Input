@@ -7,7 +7,7 @@ declare global {
   // eslint-disable-next-line no-var
   var __triggerPickerChange: ((newValue: string) => void) | undefined;
   // eslint-disable-next-line no-var
-  var AudioContext: typeof MockAudioContext | undefined;
+  var AudioContext: (new () => unknown) | undefined;
 }
 
 type MockPickerProps = {
@@ -32,11 +32,10 @@ vi.mock('../../picker', () => {
     return <div data-testid="mock-picker" data-height={height} data-itemheight={itemHeight}>{children}</div>
   }
   Default.Column = ({ children }: MockChildProps) => <div data-testid="mock-column">{children}</div>
-  Default.Item = ({ children }: MockChildProps) => (
-    <div data-testid="mock-item">
-      {typeof children === 'function' ? children({ selected: false, visuallySelected: false }) : children}
-    </div>
-  )
+  Default.Item = ({ children }: MockChildProps) => {
+    const content = typeof children === 'function' ? children({ selected: false, visuallySelected: false }) : children;
+    return <div data-testid="mock-item">{content}</div>;
+  }
 
   // Expose method to trigger value change in tests
   globalThis.__triggerPickerChange = (newValue: string) => {
