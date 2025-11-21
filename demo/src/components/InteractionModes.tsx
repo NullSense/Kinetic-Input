@@ -14,7 +14,7 @@ import { MousePointerClick, MousePointer2, Timer, Pause, Play } from 'lucide-rea
  * - Real working pickers users can interact with
  * - Animated cursor overlays showing typical usage patterns
  * - Looping animations with pause/play controls
- * - Timing badges and countdown displays
+ * - Synchronized cursor position and value changes
  */
 
 interface AnimatedDemoProps {
@@ -26,9 +26,11 @@ interface AnimatedDemoProps {
   targetValue: number;
 }
 
+type CursorType = 'pointer' | 'wheel';
+
 /**
- * Coordinated animation that controls both cursor movement and picker state.
- * This demonstrates the interaction by actually opening the picker and changing values.
+ * Coordinated animation with perfect sync between cursor position and picker value.
+ * Uses motion values to ensure cursor Y maps directly to the displayed value.
  */
 function AnimatedDemo({
   isPlaying,
@@ -39,6 +41,7 @@ function AnimatedDemo({
   targetValue
 }: AnimatedDemoProps) {
   const controls = useAnimationControls();
+  const [cursorType, setCursorType] = useState<CursorType>('pointer');
 
   useEffect(() => {
     if (!isPlaying) {
@@ -48,74 +51,120 @@ function AnimatedDemo({
 
     const animate = async () => {
       if (mode === 'quick') {
-        // === Quick Pick Animation: Single dramatic flick gesture ===
+        // === Quick Pick: Two smooth gestures (down, then up) ===
 
-        // Reset to initial state
+        // Reset
         onPickerStateChange(false);
         onValueChange(initialValue);
+        setCursorType('pointer');
         await new Promise(resolve => setTimeout(resolve, 100));
 
-        // Cursor appears and moves toward picker
+        // Cursor appears
         await controls.start({
-          y: [0, 20],
+          y: 0,
           opacity: [0, 1],
           scale: 1,
           transition: { duration: 0.3, ease: 'easeOut' }
         });
 
-        // Picker opens as cursor "touches" it
+        // === First gesture: Smooth drag DOWN (increase value) ===
+
+        // Open picker
         onPickerStateChange(true);
-        await new Promise(resolve => setTimeout(resolve, 200));
-
-        // Single FLICK gesture - fast dramatic drag with momentum
-        const flickDuration = 800;
-        const flickPromise = controls.start({
-          y: [20, 120],  // Much larger movement (was 15->50, now 20->120)
-          scale: [1, 0.85, 1],  // More pronounced scale
-          transition: {
-            duration: flickDuration / 1000,
-            ease: [0.2, 0.8, 0.3, 1] as [number, number, number, number] // Fast start, momentum feel
-          }
-        });
-
-        // Gradually change value during flick - many steps for smooth animation
-        const steps = 12;  // More steps for smoother value changes
-        const valueStep = (targetValue - initialValue) / steps;
-        for (let i = 1; i <= steps; i++) {
-          await new Promise(resolve => setTimeout(resolve, flickDuration / steps));
-          onValueChange(Math.round(initialValue + valueStep * i));
-        }
-        await flickPromise;
-
-        // Brief momentum settle
         await new Promise(resolve => setTimeout(resolve, 150));
 
-        // Release - picker closes immediately (150ms after release in real component)
+        // Slow smooth drag down: 0 -> 80px, value: 70 -> 110
+        const drag1Duration = 1200; // Slower for smoothness
+        const drag1Steps = 40; // Many steps for smooth tracking
+        const drag1YStart = 0;
+        const drag1YEnd = 80;
+        const drag1ValueStart = initialValue;
+        const drag1ValueEnd = targetValue;
+
+        const drag1Promise = controls.start({
+          y: [drag1YStart, drag1YEnd],
+          scale: [1, 0.9, 0.9],
+          transition: { duration: drag1Duration / 1000, ease: 'linear' } // Linear for consistent speed
+        });
+
+        // Sync value changes with cursor position
+        for (let i = 0; i <= drag1Steps; i++) {
+          const progressPct = i / drag1Steps;
+          const newValue = Math.round(drag1ValueStart + (drag1ValueEnd - drag1ValueStart) * progressPct);
+          onValueChange(newValue);
+          await new Promise(resolve => setTimeout(resolve, drag1Duration / drag1Steps));
+        }
+        await drag1Promise;
+
+        // Release - picker closes
+        await new Promise(resolve => setTimeout(resolve, 100));
         onPickerStateChange(false);
 
-        // Cursor fades out
+        // Hold briefly
+        await new Promise(resolve => setTimeout(resolve, 300));
+
+        // === Second gesture: Smooth drag UP (decrease value) ===
+
+        // Cursor moves up to starting position
+        await controls.start({
+          y: -10,
+          scale: 1,
+          transition: { duration: 0.3, ease: 'easeInOut' }
+        });
+
+        // Open picker again
+        onPickerStateChange(true);
+        await new Promise(resolve => setTimeout(resolve, 150));
+
+        // Smooth drag up: -10 -> 60px, value: 110 -> 75
+        const drag2Duration = 1000;
+        const drag2Steps = 35;
+        const drag2YStart = -10;
+        const drag2YEnd = 60;
+        const drag2ValueStart = targetValue;
+        const drag2ValueEnd = 75;
+
+        const drag2Promise = controls.start({
+          y: [drag2YStart, drag2YEnd],
+          scale: [1, 0.9, 0.9],
+          transition: { duration: drag2Duration / 1000, ease: 'linear' }
+        });
+
+        for (let i = 0; i <= drag2Steps; i++) {
+          const progressPct = i / drag2Steps;
+          const newValue = Math.round(drag2ValueStart + (drag2ValueEnd - drag2ValueStart) * progressPct);
+          onValueChange(newValue);
+          await new Promise(resolve => setTimeout(resolve, drag2Duration / drag2Steps));
+        }
+        await drag2Promise;
+
+        // Release - picker closes
+        await new Promise(resolve => setTimeout(resolve, 100));
+        onPickerStateChange(false);
+
+        // Fade out
         await controls.start({
           opacity: 0,
           scale: 1.1,
           transition: { duration: 0.3 }
         });
 
-        // Wait before looping
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        await new Promise(resolve => setTimeout(resolve, 800));
 
-        // Reset and restart
+        // Reset
         controls.set({ y: 0, opacity: 0, scale: 1 });
         animate();
 
       } else {
-        // === Browse Mode: Multiple dramatic gestures exploring values ===
+        // === Browse Mode: Drag, release, drag back, then scroll wheel ===
 
-        // Reset to initial state
+        // Reset
         onPickerStateChange(false);
         onValueChange(initialValue);
+        setCursorType('pointer');
         await new Promise(resolve => setTimeout(resolve, 100));
 
-        // Cursor appears and moves toward picker
+        // Cursor appears
         await controls.start({
           y: 0,
           opacity: [0, 1],
@@ -123,105 +172,118 @@ function AnimatedDemo({
           transition: { duration: 0.3 }
         });
 
-        // Picker opens as cursor "touches" it
+        // Open picker
         onPickerStateChange(true);
-        await new Promise(resolve => setTimeout(resolve, 200));
+        await new Promise(resolve => setTimeout(resolve, 150));
 
-        // First scroll DOWN - exploring higher values
-        const scroll1Duration = 600;
-        const scroll1Promise = controls.start({
-          y: [0, 60],  // Larger movement
-          scale: [1, 0.92, 1],
-          transition: { duration: scroll1Duration / 1000, ease: 'easeInOut' }
+        // === Gesture 1: Drag DOWN (pointer) ===
+        const drag1Duration = 800;
+        const drag1Steps = 30;
+        const drag1YStart = 0;
+        const drag1YEnd = 70;
+        const drag1ValueStart = initialValue; // 12
+        const drag1ValueEnd = 22; // +10
+
+        const drag1Promise = controls.start({
+          y: [drag1YStart, drag1YEnd],
+          scale: [1, 0.9, 0.95],
+          transition: { duration: drag1Duration / 1000, ease: 'easeOut' }
         });
-        // Gradually change value (go from 12 to 22)
-        for (let i = 0; i <= 5; i++) {
-          await new Promise(resolve => setTimeout(resolve, scroll1Duration / 5));
-          onValueChange(initialValue + i * 2);
+
+        for (let i = 0; i <= drag1Steps; i++) {
+          const progressPct = i / drag1Steps;
+          const newValue = Math.round(drag1ValueStart + (drag1ValueEnd - drag1ValueStart) * progressPct);
+          onValueChange(newValue);
+          await new Promise(resolve => setTimeout(resolve, drag1Duration / drag1Steps));
         }
-        await scroll1Promise;
+        await drag1Promise;
 
-        await new Promise(resolve => setTimeout(resolve, 250));
-
-        // Second scroll UP - changed mind, going back down
-        const scroll2Duration = 700;
-        const scroll2Promise = controls.start({
-          y: [60, -20],  // Big upward scroll
-          scale: [1, 0.9, 1],
-          transition: { duration: scroll2Duration / 1000, ease: 'easeInOut' }
+        // Release (but picker stays open - browse mode)
+        await controls.start({
+          scale: 1,
+          transition: { duration: 0.2 }
         });
-        // Go back down (22 to 8)
-        for (let i = 0; i <= 7; i++) {
-          await new Promise(resolve => setTimeout(resolve, scroll2Duration / 7));
-          onValueChange(22 - i * 2);
-        }
-        await scroll2Promise;
-
         await new Promise(resolve => setTimeout(resolve, 300));
 
-        // Third scroll - FLICK down fast (browsing quickly)
-        const flickDuration = 500;
-        const flickPromise = controls.start({
-          y: [-20, 80],  // Fast dramatic flick
-          scale: [1, 0.88, 1],
-          transition: {
-            duration: flickDuration / 1000,
-            ease: [0.15, 0.85, 0.25, 1] as [number, number, number, number] // Momentum feel
+        // === Gesture 2: Drag UP (pointer - changed mind) ===
+        const drag2Duration = 900;
+        const drag2Steps = 35;
+        const drag2YStart = 70;
+        const drag2YEnd = -10;
+        const drag2ValueStart = 22;
+        const drag2ValueEnd = 8; // Go below initial
+
+        const drag2Promise = controls.start({
+          y: [drag2YStart, drag2YEnd],
+          scale: [1, 0.9, 0.95],
+          transition: { duration: drag2Duration / 1000, ease: 'easeOut' }
+        });
+
+        for (let i = 0; i <= drag2Steps; i++) {
+          const progressPct = i / drag2Steps;
+          const newValue = Math.round(drag2ValueStart + (drag2ValueEnd - drag2ValueStart) * progressPct);
+          onValueChange(newValue);
+          await new Promise(resolve => setTimeout(resolve, drag2Duration / drag2Steps));
+        }
+        await drag2Promise;
+
+        // Release
+        await controls.start({
+          scale: 1,
+          transition: { duration: 0.2 }
+        });
+        await new Promise(resolve => setTimeout(resolve, 400));
+
+        // === Gesture 3: SCROLL WHEEL (change cursor to wheel icon) ===
+        setCursorType('wheel');
+
+        // Position cursor in center
+        await controls.start({
+          y: 30,
+          transition: { duration: 0.3, ease: 'easeInOut' }
+        });
+
+        await new Promise(resolve => setTimeout(resolve, 200));
+
+        // Scroll wheel action: multiple small scrolls to target value
+        // Scroll down (increase values)
+        const scrollDuration = 1200;
+        const scrollSteps = 24;
+        const scrollValueStart = 8;
+        const scrollValueEnd = targetValue; // 20
+
+        for (let i = 0; i <= scrollSteps; i++) {
+          const progressPct = i / scrollSteps;
+          const newValue = Math.round(scrollValueStart + (scrollValueEnd - scrollValueStart) * progressPct);
+          onValueChange(newValue);
+
+          // Subtle pulse animation for wheel scrolling
+          if (i % 4 === 0) {
+            controls.start({
+              scale: [1, 0.95, 1],
+              transition: { duration: 0.15 }
+            });
           }
-        });
-        // Fast value changes during flick (8 to 26)
-        for (let i = 0; i <= 9; i++) {
-          await new Promise(resolve => setTimeout(resolve, flickDuration / 9));
-          onValueChange(8 + i * 2);
+
+          await new Promise(resolve => setTimeout(resolve, scrollDuration / scrollSteps));
         }
-        await flickPromise;
 
-        await new Promise(resolve => setTimeout(resolve, 250));
+        // Idle pause - picker stays open
+        await new Promise(resolve => setTimeout(resolve, 900));
 
-        // Fourth scroll UP - fine-tuning to find the right value
-        const fineTuneDuration = 600;
-        const fineTunePromise = controls.start({
-          y: [80, 40],  // Scroll back up a bit
-          scale: [1, 0.93, 1],
-          transition: { duration: fineTuneDuration / 1000, ease: 'easeInOut' }
-        });
-        // Settle on target value (26 to targetValue)
-        const settleSteps = 4;
-        const settleValueStep = (targetValue - 26) / settleSteps;
-        for (let i = 0; i <= settleSteps; i++) {
-          await new Promise(resolve => setTimeout(resolve, fineTuneDuration / settleSteps));
-          onValueChange(Math.round(26 + settleValueStep * i));
-        }
-        await fineTunePromise;
-
-        // Fifth scroll - tiny adjustment (showing precision)
-        await new Promise(resolve => setTimeout(resolve, 200));
-        const tinyAdjustPromise = controls.start({
-          y: [40, 45],
-          scale: [1, 0.97, 1],
-          transition: { duration: 0.4, ease: 'easeInOut' }
-        });
-        await new Promise(resolve => setTimeout(resolve, 200));
-        onValueChange(targetValue);
-        await tinyAdjustPromise;
-
-        // Idle pause - picker stays open, cursor stationary
-        // (demonstrating the 2.5s idle timeout)
-        await new Promise(resolve => setTimeout(resolve, 1000));
-
-        // Picker auto-closes after idle timeout
+        // Picker auto-closes after idle
         onPickerStateChange(false);
 
-        // Cursor fades out
+        // Fade out
         await controls.start({
           opacity: 0,
           transition: { duration: 0.3 }
         });
 
-        // Wait before looping
-        await new Promise(resolve => setTimeout(resolve, 1200));
+        await new Promise(resolve => setTimeout(resolve, 600));
 
-        // Reset and restart
+        // Reset
+        setCursorType('pointer');
         controls.set({ y: 0, opacity: 0, scale: 1 });
         animate();
       }
@@ -231,7 +293,6 @@ function AnimatedDemo({
 
     return () => {
       controls.stop();
-      // Clean up - close picker and reset value
       onPickerStateChange(false);
       onValueChange(initialValue);
     };
@@ -243,23 +304,67 @@ function AnimatedDemo({
       className="absolute pointer-events-none z-50"
       initial={{ y: 0, opacity: 0, scale: 1 }}
     >
-      {/* Cursor SVG */}
-      <svg
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        className="drop-shadow-lg"
-      >
-        <motion.path
-          d="M3 3L10.07 19.97L12.58 12.58L19.97 10.07L3 3Z"
-          fill="currentColor"
-          className="text-accent"
-          stroke="white"
-          strokeWidth="1"
-        />
-      </svg>
+      {cursorType === 'pointer' ? (
+        // Pointer cursor SVG
+        <svg
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          className="drop-shadow-lg"
+        >
+          <motion.path
+            d="M3 3L10.07 19.97L12.58 12.58L19.97 10.07L3 3Z"
+            fill="currentColor"
+            className="text-accent"
+            stroke="white"
+            strokeWidth="1"
+          />
+        </svg>
+      ) : (
+        // Scroll wheel cursor
+        <div className="relative drop-shadow-lg">
+          <svg
+            width="28"
+            height="36"
+            viewBox="0 0 28 36"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            {/* Mouse body */}
+            <rect
+              x="4"
+              y="2"
+              width="20"
+              height="30"
+              rx="10"
+              fill="currentColor"
+              className="text-accent"
+              stroke="white"
+              strokeWidth="1.5"
+            />
+            {/* Scroll wheel indicator */}
+            <motion.rect
+              x="12"
+              y="8"
+              width="4"
+              height="8"
+              rx="2"
+              fill="white"
+              animate={{
+                y: [8, 12, 8],
+                opacity: [1, 0.6, 1],
+              }}
+              transition={{
+                duration: 0.8,
+                repeat: Infinity,
+                ease: 'easeInOut',
+              }}
+            />
+          </svg>
+        </div>
+      )}
 
       {/* Click ripple effect */}
       <motion.div
@@ -271,7 +376,7 @@ function AnimatedDemo({
         transition={{
           duration: 0.6,
           repeat: Infinity,
-          repeatDelay: mode === 'quick' ? 2.8 : 5.5,  // Adjusted for longer animations
+          repeatDelay: mode === 'quick' ? 3.2 : 4.5,
         }}
       />
     </motion.div>
@@ -355,7 +460,7 @@ export function InteractionModes() {
                   <h3 className="font-display text-2xl text-fg">Quick Pick</h3>
                 </div>
                 <p className="text-sm text-muted">
-                  Single flick gesture → Auto-closes immediately
+                  Smooth gestures → Auto-closes immediately
                 </p>
               </div>
 
@@ -375,7 +480,7 @@ export function InteractionModes() {
 
             {/* Picker with Animated Demo */}
             <div className="relative mb-4x" style={{ minHeight: '120px' }}>
-              {/* Animated Demo - coordinates cursor and picker interaction */}
+              {/* Animated Demo - perfectly synced cursor and values */}
               {quickPlaying && (
                 <div className="absolute inset-0 flex items-start justify-center pt-8 pointer-events-none z-10">
                   <AnimatedDemo
@@ -410,9 +515,9 @@ export function InteractionModes() {
             <div className="flex flex-col gap-3x">
               <TimingBadge time="150ms" label="after release" isActive />
               <div className="text-xs text-muted">
-                ✓ One flick or drag → Release → Closes in 150ms
+                ✓ Smooth drag gestures → Release → Closes in 150ms
                 <br />
-                ✓ Perfect for quick adjustments with momentum
+                ✓ Perfect for quick adjustments in both directions
               </div>
             </div>
 
@@ -456,7 +561,7 @@ export function InteractionModes() {
 
             {/* Picker with Animated Demo */}
             <div className="relative mb-4x" style={{ minHeight: '120px' }}>
-              {/* Animated Demo - coordinates cursor and picker interaction */}
+              {/* Animated Demo - perfectly synced cursor and values */}
               {browsePlaying && (
                 <div className="absolute inset-0 flex items-start justify-center pt-8 pointer-events-none z-10">
                   <AnimatedDemo
@@ -491,7 +596,7 @@ export function InteractionModes() {
             <div className="flex flex-col gap-3x">
               <TimingBadge time="2.5s" label="idle timeout" isActive />
               <div className="text-xs text-muted">
-                ✓ Multiple gestures: scroll, flick, explore, fine-tune
+                ✓ Drag, release, drag back, scroll wheel
                 <br />
                 ✓ Auto-closes after 2.5s of inactivity
               </div>
