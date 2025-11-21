@@ -63,7 +63,7 @@ export const TIMING_PRESETS = {
   balanced: {
     settleGracePeriod: 150,
     wheelIdleTimeout: 800,
-    idleTimeout: 4000,
+    idleTimeout: 2500,
     watchdogTimeout: 1000,
   },
 

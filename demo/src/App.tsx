@@ -1,6 +1,7 @@
 import { Navigation } from './components/Navigation';
 import { Hero } from './components/Hero';
 import { CodeSnippets } from './components/CodeSnippets';
+import { TimingBehavior } from './components/TimingBehavior';
 import { ComponentShowcase } from './components/ComponentShowcase';
 import { PresetsGallery } from './components/PresetsGallery';
 import { Footer } from './components/Footer';
@@ -15,6 +16,7 @@ function App() {
       <main className="min-h-screen bg-bg text-fg">
         <Hero />
         <CodeSnippets />
+        <TimingBehavior />
         <ComponentShowcase />
         <PresetsGallery />
       </main>
