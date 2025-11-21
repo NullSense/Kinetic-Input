@@ -56,7 +56,7 @@ describe('PickerValueRow', () => {
                 <PickerValueRow
                     value="15"
                     {...baseProps}
-                    state={{ selected: false, visuallySelected: false }}
+                    state={{ selected: true, visuallySelected: false }}
                 />
             </TestWrapper>
         );

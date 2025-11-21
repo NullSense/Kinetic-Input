@@ -168,8 +168,8 @@ describe('CollapsiblePicker - Audio Feedback Configuration', () => {
       state: 'running',
       currentTime: 0,
       destination: {},
-      createOscillator: createOscillatorSpy,
-      createGain: createGainSpy,
+      createOscillator: createOscillatorSpy as () => MockOscillator,
+      createGain: createGainSpy as () => MockGainNode,
       resume: vi.fn().mockResolvedValue(undefined),
       close: vi.fn().mockResolvedValue(undefined),
     };
