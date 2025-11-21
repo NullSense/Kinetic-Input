@@ -189,8 +189,9 @@ function AnimatedDemo({
         // Open picker after click
         onPickerStateChange(true);
 
-        // Wait 0.3s before starting to browse
-        await new Promise(resolve => setTimeout(resolve, 300));
+        // Wait IDLE - demonstrating the 2.5s idle timeout before any interaction
+        // This shows: click to open, picker stays open, waiting for user input
+        await new Promise(resolve => setTimeout(resolve, 1500));
 
         // === Gesture 1: Drag DOWN (pointer) ===
         const drag1Duration = 800;
@@ -281,8 +282,8 @@ function AnimatedDemo({
           await new Promise(resolve => setTimeout(resolve, scrollDuration / scrollSteps));
         }
 
-        // Idle pause - picker stays open
-        await new Promise(resolve => setTimeout(resolve, 900));
+        // Idle pause - picker stays open for the full 2.5s timeout
+        await new Promise(resolve => setTimeout(resolve, 2500));
 
         // Picker auto-closes after idle
         onPickerStateChange(false);
@@ -389,7 +390,7 @@ function AnimatedDemo({
         transition={{
           duration: 0.6,
           repeat: Infinity,
-          repeatDelay: mode === 'quick' ? 3.2 : 4.5,
+          repeatDelay: mode === 'quick' ? 3.2 : 9.0,
         }}
       />
     </motion.div>
