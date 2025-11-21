@@ -167,7 +167,6 @@ export interface CollapsiblePickerProps {
     timingPreset?: TimingPreset;
     timingConfig?: Readonly<TimingConfig>;
     visualTweaks?: CollapsiblePickerVisualTweaks;
-    showBackdrop?: boolean;
     /** @deprecated wheelMode is no longer supported - wheel scrolling is always enabled */
     wheelMode?: 'off' | 'natural' | 'inverted';
 }

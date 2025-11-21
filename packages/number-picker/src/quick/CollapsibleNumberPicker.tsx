@@ -37,7 +37,6 @@ const CollapsibleNumberPickerComponent: React.FC<CollapsiblePickerProps> = ({
     isOpen: controlledIsOpen,
     onRequestOpen,
     onRequestClose,
-    showBackdrop = false,
     itemHeight: itemHeightProp,
     theme: themeOverrides,
     renderValue,
@@ -155,10 +154,6 @@ const CollapsibleNumberPickerComponent: React.FC<CollapsiblePickerProps> = ({
         playConfirmationIfChanged,
     });
 
-    const handleBackdropClick = useCallback(() => {
-        handlePickerClose('backdrop-click');
-    }, [handlePickerClose]);
-
     useEffect(() => {
         if (process.env.NODE_ENV === 'development') {
             if (isControlled && !onRequestOpen) {
@@ -270,7 +265,6 @@ const CollapsibleNumberPickerComponent: React.FC<CollapsiblePickerProps> = ({
         },
         pickerState: {
             showPicker,
-            showBackdrop,
             selectedIndex,
             totalValues,
         },
@@ -282,7 +276,6 @@ const CollapsibleNumberPickerComponent: React.FC<CollapsiblePickerProps> = ({
         },
         refs: { wrapperRef, interactiveRef, pickerRef, highlightRef },
         handlers: {
-            onBackdropClick: handleBackdropClick,
             onPointerDown: handlePointerDown,
             onKeyDown: handleKeyDown,
         },
@@ -318,7 +311,6 @@ const CollapsibleNumberPicker = React.memo(
             prevProps.lastValue !== nextProps.lastValue ||
             prevProps.initialValue !== nextProps.initialValue ||
             prevProps.isOpen !== nextProps.isOpen ||
-            prevProps.showBackdrop !== nextProps.showBackdrop ||
             prevProps.itemHeight !== nextProps.itemHeight ||
             prevProps.enableSnapPhysics !== nextProps.enableSnapPhysics ||
             prevProps.enableHaptics !== nextProps.enableHaptics ||

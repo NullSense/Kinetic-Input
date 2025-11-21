@@ -169,11 +169,6 @@ const CollapsiblePicker: React.FC<CollapsiblePickerProps> = ({
         playConfirmationIfChanged,
     });
 
-    // Note: CollapsiblePicker doesn't render a backdrop, but the ViewModel interface requires this handler
-    const handleBackdropClick = useCallback(() => {
-        // No-op: backdrop not used in this variant
-    }, []);
-
     useEffect(() => {
         if (process.env.NODE_ENV === 'development') {
             if (isControlled && !onRequestOpen) {
@@ -304,7 +299,6 @@ const CollapsiblePicker: React.FC<CollapsiblePickerProps> = ({
         },
         refs: { wrapperRef, interactiveRef, pickerRef, highlightRef },
         handlers: {
-            onBackdropClick: handleBackdropClick,
             onPointerDown: handlePointerDown,
             onKeyDown: handleKeyDown,
         },

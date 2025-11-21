@@ -44,13 +44,11 @@ export interface LayoutProps {
 
 export interface PickerStateProps {
     showPicker: boolean;
-    showBackdrop: boolean;
     selectedIndex: number;
     totalValues: number;
 }
 
 export interface InteractionHandlers {
-    onBackdropClick: () => void;
     onPointerDown: (event: React.PointerEvent) => void;
     onKeyDown: React.KeyboardEventHandler;
 }
@@ -113,8 +111,8 @@ export function CollapsibleNumberPickerPresenter({ viewModel }: CollapsibleNumbe
     } = ariaProps;
     const { wrapperRef, interactiveRef, pickerRef, highlightRef } = refs;
     const { collapsedHeight, pickerWindowHeight, pickerTranslate } = layout;
-    const { showPicker, showBackdrop, selectedIndex, totalValues } = pickerState;
-    const { onBackdropClick, onPointerDown, onKeyDown } = handlers;
+    const { showPicker, selectedIndex, totalValues } = pickerState;
+    const { onPointerDown, onKeyDown } = handlers;
     const { valueNode, maxSampleString } = valueDisplay;
     const closedHasValue = currentValue !== undefined;
 
@@ -215,7 +213,6 @@ export function CollapsibleNumberPickerPresenter({ viewModel }: CollapsibleNumbe
                     </div>
                 </div>
 
-                {showPicker && showBackdrop && <div className="picker-backdrop" onClick={onBackdropClick} />}
 
                 <div
                     className={`absolute top-0 left-0 right-0 overflow-hidden focus:outline-none ${
