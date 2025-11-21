@@ -73,9 +73,9 @@ function AnimatedDemo({
         onPickerStateChange(true);
         await new Promise(resolve => setTimeout(resolve, 150));
 
-        // Slow smooth drag down: 0 -> 80px, value: 70 -> 110
-        const drag1Duration = 1200; // Slower for smoothness
-        const drag1Steps = 40; // Many steps for smooth tracking
+        // Smooth drag down: 0 -> 80px, value: 70 -> 110
+        const drag1Duration = 800;
+        const drag1Steps = 30;
         const drag1YStart = 0;
         const drag1YEnd = 80;
         const drag1ValueStart = initialValue;
@@ -83,8 +83,8 @@ function AnimatedDemo({
 
         const drag1Promise = controls.start({
           y: [drag1YStart, drag1YEnd],
-          scale: [1, 0.9, 0.9],
-          transition: { duration: drag1Duration / 1000, ease: 'linear' } // Linear for consistent speed
+          scale: [1, 0.9, 0.95],
+          transition: { duration: drag1Duration / 1000, ease: 'easeOut' }
         });
 
         // Sync value changes with cursor position
@@ -97,6 +97,10 @@ function AnimatedDemo({
         await drag1Promise;
 
         // Release - picker closes
+        await controls.start({
+          scale: 1,
+          transition: { duration: 0.2 }
+        });
         await new Promise(resolve => setTimeout(resolve, 100));
         onPickerStateChange(false);
 
@@ -117,7 +121,7 @@ function AnimatedDemo({
         await new Promise(resolve => setTimeout(resolve, 150));
 
         // Smooth drag up: -10 -> 60px, value: 110 -> 75
-        const drag2Duration = 1000;
+        const drag2Duration = 900;
         const drag2Steps = 35;
         const drag2YStart = -10;
         const drag2YEnd = 60;
@@ -126,8 +130,8 @@ function AnimatedDemo({
 
         const drag2Promise = controls.start({
           y: [drag2YStart, drag2YEnd],
-          scale: [1, 0.9, 0.9],
-          transition: { duration: drag2Duration / 1000, ease: 'linear' }
+          scale: [1, 0.9, 0.95],
+          transition: { duration: drag2Duration / 1000, ease: 'easeOut' }
         });
 
         for (let i = 0; i <= drag2Steps; i++) {
@@ -139,6 +143,10 @@ function AnimatedDemo({
         await drag2Promise;
 
         // Release - picker closes
+        await controls.start({
+          scale: 1,
+          transition: { duration: 0.2 }
+        });
         await new Promise(resolve => setTimeout(resolve, 100));
         onPickerStateChange(false);
 
@@ -156,7 +164,7 @@ function AnimatedDemo({
         animate();
 
       } else {
-        // === Browse Mode: Drag, release, drag back, then scroll wheel ===
+        // === Browse Mode: Click to open, then drag, release, drag back, then scroll wheel ===
 
         // Reset
         onPickerStateChange(false);
@@ -172,9 +180,17 @@ function AnimatedDemo({
           transition: { duration: 0.3 }
         });
 
-        // Open picker
+        // CLICK to open picker - show visual click feedback
+        await controls.start({
+          scale: [1, 0.85, 1],
+          transition: { duration: 0.3 }
+        });
+
+        // Open picker after click
         onPickerStateChange(true);
-        await new Promise(resolve => setTimeout(resolve, 150));
+
+        // Wait 0.3s before starting to browse
+        await new Promise(resolve => setTimeout(resolve, 300));
 
         // === Gesture 1: Drag DOWN (pointer) ===
         const drag1Duration = 800;
@@ -235,18 +251,15 @@ function AnimatedDemo({
         await new Promise(resolve => setTimeout(resolve, 400));
 
         // === Gesture 3: SCROLL WHEEL (change cursor to wheel icon) ===
+        // Keep cursor at same position (drag2YEnd = -10)
+        // Switch cursor type instantly without moving position
         setCursorType('wheel');
 
-        // Position cursor in center
-        await controls.start({
-          y: 30,
-          transition: { duration: 0.3, ease: 'easeInOut' }
-        });
-
-        await new Promise(resolve => setTimeout(resolve, 200));
+        // Brief pause to show the cursor change
+        await new Promise(resolve => setTimeout(resolve, 300));
 
         // Scroll wheel action: multiple small scrolls to target value
-        // Scroll down (increase values)
+        // Scroll down (increase values) - cursor stays at Y=-10
         const scrollDuration = 1200;
         const scrollSteps = 24;
         const scrollValueStart = 8;
