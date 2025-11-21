@@ -62,7 +62,7 @@ function AnimatedDemo({
 
     const animate = async () => {
       if (mode === 'quick') {
-        // === Quick Pick: Two smooth gestures (down, then up) ===
+        // === Quick Pick: ONE single gesture with immediate close ===
 
         // Reset
         onPickerStateChange(false);
@@ -78,90 +78,53 @@ function AnimatedDemo({
           transition: { duration: 0.3, ease: 'easeOut' }
         });
 
-        // === First gesture: Smooth drag DOWN (increase value) ===
-
-        // Click to open picker
+        // CLICK to open picker - show visual click feedback
         triggerClickPulse();
+        await controls.start({
+          scale: [1, 0.85, 1],
+          transition: { duration: 0.3 }
+        });
+
+        // Open picker after click
         onPickerStateChange(true);
-        await new Promise(resolve => setTimeout(resolve, 150));
 
-        // Smooth drag down: 0 -> 80px, value: 70 -> 110
-        const drag1Duration = 800;
-        const drag1Steps = 30;
-        const drag1YStart = 0;
-        const drag1YEnd = 80;
-        const drag1ValueStart = initialValue;
-        const drag1ValueEnd = targetValue;
+        // Brief wait to show picker opened
+        await new Promise(resolve => setTimeout(resolve, 200));
 
-        const drag1Promise = controls.start({
-          y: [drag1YStart, drag1YEnd],
+        // === Single smooth drag gesture ===
+        const dragDuration = 900;
+        const dragSteps = 35;
+        const dragYStart = 0;
+        const dragYEnd = 90;
+        const dragValueStart = initialValue; // 70
+        const dragValueEnd = targetValue; // 110
+
+        const dragPromise = controls.start({
+          y: [dragYStart, dragYEnd],
           scale: [1, 0.9, 0.95],
-          transition: { duration: drag1Duration / 1000, ease: 'easeOut' }
+          transition: { duration: dragDuration / 1000, ease: 'easeOut' }
         });
 
         // Sync value changes with cursor position
-        for (let i = 0; i <= drag1Steps; i++) {
-          const progressPct = i / drag1Steps;
-          const newValue = Math.round(drag1ValueStart + (drag1ValueEnd - drag1ValueStart) * progressPct);
+        for (let i = 0; i <= dragSteps; i++) {
+          const progressPct = i / dragSteps;
+          const newValue = Math.round(dragValueStart + (dragValueEnd - dragValueStart) * progressPct);
           onValueChange(newValue);
-          await new Promise(resolve => setTimeout(resolve, drag1Duration / drag1Steps));
+          await new Promise(resolve => setTimeout(resolve, dragDuration / dragSteps));
         }
-        await drag1Promise;
+        await dragPromise;
 
-        // Release - picker closes
+        // Release - picker closes immediately (quick pick behavior)
         await controls.start({
           scale: 1,
           transition: { duration: 0.2 }
         });
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise(resolve => setTimeout(resolve, 150)); // 150ms close delay
+
         onPickerStateChange(false);
 
-        // Hold briefly
-        await new Promise(resolve => setTimeout(resolve, 300));
-
-        // === Second gesture: Smooth drag UP (decrease value) ===
-
-        // Cursor moves up to starting position
-        await controls.start({
-          y: -10,
-          scale: 1,
-          transition: { duration: 0.3, ease: 'easeInOut' }
-        });
-
-        // Click to open picker again
-        triggerClickPulse();
-        onPickerStateChange(true);
-        await new Promise(resolve => setTimeout(resolve, 150));
-
-        // Smooth drag up: -10 -> 60px, value: 110 -> 75
-        const drag2Duration = 900;
-        const drag2Steps = 35;
-        const drag2YStart = -10;
-        const drag2YEnd = 60;
-        const drag2ValueStart = targetValue;
-        const drag2ValueEnd = 75;
-
-        const drag2Promise = controls.start({
-          y: [drag2YStart, drag2YEnd],
-          scale: [1, 0.9, 0.95],
-          transition: { duration: drag2Duration / 1000, ease: 'easeOut' }
-        });
-
-        for (let i = 0; i <= drag2Steps; i++) {
-          const progressPct = i / drag2Steps;
-          const newValue = Math.round(drag2ValueStart + (drag2ValueEnd - drag2ValueStart) * progressPct);
-          onValueChange(newValue);
-          await new Promise(resolve => setTimeout(resolve, drag2Duration / drag2Steps));
-        }
-        await drag2Promise;
-
-        // Release - picker closes
-        await controls.start({
-          scale: 1,
-          transition: { duration: 0.2 }
-        });
-        await new Promise(resolve => setTimeout(resolve, 100));
-        onPickerStateChange(false);
+        // Brief hold to show closed state
+        await new Promise(resolve => setTimeout(resolve, 400));
 
         // Fade out
         await controls.start({
@@ -208,6 +171,10 @@ function AnimatedDemo({
         await new Promise(resolve => setTimeout(resolve, 1500));
 
         // === Gesture 1: Drag DOWN (pointer) ===
+        // Pulse to indicate drag interaction starting
+        triggerClickPulse();
+        await new Promise(resolve => setTimeout(resolve, 100));
+
         const drag1Duration = 800;
         const drag1Steps = 30;
         const drag1YStart = 0;
@@ -237,6 +204,10 @@ function AnimatedDemo({
         await new Promise(resolve => setTimeout(resolve, 300));
 
         // === Gesture 2: Drag UP (pointer - changed mind) ===
+        // Pulse to indicate new drag interaction starting
+        triggerClickPulse();
+        await new Promise(resolve => setTimeout(resolve, 100));
+
         const drag2Duration = 900;
         const drag2Steps = 35;
         const drag2YStart = 70;
@@ -416,7 +387,7 @@ function AnimatedDemo({
         transition={{
           duration: 0.6,
           repeat: Infinity,
-          repeatDelay: mode === 'quick' ? 3.2 : 9.0,
+          repeatDelay: mode === 'quick' ? 2.6 : 9.5,
         }}
       />
     </motion.div>
@@ -500,7 +471,7 @@ export function InteractionModes() {
                   <h3 className="font-display text-2xl text-fg">Quick Pick</h3>
                 </div>
                 <p className="text-sm text-muted">
-                  Smooth gestures → Auto-closes immediately
+                  One gesture → Auto-closes immediately
                 </p>
               </div>
 
@@ -555,9 +526,9 @@ export function InteractionModes() {
             <div className="flex flex-col gap-3x">
               <TimingBadge time="150ms" label="after release" isActive />
               <div className="text-xs text-muted">
-                ✓ Smooth drag gestures → Release → Closes in 150ms
+                ✓ Click → One smooth drag → Release → Closes in 150ms
                 <br />
-                ✓ Perfect for quick adjustments in both directions
+                ✓ Perfect for quick single adjustments
               </div>
             </div>
 
