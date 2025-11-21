@@ -9,7 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@tensil/kinetic-input": "latest",
+    "@tensil/kinetic-input": "*",
     "@types/react-syntax-highlighter": "^15.5.13",
     "@xstate/react": "^6.0.0",
     "framer-motion": "^12.23.24",

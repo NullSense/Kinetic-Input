@@ -22,12 +22,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Upgraded `tsup` from ^8.3.0 to ^8.5.1 (minor)
   - Upgraded `knip`, `lint-staged`, and other dev dependencies to latest
 - Updated peer dependency for `framer-motion` to support both v11 and v12 (^11.0.0 || ^12.0.0)
+- Reduced default `balanced` timing preset idle timeout from 4s to 2.5s for better UX
+- Corrected documentation showing accurate timing values (was incorrectly showing 1.5s)
+
+### Added
+- New `TimingBehavior` component in demo site documenting auto-close behavior
+- Interactive timing grid showing all 4 interaction types with visual indicators
+- Preset comparison table in demo with use cases and technical details
 
 ### Fixed
 - Fixed TypeScript compatibility issues with newer TypeScript 5.9
-- Removed deprecated `wheelMode` prop (now always enabled with auto-detection)
+- Fixed framer-motion v12 type errors in demo (cubic-bezier ease arrays)
+- Removed all backdrop-related functionality (no longer needed)
+- Removed deprecated `wheelMode` prop usage (now always enabled with auto-detection)
 - Fixed type imports for presenter ViewModels
-- Added `showBackdrop` and deprecated `wheelMode` to `CollapsiblePickerProps`
 - Fixed optional chaining in test assertions for stricter TypeScript checks
 
 ## [0.0.4] - 2025-01 (Previous)
