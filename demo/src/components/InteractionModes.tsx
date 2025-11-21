@@ -48,7 +48,7 @@ function AnimatedDemo({
 
     const animate = async () => {
       if (mode === 'quick') {
-        // === Quick Pick Animation: Single gesture with immediate close ===
+        // === Quick Pick Animation: Single dramatic flick gesture ===
 
         // Reset to initial state
         onPickerStateChange(false);
@@ -57,7 +57,7 @@ function AnimatedDemo({
 
         // Cursor appears and moves toward picker
         await controls.start({
-          y: [0, 15],
+          y: [0, 20],
           opacity: [0, 1],
           scale: 1,
           transition: { duration: 0.3, ease: 'easeOut' }
@@ -65,27 +65,30 @@ function AnimatedDemo({
 
         // Picker opens as cursor "touches" it
         onPickerStateChange(true);
-        await new Promise(resolve => setTimeout(resolve, 150));
+        await new Promise(resolve => setTimeout(resolve, 200));
 
-        // Single drag gesture - cursor moves down while value changes
-        const dragDuration = 600;
-        const dragPromise = controls.start({
-          y: [15, 50],
-          scale: [1, 0.9, 1],
-          transition: { duration: dragDuration / 1000, ease: 'easeInOut' }
+        // Single FLICK gesture - fast dramatic drag with momentum
+        const flickDuration = 800;
+        const flickPromise = controls.start({
+          y: [20, 120],  // Much larger movement (was 15->50, now 20->120)
+          scale: [1, 0.85, 1],  // More pronounced scale
+          transition: {
+            duration: flickDuration / 1000,
+            ease: [0.2, 0.8, 0.3, 1] as [number, number, number, number] // Fast start, momentum feel
+          }
         });
 
-        // Gradually change value during drag (simulating scroll)
-        const steps = 8;
+        // Gradually change value during flick - many steps for smooth animation
+        const steps = 12;  // More steps for smoother value changes
         const valueStep = (targetValue - initialValue) / steps;
         for (let i = 1; i <= steps; i++) {
-          await new Promise(resolve => setTimeout(resolve, dragDuration / steps));
+          await new Promise(resolve => setTimeout(resolve, flickDuration / steps));
           onValueChange(Math.round(initialValue + valueStep * i));
         }
-        await dragPromise;
+        await flickPromise;
 
-        // Hold at end position briefly
-        await new Promise(resolve => setTimeout(resolve, 200));
+        // Brief momentum settle
+        await new Promise(resolve => setTimeout(resolve, 150));
 
         // Release - picker closes immediately (150ms after release in real component)
         onPickerStateChange(false);
@@ -105,7 +108,7 @@ function AnimatedDemo({
         animate();
 
       } else {
-        // === Browse Mode: Multiple gestures with idle timeout ===
+        // === Browse Mode: Multiple dramatic gestures exploring values ===
 
         // Reset to initial state
         onPickerStateChange(false);
@@ -122,47 +125,89 @@ function AnimatedDemo({
 
         // Picker opens as cursor "touches" it
         onPickerStateChange(true);
-        await new Promise(resolve => setTimeout(resolve, 150));
+        await new Promise(resolve => setTimeout(resolve, 200));
 
-        // First scroll gesture
-        const scroll1Duration = 500;
+        // First scroll DOWN - exploring higher values
+        const scroll1Duration = 600;
         const scroll1Promise = controls.start({
-          y: [0, 25],
-          scale: [1, 0.95, 1],
+          y: [0, 60],  // Larger movement
+          scale: [1, 0.92, 1],
           transition: { duration: scroll1Duration / 1000, ease: 'easeInOut' }
         });
-        // Change value during first scroll
-        await new Promise(resolve => setTimeout(resolve, scroll1Duration / 2));
-        onValueChange(initialValue + Math.floor((targetValue - initialValue) * 0.3));
+        // Gradually change value (go from 12 to 22)
+        for (let i = 0; i <= 5; i++) {
+          await new Promise(resolve => setTimeout(resolve, scroll1Duration / 5));
+          onValueChange(initialValue + i * 2);
+        }
         await scroll1Promise;
 
-        await new Promise(resolve => setTimeout(resolve, 300));
-
-        // Second scroll gesture
-        const scroll2Promise = controls.start({
-          y: [25, 50],
-          scale: [1, 0.95, 1],
-          transition: { duration: 0.5, ease: 'easeInOut' }
-        });
         await new Promise(resolve => setTimeout(resolve, 250));
-        onValueChange(initialValue + Math.floor((targetValue - initialValue) * 0.7));
+
+        // Second scroll UP - changed mind, going back down
+        const scroll2Duration = 700;
+        const scroll2Promise = controls.start({
+          y: [60, -20],  // Big upward scroll
+          scale: [1, 0.9, 1],
+          transition: { duration: scroll2Duration / 1000, ease: 'easeInOut' }
+        });
+        // Go back down (22 to 8)
+        for (let i = 0; i <= 7; i++) {
+          await new Promise(resolve => setTimeout(resolve, scroll2Duration / 7));
+          onValueChange(22 - i * 2);
+        }
         await scroll2Promise;
 
         await new Promise(resolve => setTimeout(resolve, 300));
 
-        // Third scroll gesture (fine-tuning)
-        const scroll3Promise = controls.start({
-          y: [50, 40],
-          scale: [1, 0.95, 1],
-          transition: { duration: 0.5, ease: 'easeInOut' }
+        // Third scroll - FLICK down fast (browsing quickly)
+        const flickDuration = 500;
+        const flickPromise = controls.start({
+          y: [-20, 80],  // Fast dramatic flick
+          scale: [1, 0.88, 1],
+          transition: {
+            duration: flickDuration / 1000,
+            ease: [0.15, 0.85, 0.25, 1] as [number, number, number, number] // Momentum feel
+          }
         });
+        // Fast value changes during flick (8 to 26)
+        for (let i = 0; i <= 9; i++) {
+          await new Promise(resolve => setTimeout(resolve, flickDuration / 9));
+          onValueChange(8 + i * 2);
+        }
+        await flickPromise;
+
         await new Promise(resolve => setTimeout(resolve, 250));
+
+        // Fourth scroll UP - fine-tuning to find the right value
+        const fineTuneDuration = 600;
+        const fineTunePromise = controls.start({
+          y: [80, 40],  // Scroll back up a bit
+          scale: [1, 0.93, 1],
+          transition: { duration: fineTuneDuration / 1000, ease: 'easeInOut' }
+        });
+        // Settle on target value (26 to targetValue)
+        const settleSteps = 4;
+        const settleValueStep = (targetValue - 26) / settleSteps;
+        for (let i = 0; i <= settleSteps; i++) {
+          await new Promise(resolve => setTimeout(resolve, fineTuneDuration / settleSteps));
+          onValueChange(Math.round(26 + settleValueStep * i));
+        }
+        await fineTunePromise;
+
+        // Fifth scroll - tiny adjustment (showing precision)
+        await new Promise(resolve => setTimeout(resolve, 200));
+        const tinyAdjustPromise = controls.start({
+          y: [40, 45],
+          scale: [1, 0.97, 1],
+          transition: { duration: 0.4, ease: 'easeInOut' }
+        });
+        await new Promise(resolve => setTimeout(resolve, 200));
         onValueChange(targetValue);
-        await scroll3Promise;
+        await tinyAdjustPromise;
 
         // Idle pause - picker stays open, cursor stationary
-        // (simulating the 2.5s idle timeout)
-        await new Promise(resolve => setTimeout(resolve, 1200));
+        // (demonstrating the 2.5s idle timeout)
+        await new Promise(resolve => setTimeout(resolve, 1000));
 
         // Picker auto-closes after idle timeout
         onPickerStateChange(false);
@@ -226,7 +271,7 @@ function AnimatedDemo({
         transition={{
           duration: 0.6,
           repeat: Infinity,
-          repeatDelay: mode === 'quick' ? 2.7 : 3.5,
+          repeatDelay: mode === 'quick' ? 2.8 : 5.5,  // Adjusted for longer animations
         }}
       />
     </motion.div>
@@ -310,7 +355,7 @@ export function InteractionModes() {
                   <h3 className="font-display text-2xl text-fg">Quick Pick</h3>
                 </div>
                 <p className="text-sm text-muted">
-                  Single gesture → Auto-closes immediately
+                  Single flick gesture → Auto-closes immediately
                 </p>
               </div>
 
@@ -339,7 +384,7 @@ export function InteractionModes() {
                     onPickerStateChange={setQuickIsOpen}
                     onValueChange={setQuickValue}
                     initialValue={70}
-                    targetValue={95}
+                    targetValue={110}
                   />
                 </div>
               )}
@@ -365,9 +410,9 @@ export function InteractionModes() {
             <div className="flex flex-col gap-3x">
               <TimingBadge time="150ms" label="after release" isActive />
               <div className="text-xs text-muted">
-                ✓ One drag or scroll → Release → Closes in 150ms
+                ✓ One flick or drag → Release → Closes in 150ms
                 <br />
-                ✓ Perfect for quick adjustments and data entry
+                ✓ Perfect for quick adjustments with momentum
               </div>
             </div>
 
@@ -446,7 +491,7 @@ export function InteractionModes() {
             <div className="flex flex-col gap-3x">
               <TimingBadge time="2.5s" label="idle timeout" isActive />
               <div className="text-xs text-muted">
-                ✓ Scroll freely, explore values, adjust multiple times
+                ✓ Multiple gestures: scroll, flick, explore, fine-tune
                 <br />
                 ✓ Auto-closes after 2.5s of inactivity
               </div>
