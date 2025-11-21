@@ -1,5 +1,5 @@
 import { assign, assertEvent } from 'xstate';
-import type { InteractionSource, PickerContext } from './pickerStateMachine.shared';
+import type { InteractionSource, PickerContext, PickerEvent } from './pickerStateMachine.shared';
 
 /**
  * Action implementations for the picker state machine, updating interaction tracking and notifying closes.
