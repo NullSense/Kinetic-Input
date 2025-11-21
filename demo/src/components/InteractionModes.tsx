@@ -620,6 +620,8 @@ export function InteractionModes() {
                   min={40}
                   max={120}
                   step={1}
+                  enableHaptics={false}
+                  enableAudioFeedback={false}
                 />
               </div>
             </div>
@@ -701,6 +703,8 @@ export function InteractionModes() {
                   min={20}
                   max={100}
                   step={1}
+                  enableHaptics={false}
+                  enableAudioFeedback={false}
                 />
               </div>
             </div>
@@ -782,6 +786,8 @@ export function InteractionModes() {
                   min={1}
                   max={30}
                   step={1}
+                  enableHaptics={false}
+                  enableAudioFeedback={false}
                 />
               </div>
             </div>
