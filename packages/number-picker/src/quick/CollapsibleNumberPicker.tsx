@@ -10,8 +10,8 @@ import { useQuickPickerFeedbackService } from './hooks/useQuickPickerFeedbackSer
 import { useQuickNumberControllers } from './hooks/useQuickNumberControllers';
 import { useQuickNumberPresenterViewModel } from './hooks/useQuickNumberPresenterViewModel';
 import type {
-    CollapsibleNumberPickerProps,
-    CollapsibleNumberPickerRenderItemState,
+    CollapsiblePickerProps,
+    CollapsiblePickerRenderItemState,
     RenderItemFn
 } from './types';
 import type { SnapPhysicsConfig } from '../picker/types/snapPhysics';
@@ -20,10 +20,10 @@ import type { SnapPhysicsConfig } from '../picker/types/snapPhysics';
  * Renders the fully wired quick number picker surface, delegating formatting,
  * gesture orchestration, accessibility, and presentation to extracted hooks.
  * @component
- * @param {CollapsibleNumberPickerProps} props - Configuration for value range, theming, and behavior.
+ * @param {CollapsiblePickerProps} props - Configuration for value range, theming, and behavior.
  * @returns {React.ReactElement}
  */
-const CollapsibleNumberPickerComponent: React.FC<CollapsibleNumberPickerProps> = ({
+const CollapsibleNumberPickerComponent: React.FC<CollapsiblePickerProps> = ({
     label,
     value,
     onChange,
@@ -37,7 +37,6 @@ const CollapsibleNumberPickerComponent: React.FC<CollapsibleNumberPickerProps> =
     isOpen: controlledIsOpen,
     onRequestOpen,
     onRequestClose,
-    showBackdrop = false,
     itemHeight: itemHeightProp,
     theme: themeOverrides,
     renderValue,
@@ -137,7 +136,6 @@ const CollapsibleNumberPickerComponent: React.FC<CollapsibleNumberPickerProps> =
         highlightTapHandlers,
         handlePickerOpen,
         handlePickerClose,
-        handleBackdropClick,
         handlePointerDown,
         onGesture,
         openedViaRef,
@@ -180,7 +178,7 @@ const CollapsibleNumberPickerComponent: React.FC<CollapsibleNumberPickerProps> =
     }, [renderItem]);
 
     const stableRenderItem = useCallback(
-        (valueArg: string, state: CollapsibleNumberPickerRenderItemState) =>
+        (valueArg: string, state: CollapsiblePickerRenderItemState) =>
             renderItemRef.current ? renderItemRef.current(valueArg, state) : undefined,
         []
     );
@@ -267,7 +265,6 @@ const CollapsibleNumberPickerComponent: React.FC<CollapsibleNumberPickerProps> =
         },
         pickerState: {
             showPicker,
-            showBackdrop,
             selectedIndex,
             totalValues,
         },
@@ -279,7 +276,6 @@ const CollapsibleNumberPickerComponent: React.FC<CollapsibleNumberPickerProps> =
         },
         refs: { wrapperRef, interactiveRef, pickerRef, highlightRef },
         handlers: {
-            onBackdropClick: handleBackdropClick,
             onPointerDown: handlePointerDown,
             onKeyDown: handleKeyDown,
         },
@@ -315,7 +311,6 @@ const CollapsibleNumberPicker = React.memo(
             prevProps.lastValue !== nextProps.lastValue ||
             prevProps.initialValue !== nextProps.initialValue ||
             prevProps.isOpen !== nextProps.isOpen ||
-            prevProps.showBackdrop !== nextProps.showBackdrop ||
             prevProps.itemHeight !== nextProps.itemHeight ||
             prevProps.enableSnapPhysics !== nextProps.enableSnapPhysics ||
             prevProps.enableHaptics !== nextProps.enableHaptics ||
@@ -386,6 +381,6 @@ function shallowEqual(obj1: any, obj2: any): boolean {
 export default CollapsibleNumberPicker;
 
 export type {
-    CollapsibleNumberPickerProps,
-    CollapsibleNumberPickerTheme
+    CollapsiblePickerProps,
+    CollapsiblePickerTheme
 } from './types';

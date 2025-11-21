@@ -1,6 +1,6 @@
 {
   "name": "kinetic-input",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "private": true,
   "description": "Momentum-driven number picker components for React",
   "type": "module",
@@ -47,15 +47,15 @@
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.1",
     "@vitejs/plugin-react": "^5.1.1",
-    "@vitest/coverage-v8": "^4.0.10",
-    "@vitest/ui": "^4.0.10",
+    "@vitest/coverage-v8": "^4.0.12",
+    "@vitest/ui": "^4.0.12",
     "happy-dom": "^20.0.10",
     "husky": "^9.1.7",
     "jsdom": "^27.2.0",
-    "knip": "^5.43.0",
-    "lint-staged": "^16.2.6",
+    "knip": "^5.70.1",
+    "lint-staged": "^16.2.7",
     "oxlint": "^1.29.0",
-    "vitest": "^4.0.10"
+    "vitest": "^4.0.12"
   },
   "dependencies": {
     "tailwindcss": "^4.1.17"

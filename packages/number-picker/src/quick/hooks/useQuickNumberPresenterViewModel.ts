@@ -9,8 +9,8 @@ import type {
     QuickNumberPresenterViewModel,
     SurfaceRefs,
     ValueDisplayProps,
-} from '../CollapsiblePicker.presenter';
-import type { PickerBodyProps } from '../CollapsiblePicker.pickerBody';
+} from '../CollapsibleNumberPicker.presenter';
+import type { PickerBodyProps } from '../CollapsibleNumberPicker.pickerBody';
 
 interface UseQuickNumberPresenterViewModelArgs {
     label: ReactNode;

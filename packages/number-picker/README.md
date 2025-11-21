@@ -118,7 +118,7 @@ export function SessionPicker({ value, onChange }) {
 ## CollapsiblePicker Features
 
 - Momentum-based wheel/touch scrolling with mixed pointer + wheel support
-- Smart auto-close timing (150 ms pointer, 800 ms wheel, 1.5 s idle)
+- Smart auto-close timing (150 ms pointer, 800 ms wheel, 2.5 s idle - "balanced" preset)
 - Controlled & uncontrolled modes
 - Integer-scaled decimal arithmetic to avoid float drift
 - Full theming + custom render hooks for values/items
@@ -434,10 +434,16 @@ const darkTheme = {
 
 | Interaction | Timeout | Notes |
 |-------------|---------|-------|
-| Pointer drag released | 150 ms | Ideal for quick scrubs |
-| Wheel / trackpad scroll | 800 ms | Allows momentum to finish |
-| Idle (no interactions) | 1.5 s | Auto-closes after browsing |
+| Pointer drag released | 150 ms | Ideal for quick scrubs (settleGracePeriod) |
+| Wheel / trackpad scroll | 800 ms | Allows momentum to finish (wheelIdleTimeout) |
+| Idle (no interactions) | 2.5 s | Auto-closes after browsing (idleTimeout) |
 | ESC / click outside | Immediate | Hard close via state machine |
+
+**Timing Presets:** The default "balanced" preset is shown above. Other presets available:
+- `instant`: 50ms/300ms/1.5s (fast data entry)
+- `fast`: 100ms/500ms/2.5s (desktop workflows - same idle timeout as balanced)
+- `balanced`: 150ms/800ms/2.5s (default - general use)
+- `patient`: 300ms/1200ms/6s (mobile/accessibility)
 
 The `BOUNDARY_SETTLE_DELAY` constant (150 ms) is exported for tweaking the overscroll bounce timing.
 
