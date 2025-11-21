@@ -1,6 +1,6 @@
 {
   "name": "kinetic-input",
-  "version": "0.0.5",
+  "version": "0.0.4",
   "private": true,
   "description": "Momentum-driven number picker components for React",
   "type": "module",
