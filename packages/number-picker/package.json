@@ -1,6 +1,6 @@
 {
   "name": "@tensil/kinetic-input",
-  "version": "0.0.4",
+  "version": "0.0.6",
   "private": false,
   "description": "High-performance React number picker components with momentum scrolling, smart auto-close, and full theming support",
   "author": "NullSense",
@@ -102,7 +102,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/NullSense/Kinetic-Input.git",
+    "url": "git+https://github.com/NullSense/Kinetic-Input.git",
     "directory": "packages/number-picker"
   },
   "homepage": "https://github.com/NullSense/Kinetic-Input/tree/main/packages/number-picker",
