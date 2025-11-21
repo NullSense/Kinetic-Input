@@ -15,12 +15,23 @@ function App() {
       <Navigation />
 
       <main className="min-h-screen bg-bg text-fg">
+        {/* 1. Hook: Clear value proposition */}
         <Hero />
+
+        {/* 2. WOW: Show the magic with animated demos */}
         <InteractionModes />
-        <CodeSnippets />
-        <TimingBehavior />
+
+        {/* 3. TOUCH: Let users interact and play */}
         <ComponentShowcase />
+
+        {/* 4. DESIRE: Show customization possibilities */}
         <PresetsGallery />
+
+        {/* 5. LEARN: Technical deep-dive for interested developers */}
+        <TimingBehavior />
+
+        {/* 6. BUILD: Implementation details (now they're sold!) */}
+        <CodeSnippets />
       </main>
 
       <Footer />
