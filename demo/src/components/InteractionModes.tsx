@@ -41,11 +41,22 @@ function AnimatedDemo({
   targetValue
 }: AnimatedDemoProps) {
   const controls = useAnimationControls();
+  const clickPulseControls = useAnimationControls();
   const [cursorType, setCursorType] = useState<CursorType>('pointer');
+
+  // Helper to trigger click pulse animation
+  const triggerClickPulse = async () => {
+    clickPulseControls.start({
+      scale: [0, 2.5],
+      opacity: [0.8, 0],
+      transition: { duration: 0.6, ease: 'easeOut' }
+    });
+  };
 
   useEffect(() => {
     if (!isPlaying) {
       controls.stop();
+      clickPulseControls.stop();
       return;
     }
 
@@ -69,7 +80,8 @@ function AnimatedDemo({
 
         // === First gesture: Smooth drag DOWN (increase value) ===
 
-        // Open picker
+        // Click to open picker
+        triggerClickPulse();
         onPickerStateChange(true);
         await new Promise(resolve => setTimeout(resolve, 150));
 
@@ -116,7 +128,8 @@ function AnimatedDemo({
           transition: { duration: 0.3, ease: 'easeInOut' }
         });
 
-        // Open picker again
+        // Click to open picker again
+        triggerClickPulse();
         onPickerStateChange(true);
         await new Promise(resolve => setTimeout(resolve, 150));
 
@@ -181,6 +194,7 @@ function AnimatedDemo({
         });
 
         // CLICK to open picker - show visual click feedback
+        triggerClickPulse();
         await controls.start({
           scale: [1, 0.85, 1],
           transition: { duration: 0.3 }
@@ -282,7 +296,12 @@ function AnimatedDemo({
           await new Promise(resolve => setTimeout(resolve, scrollDuration / scrollSteps));
         }
 
+        // Revert back to regular pointer cursor after scrolling completes
+        setCursorType('pointer');
+        await new Promise(resolve => setTimeout(resolve, 200));
+
         // Idle pause - picker stays open for the full 2.5s timeout
+        // Cursor stays as pointer, showing idle wait state
         await new Promise(resolve => setTimeout(resolve, 2500));
 
         // Picker auto-closes after idle
@@ -379,6 +398,13 @@ function AnimatedDemo({
           </svg>
         </div>
       )}
+
+      {/* Click pulse - radiating circle on click */}
+      <motion.div
+        animate={clickPulseControls}
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-accent/30 border-2 border-accent pointer-events-none"
+        initial={{ scale: 0, opacity: 0 }}
+      />
 
       {/* Click ripple effect */}
       <motion.div
