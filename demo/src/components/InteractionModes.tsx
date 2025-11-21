@@ -141,7 +141,7 @@ function AnimatedDemo({
         animate();
 
       } else if (mode === 'flick') {
-        // === Flick Mode: Fast gesture with momentum ===
+        // === Flick Mode: Click to open, wait idle, then fast flick with momentum ===
 
         // Reset
         onPickerStateChange(false);
@@ -167,8 +167,8 @@ function AnimatedDemo({
         // Open picker after click
         onPickerStateChange(true);
 
-        // Brief wait to show picker opened
-        await new Promise(resolve => setTimeout(resolve, 200));
+        // Wait IDLE - showing picker is open, waiting for interaction
+        await new Promise(resolve => setTimeout(resolve, 1000));
 
         // === Fast flick gesture ===
         // Quick drag with momentum
@@ -213,10 +213,11 @@ function AnimatedDemo({
           await new Promise(resolve => setTimeout(resolve, momentumDuration / momentumSteps));
         }
 
-        // Settle for a moment
-        await new Promise(resolve => setTimeout(resolve, 200));
+        // Values have settled - wait IDLE for the 2.5s settle timeout
+        // Picker stays open, showing the settled state
+        await new Promise(resolve => setTimeout(resolve, 2500));
 
-        // Picker closes
+        // Picker auto-closes after idle/settle timeout
         onPickerStateChange(false);
 
         // Brief hold to show closed state
@@ -483,7 +484,7 @@ function AnimatedDemo({
         transition={{
           duration: 0.6,
           repeat: Infinity,
-          repeatDelay: mode === 'quick' ? 2.6 : mode === 'flick' ? 2.8 : 9.5,
+          repeatDelay: mode === 'quick' ? 2.6 : mode === 'flick' ? 5.5 : 9.5,
         }}
       />
     </motion.div>
@@ -706,11 +707,11 @@ export function InteractionModes() {
 
             {/* Timing Info */}
             <div className="flex flex-col gap-3x">
-              <TimingBadge time="150ms" label="after settle" isActive />
+              <TimingBadge time="2.5s" label="settle timeout" isActive />
               <div className="text-xs text-muted">
-                ✓ Fast flick → Values continue with momentum
+                ✓ Fast flick → Momentum → Settles
                 <br />
-                ✓ Natural physics-based deceleration
+                ✓ Auto-closes after 2.5s settle timeout
               </div>
             </div>
 
