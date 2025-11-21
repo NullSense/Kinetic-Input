@@ -93,7 +93,9 @@ function AnimatedDemo({
 
         // === Single smooth drag gesture ===
         const dragDuration = 900;
-        const dragSteps = 35;
+        // Calculate actual number of values: (110-70)/5 = 8 steps + 1 = 9 values
+        // Use this as animation steps for smooth value changes (no flickering)
+        const dragSteps = 9;
         const dragYStart = 0;
         const dragYEnd = 90;
         const dragValueStart = initialValue; // 70
@@ -105,7 +107,7 @@ function AnimatedDemo({
           transition: { duration: dragDuration / 1000, ease: 'easeOut' }
         });
 
-        // Sync value changes with cursor position
+        // Sync value changes with cursor position - matches actual picker step count
         for (let i = 0; i <= dragSteps; i++) {
           const progressPct = i / dragSteps;
           const newValue = Math.round(dragValueStart + (dragValueEnd - dragValueStart) * progressPct);
