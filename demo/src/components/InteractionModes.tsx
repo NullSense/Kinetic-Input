@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, useAnimationControls } from 'framer-motion';
 import { CollapsiblePicker } from '@tensil/kinetic-input';
-import { MousePointerClick, MousePointer2, Timer, Pause, Play } from 'lucide-react';
+import { MousePointerClick, MousePointer2, Timer, Pause, Play, Zap } from 'lucide-react';
 
 /**
  * InteractionModes Component
@@ -19,7 +19,7 @@ import { MousePointerClick, MousePointer2, Timer, Pause, Play } from 'lucide-rea
 
 interface AnimatedDemoProps {
   isPlaying: boolean;
-  mode: 'quick' | 'browse';
+  mode: 'quick' | 'browse' | 'flick';
   onPickerStateChange: (isOpen: boolean) => void;
   onValueChange: (value: number) => void;
   initialValue: number;
@@ -122,6 +122,101 @@ function AnimatedDemo({
         });
         await new Promise(resolve => setTimeout(resolve, 150)); // 150ms close delay
 
+        onPickerStateChange(false);
+
+        // Brief hold to show closed state
+        await new Promise(resolve => setTimeout(resolve, 400));
+
+        // Fade out
+        await controls.start({
+          opacity: 0,
+          scale: 1.1,
+          transition: { duration: 0.3 }
+        });
+
+        await new Promise(resolve => setTimeout(resolve, 800));
+
+        // Reset
+        controls.set({ y: 0, opacity: 0, scale: 1 });
+        animate();
+
+      } else if (mode === 'flick') {
+        // === Flick Mode: Fast gesture with momentum ===
+
+        // Reset
+        onPickerStateChange(false);
+        onValueChange(initialValue);
+        setCursorType('pointer');
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        // Cursor appears
+        await controls.start({
+          y: 0,
+          opacity: [0, 1],
+          scale: 1,
+          transition: { duration: 0.3, ease: 'easeOut' }
+        });
+
+        // CLICK to open picker - show visual click feedback
+        triggerClickPulse();
+        await controls.start({
+          scale: [1, 0.85, 1],
+          transition: { duration: 0.3 }
+        });
+
+        // Open picker after click
+        onPickerStateChange(true);
+
+        // Brief wait to show picker opened
+        await new Promise(resolve => setTimeout(resolve, 200));
+
+        // === Fast flick gesture ===
+        // Quick drag with momentum
+        const flickDuration = 400; // Fast!
+        const flickSteps = 15; // Fewer steps for speed
+        const flickYStart = 0;
+        const flickYEnd = 100;
+        const flickValueStart = initialValue; // 50
+        const flickValueMid = 65; // Where we release
+
+        const flickPromise = controls.start({
+          y: [flickYStart, flickYEnd],
+          scale: [1, 0.85, 1], // Release at end
+          transition: {
+            duration: flickDuration / 1000,
+            ease: [0.2, 0.9, 0.3, 1] as [number, number, number, number] // Fast acceleration
+          }
+        });
+
+        // Fast drag to mid-point
+        for (let i = 0; i <= flickSteps; i++) {
+          const progressPct = i / flickSteps;
+          const newValue = Math.round(flickValueStart + (flickValueMid - flickValueStart) * progressPct);
+          onValueChange(newValue);
+          await new Promise(resolve => setTimeout(resolve, flickDuration / flickSteps));
+        }
+        await flickPromise;
+
+        // MOMENTUM - values continue changing after release!
+        const momentumDuration = 600;
+        const momentumSteps = 20;
+        const momentumValueStart = flickValueMid; // 65
+        const momentumValueEnd = targetValue; // 85
+
+        // Cursor released, but values keep scrolling with momentum
+        for (let i = 1; i <= momentumSteps; i++) {
+          const progressPct = i / momentumSteps;
+          // Deceleration curve
+          const easedProgress = 1 - Math.pow(1 - progressPct, 2);
+          const newValue = Math.round(momentumValueStart + (momentumValueEnd - momentumValueStart) * easedProgress);
+          onValueChange(newValue);
+          await new Promise(resolve => setTimeout(resolve, momentumDuration / momentumSteps));
+        }
+
+        // Settle for a moment
+        await new Promise(resolve => setTimeout(resolve, 200));
+
+        // Picker closes
         onPickerStateChange(false);
 
         // Brief hold to show closed state
@@ -388,7 +483,7 @@ function AnimatedDemo({
         transition={{
           duration: 0.6,
           repeat: Infinity,
-          repeatDelay: mode === 'quick' ? 2.6 : 9.5,
+          repeatDelay: mode === 'quick' ? 2.6 : mode === 'flick' ? 2.8 : 9.5,
         }}
       />
     </motion.div>
@@ -429,6 +524,11 @@ export function InteractionModes() {
   const [quickIsOpen, setQuickIsOpen] = useState(false);
   const [quickPlaying, setQuickPlaying] = useState(true);
 
+  // Flick Mode state
+  const [flickValue, setFlickValue] = useState(50);
+  const [flickIsOpen, setFlickIsOpen] = useState(false);
+  const [flickPlaying, setFlickPlaying] = useState(true);
+
   // Browse Mode state
   const [browseValue, setBrowseValue] = useState(12);
   const [browseIsOpen, setBrowseIsOpen] = useState(false);
@@ -446,16 +546,16 @@ export function InteractionModes() {
           className="text-center mb-10"
         >
           <h2 className="font-display text-4xl md:text-5xl text-accent mb-3x">
-            TWO INTERACTION MODES
+            INTERACTION MODES
           </h2>
           <p className="text-lg text-muted max-w-2xl mx-auto">
-            Watch the automated demo or interact with the pickers yourself!
-            The component automatically adapts between quick selection and browsing modes.
+            Watch the automated demos or interact with the pickers yourself!
+            The component supports quick picks, momentum flicking, and multi-gesture browsing.
           </p>
         </motion.div>
 
-        {/* Two Mode Cards */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6x">
+        {/* Three Mode Cards */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6x">
           {/* Quick Pick Mode */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
@@ -535,6 +635,87 @@ export function InteractionModes() {
 
             {/* Background decoration */}
             <div className="absolute bottom-0 right-0 w-32 h-32 bg-accent/5 rounded-tl-full -z-10" />
+          </motion.div>
+
+          {/* Flick Mode */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-50px' }}
+            transition={{ duration: 0.4, delay: 0.15 }}
+            className="glass-subtle p-6x relative overflow-hidden"
+          >
+            {/* Header */}
+            <div className="flex items-start justify-between mb-4x">
+              <div>
+                <div className="flex items-center gap-2x mb-2x">
+                  <Zap className="w-6 h-6 text-accent" />
+                  <h3 className="font-display text-2xl text-fg">Flick</h3>
+                </div>
+                <p className="text-sm text-muted">
+                  Fast flick → Momentum → Settles
+                </p>
+              </div>
+
+              {/* Play/Pause Control */}
+              <button
+                onClick={() => setFlickPlaying(!flickPlaying)}
+                className="p-2x rounded-lg hover:bg-accent/10 transition-colors"
+                aria-label={flickPlaying ? 'Pause animation' : 'Play animation'}
+              >
+                {flickPlaying ? (
+                  <Pause className="w-5 h-5 text-muted" />
+                ) : (
+                  <Play className="w-5 h-5 text-muted" />
+                )}
+              </button>
+            </div>
+
+            {/* Picker with Animated Demo */}
+            <div className="relative mb-4x" style={{ minHeight: '120px' }}>
+              {/* Animated Demo - perfectly synced cursor and values */}
+              {flickPlaying && (
+                <div className="absolute inset-0 flex items-start justify-center pt-8 pointer-events-none z-10">
+                  <AnimatedDemo
+                    isPlaying={flickPlaying}
+                    mode="flick"
+                    onPickerStateChange={setFlickIsOpen}
+                    onValueChange={setFlickValue}
+                    initialValue={50}
+                    targetValue={85}
+                  />
+                </div>
+              )}
+
+              {/* Real Picker - controlled by animation when playing, user when paused */}
+              <div className="relative z-0">
+                <CollapsiblePicker
+                  label="Speed"
+                  value={flickValue}
+                  onChange={setFlickValue}
+                  isOpen={flickPlaying ? flickIsOpen : undefined}
+                  onRequestOpen={flickPlaying ? undefined : () => setFlickIsOpen(true)}
+                  onRequestClose={flickPlaying ? undefined : () => setFlickIsOpen(false)}
+                  unit="mph"
+                  min={20}
+                  max={100}
+                  step={1}
+                />
+              </div>
+            </div>
+
+            {/* Timing Info */}
+            <div className="flex flex-col gap-3x">
+              <TimingBadge time="150ms" label="after settle" isActive />
+              <div className="text-xs text-muted">
+                ✓ Fast flick → Values continue with momentum
+                <br />
+                ✓ Natural physics-based deceleration
+              </div>
+            </div>
+
+            {/* Background decoration */}
+            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-32 h-32 bg-accent/5 rounded-full -z-10" />
           </motion.div>
 
           {/* Browse Mode */}
