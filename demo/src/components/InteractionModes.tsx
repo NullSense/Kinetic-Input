@@ -93,13 +93,12 @@ function AnimatedDemo({
 
         // === Single smooth drag gesture ===
         const dragDuration = 900;
-        // Calculate actual number of values: (110-70)/5 = 8 steps + 1 = 9 values
-        // Use this as animation steps for smooth value changes (no flickering)
-        const dragSteps = 9;
+        // With step=1, we have (90-70)+1 = 21 values for smooth animation
+        const dragSteps = 21;
         const dragYStart = 0;
         const dragYEnd = 90;
         const dragValueStart = initialValue; // 70
-        const dragValueEnd = targetValue; // 110
+        const dragValueEnd = targetValue; // 90
 
         const dragPromise = controls.start({
           y: [dragYStart, dragYEnd],
@@ -107,7 +106,7 @@ function AnimatedDemo({
           transition: { duration: dragDuration / 1000, ease: 'easeOut' }
         });
 
-        // Sync value changes with cursor position - matches actual picker step count
+        // Sync value changes with cursor position
         for (let i = 0; i <= dragSteps; i++) {
           const progressPct = i / dragSteps;
           const newValue = Math.round(dragValueStart + (dragValueEnd - dragValueStart) * progressPct);
@@ -502,7 +501,7 @@ export function InteractionModes() {
                     onPickerStateChange={setQuickIsOpen}
                     onValueChange={setQuickValue}
                     initialValue={70}
-                    targetValue={110}
+                    targetValue={90}
                   />
                 </div>
               )}
@@ -519,7 +518,7 @@ export function InteractionModes() {
                   unit="kg"
                   min={40}
                   max={120}
-                  step={5}
+                  step={1}
                 />
               </div>
             </div>
