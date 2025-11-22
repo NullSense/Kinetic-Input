@@ -14,7 +14,7 @@ import type { SnapPhysicsConfig } from '../picker/types/snapPhysics';
 /**
  * Maximum overscroll distance in pixels when dragging beyond bounds
  */
-export const MAX_OVERSCROLL_PIXELS = 80;
+export const MAX_OVERSCROLL_PIXELS = 120;
 
 /**
  * Minimum drag distance in pixels before picker opens (prevents accidental opens)
@@ -52,9 +52,9 @@ export const DOM_DELTA_MODE = {
 /**
  * Exponent for overscroll damping calculation
  * Lower = more resistance, Higher = less resistance
- * 0.7 provides smooth resistance without being too stiff
+ * 0.5 provides strong resistance (square root curve)
  */
-export const OVERSCROLL_DAMPING_EXPONENT = 0.7;
+export const OVERSCROLL_DAMPING_EXPONENT = 0.5;
 
 /**
  * Exponent for snap zone intensity calculation
