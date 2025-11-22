@@ -13,9 +13,9 @@ import type { SnapPhysicsConfig } from '../picker/types/snapPhysics';
 
 /**
  * Maximum overscroll distance in pixels when dragging beyond bounds
- * Reduced from 80 → 50 → 30 for minimal rebound
+ * Reduced from 80 → 60 for balanced feedback
  */
-export const MAX_OVERSCROLL_PIXELS = 30;
+export const MAX_OVERSCROLL_PIXELS = 60;
 
 /**
  * Minimum drag distance in pixels before picker opens (prevents accidental opens)
