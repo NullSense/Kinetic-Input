@@ -104,8 +104,8 @@ export function animateMomentumWithFriction(
     config,
     onComplete,
     snapSpring = {
-      stiffness: 100,
-      damping: 20,
+      stiffness: 180,
+      damping: 25,
       restDelta: 0.5,
       restSpeed: 10,
     },
