@@ -61,8 +61,7 @@ export function createAudioAdapter(options: AudioAdapterOptions = {}): AudioAdap
   // Feature detection (Safari uses webkitAudioContext)
   const AudioContextCtor =
     window.AudioContext ||
-    (window as typeof window & { webkitAudioContext?: typeof AudioContext })
-      .webkitAudioContext;
+    (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
 
   if (!AudioContextCtor) {
     return null;
@@ -107,7 +106,10 @@ export function createAudioAdapter(options: AudioAdapterOptions = {}): AudioAdap
       const now = ctx.currentTime;
       gain.gain.setValueAtTime(0.0001, now); // Start
       gain.gain.linearRampToValueAtTime(resolved.peakGain, now + resolved.attackMs / 1000);
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + (resolved.attackMs + resolved.decayMs) / 1000);
+      gain.gain.exponentialRampToValueAtTime(
+        0.0001,
+        now + (resolved.attackMs + resolved.decayMs) / 1000
+      );
 
       osc.frequency.setValueAtTime(resolved.frequency, now);
 

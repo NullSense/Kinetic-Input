@@ -29,7 +29,7 @@ describe('useVirtualWindow', () => {
 
   it('reduces the window length when option count is smaller than slot count', () => {
     const { result } = renderHook(() =>
-      useVirtualWindow({ ...baseProps, optionCount: 4, slotCount: 10 }),
+      useVirtualWindow({ ...baseProps, optionCount: 4, slotCount: 10 })
     );
 
     expect(result.current.startIndex).toBe(0);

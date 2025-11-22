@@ -24,10 +24,7 @@ export type {
 export { isGestureEvent } from './types';
 
 // ============ Primitives ============
-export type {
-  PointerCaptureState,
-  PointerCaptureCallbacks,
-} from './pointerCapture';
+export type { PointerCaptureState, PointerCaptureCallbacks } from './pointerCapture';
 
 export { createPointerCaptureHandlers } from './pointerCapture';
 

@@ -7,6 +7,8 @@ import type { CollapsiblePickerTheme } from '../types';
  * @param {Partial<CollapsiblePickerTheme>|undefined} themeOverrides - Optional theme overrides.
  * @returns {CollapsiblePickerTheme}
  */
-export function useResolvedTheme(themeOverrides: Partial<CollapsiblePickerTheme> | undefined): CollapsiblePickerTheme {
-    return useMemo(() => buildTheme(themeOverrides), [themeOverrides]);
+export function useResolvedTheme(
+  themeOverrides: Partial<CollapsiblePickerTheme> | undefined
+): CollapsiblePickerTheme {
+  return useMemo(() => buildTheme(themeOverrides), [themeOverrides]);
 }

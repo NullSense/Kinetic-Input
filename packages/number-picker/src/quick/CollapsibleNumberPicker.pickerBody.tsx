@@ -9,17 +9,20 @@ import { usePickerConfig, usePickerData, type PickerOption } from '../picker';
 const EMPTY_PROPS = {};
 
 export interface PickerBodyProps {
-    values: string[];
-    unit?: string;
-    renderItem: (value: string, state: CollapsiblePickerRenderItemState) => React.ReactNode | undefined;
-    hasCustomRenderItem: boolean;
-    pickerWindowHeight: number;
-    itemHeightPx: number;
-    selectedValue: { value: string };
-    handleValueChange: (newValue: { value: string }) => void;
-    onGesture: PickerGestureHandler;
-    showPicker: boolean;
-    snapConfig?: SnapPhysicsConfig;
+  values: string[];
+  unit?: string;
+  renderItem: (
+    value: string,
+    state: CollapsiblePickerRenderItemState
+  ) => React.ReactNode | undefined;
+  hasCustomRenderItem: boolean;
+  pickerWindowHeight: number;
+  itemHeightPx: number;
+  selectedValue: { value: string };
+  handleValueChange: (newValue: { value: string }) => void;
+  onGesture: PickerGestureHandler;
+  showPicker: boolean;
+  snapConfig?: SnapPhysicsConfig;
 }
 
 /**
@@ -29,67 +32,70 @@ export interface PickerBodyProps {
  * @returns {React.ReactElement}
  */
 export const PickerBody = React.memo(function PickerBody({
-    values,
-    unit,
-    renderItem,
-    hasCustomRenderItem,
-    pickerWindowHeight,
-    itemHeightPx,
-    selectedValue,
-    handleValueChange,
-    onGesture,
-    showPicker,
-    snapConfig,
+  values,
+  unit,
+  renderItem,
+  hasCustomRenderItem,
+  pickerWindowHeight,
+  itemHeightPx,
+  selectedValue,
+  handleValueChange,
+  onGesture,
+  showPicker,
+  snapConfig,
 }: PickerBodyProps) {
-    // Shared render function eliminates 10,000 function closures for scalability
-    const sharedRender = useCallback(
-        (state: { selected: boolean; visuallySelected: boolean; value: string | number }) => (
-            <PickerValueRow
-                value={String(state.value)}
-                unit={unit}
-                renderItem={renderItem}
-                hasCustomRenderItem={hasCustomRenderItem}
-                state={state}
-            />
-        ),
-        [hasCustomRenderItem, renderItem, unit]
-    );
+  // Shared render function eliminates 10,000 function closures for scalability
+  const sharedRender = useCallback(
+    (state: { selected: boolean; visuallySelected: boolean; value: string | number }) => (
+      <PickerValueRow
+        value={String(state.value)}
+        unit={unit}
+        renderItem={renderItem}
+        hasCustomRenderItem={hasCustomRenderItem}
+        state={state}
+      />
+    ),
+    [hasCustomRenderItem, renderItem, unit]
+  );
 
-    // Direct options array bypasses O(n²) registration for scalability (thousands of items)
-    const options = useMemo<PickerOption[]>(
-        () =>
-            values.map((val) => ({
-                value: val,
-                render: sharedRender, // Same function reference for all items!
-                props: EMPTY_PROPS, // Shared empty object (eliminates 10,000 allocations)
-            })),
-        [sharedRender, values]
-    );
+  // Direct options array bypasses O(n²) registration for scalability (thousands of items)
+  const options = useMemo<PickerOption[]>(
+    () =>
+      values.map((val) => ({
+        value: val,
+        render: sharedRender, // Same function reference for all items!
+        props: EMPTY_PROPS, // Shared empty object (eliminates 10,000 allocations)
+      })),
+    [sharedRender, values]
+  );
 
-    return (
-        <PickerGroup
-            value={selectedValue}
-            onChange={handleValueChange}
-            height={pickerWindowHeight}
-            itemHeight={itemHeightPx}
-        >
-            <PickerGroup.Column
-                name="value"
-                isPickerOpen={showPicker}
-                snapConfig={snapConfig}
-                onGesture={onGesture}
-                options={options}
-            />
-        </PickerGroup>
-    );
+  return (
+    <PickerGroup
+      value={selectedValue}
+      onChange={handleValueChange}
+      height={pickerWindowHeight}
+      itemHeight={itemHeightPx}
+    >
+      <PickerGroup.Column
+        name="value"
+        isPickerOpen={showPicker}
+        snapConfig={snapConfig}
+        onGesture={onGesture}
+        options={options}
+      />
+    </PickerGroup>
+  );
 });
 
 interface PickerValueRowProps {
-    value: string;
-    unit?: string;
-    renderItem: (value: string, state: CollapsiblePickerRenderItemState) => React.ReactNode | undefined;
-    hasCustomRenderItem: boolean;
-    state: { selected: boolean; visuallySelected: boolean };
+  value: string;
+  unit?: string;
+  renderItem: (
+    value: string,
+    state: CollapsiblePickerRenderItemState
+  ) => React.ReactNode | undefined;
+  hasCustomRenderItem: boolean;
+  state: { selected: boolean; visuallySelected: boolean };
 }
 
 /**
@@ -98,55 +104,55 @@ interface PickerValueRowProps {
  * @returns {React.ReactElement}
  */
 export const PickerValueRow: React.FC<PickerValueRowProps> = React.memo(
-    ({ value, unit, renderItem, hasCustomRenderItem, state }) => {
-        // Read from context to avoid recreating parent items on every selection change
-        // Note: We trust state.selected from PickerColumn, don't override it
-        const derivedSelected = state.selected;
-        const derivedVisuallySelected = state.visuallySelected;
+  ({ value, unit, renderItem, hasCustomRenderItem, state }) => {
+    // Read from context to avoid recreating parent items on every selection change
+    // Note: We trust state.selected from PickerColumn, don't override it
+    const derivedSelected = state.selected;
+    const derivedVisuallySelected = state.visuallySelected;
 
-        const renderState: CollapsiblePickerRenderItemState = useMemo(
-            () => ({
-                selected: derivedSelected,
-                visuallySelected: derivedVisuallySelected,
-                unit,
-                deselecting: false,
-            }),
-            [derivedSelected, derivedVisuallySelected, unit]
-        );
+    const renderState: CollapsiblePickerRenderItemState = useMemo(
+      () => ({
+        selected: derivedSelected,
+        visuallySelected: derivedVisuallySelected,
+        unit,
+        deselecting: false,
+      }),
+      [derivedSelected, derivedVisuallySelected, unit]
+    );
 
-        if (hasCustomRenderItem) {
-            const rendered = renderItem(value, renderState);
-            if (rendered !== undefined && rendered !== null) {
-                return <>{rendered}</>;
-            }
-        }
+    if (hasCustomRenderItem) {
+      const rendered = renderItem(value, renderState);
+      if (rendered !== undefined && rendered !== null) {
+        return <>{rendered}</>;
+      }
+    }
 
-        const className = [
-            'picker-item',
-            derivedVisuallySelected
-                ? 'picker-item-active'
-                : derivedSelected
-                ? 'picker-item-selected'
-                : '',
-        ]
-            .filter(Boolean)
-            .join(' ');
+    const className = [
+      'picker-item',
+      derivedVisuallySelected
+        ? 'picker-item-active'
+        : derivedSelected
+          ? 'picker-item-selected'
+          : '',
+    ]
+      .filter(Boolean)
+      .join(' ');
 
-        // ✅ FIX: Always show values - PickerBody is only mounted when picker is open
-        // Conditional hiding caused timing issues where initial render showed empty strings
-        // before isPickerOpen context updated
-        return (
-            <div className={className}>
-                <span className="picker-item-value">{value}</span>
-                {unit && <span className="picker-item-unit">{unit}</span>}
-            </div>
-        );
-    },
-    (prevProps, nextProps) =>
-        prevProps.value === nextProps.value &&
-        prevProps.unit === nextProps.unit &&
-        prevProps.state.visuallySelected === nextProps.state.visuallySelected &&
-        prevProps.hasCustomRenderItem === nextProps.hasCustomRenderItem &&
-        prevProps.renderItem === nextProps.renderItem
-    // Note: We don't check state.selected because PickerValueRow reads actual selection from context
+    // ✅ FIX: Always show values - PickerBody is only mounted when picker is open
+    // Conditional hiding caused timing issues where initial render showed empty strings
+    // before isPickerOpen context updated
+    return (
+      <div className={className}>
+        <span className="picker-item-value">{value}</span>
+        {unit && <span className="picker-item-unit">{unit}</span>}
+      </div>
+    );
+  },
+  (prevProps, nextProps) =>
+    prevProps.value === nextProps.value &&
+    prevProps.unit === nextProps.unit &&
+    prevProps.state.visuallySelected === nextProps.state.visuallySelected &&
+    prevProps.hasCustomRenderItem === nextProps.hasCustomRenderItem &&
+    prevProps.renderItem === nextProps.renderItem
+  // Note: We don't check state.selected because PickerValueRow reads actual selection from context
 );

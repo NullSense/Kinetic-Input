@@ -172,7 +172,7 @@ describe('createVelocityTracker', () => {
       const now = Date.now();
       tracker.addSample(0, now - 300); // Too old (> 200ms)
       tracker.addSample(50, now - 100); // Recent enough
-      tracker.addSample(100, now);      // Recent
+      tracker.addSample(100, now); // Recent
 
       // Should only use last 2 samples
       // 50 pixels in 0.1 seconds = 500 px/s

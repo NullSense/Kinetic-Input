@@ -15,22 +15,22 @@ const trimTrailingZeros = (value: string) => {
     return value;
   }
 
-  const trimmed = value
-    .replace(/(\.\d*?[1-9])0+$/u, '$1')
-    .replace(/\.0+$/u, '');
+  const trimmed = value.replace(/(\.\d*?[1-9])0+$/u, '$1').replace(/\.0+$/u, '');
 
   return trimmed === '-0' ? '0' : trimmed;
 };
 
-export const createFormatter = (decimalPlaces: number) => (val: number): string => {
-  if (!Number.isFinite(val)) {
-    return '';
-  }
+export const createFormatter =
+  (decimalPlaces: number) =>
+  (val: number): string => {
+    if (!Number.isFinite(val)) {
+      return '';
+    }
 
-  if (decimalPlaces <= 0) {
-    return Math.round(val).toString();
-  }
+    if (decimalPlaces <= 0) {
+      return Math.round(val).toString();
+    }
 
-  const fixed = val.toFixed(decimalPlaces);
-  return trimTrailingZeros(fixed);
-};
+    const fixed = val.toFixed(decimalPlaces);
+    return trimTrailingZeros(fixed);
+  };

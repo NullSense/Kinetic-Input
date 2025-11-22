@@ -330,7 +330,11 @@ class AnimationDebugger {
       maxEvents: 10,
       detectAnomaly: (events, newEvent) => {
         // Detect if starting animation while another is active
-        if (newEvent.type === 'start' && this.activeAnimationId && this.activeAnimationId !== newEvent.animationId) {
+        if (
+          newEvent.type === 'start' &&
+          this.activeAnimationId &&
+          this.activeAnimationId !== newEvent.animationId
+        ) {
           return `Starting new animation while ${this.activeAnimationId} is active`;
         }
         return null;
@@ -359,7 +363,11 @@ class AnimationDebugger {
       `[Animation] #${this.animationCount} → Index ${targetIndex} (${animationId})`,
       true // collapsed
     );
-    this.debugger.logInGroup('Start:', { currentY, target, distance: Math.abs(target - currentY).toFixed(1) });
+    this.debugger.logInGroup('Start:', {
+      currentY,
+      target,
+      distance: Math.abs(target - currentY).toFixed(1),
+    });
   }
 
   /** Track animation stop */
@@ -384,7 +392,9 @@ class AnimationDebugger {
   complete(animationId: string, targetIndex: number, finalY: number): void {
     if (!DEBUG_ANIMATION.enabled()) return;
 
-    const startEvent = this.debugger.getHistory().find(e => e.type === 'start' && e.animationId === animationId);
+    const startEvent = this.debugger
+      .getHistory()
+      .find((e) => e.type === 'start' && e.animationId === animationId);
     const duration = startEvent ? performance.now() - startEvent.timestamp : 0;
 
     const event: AnimationEvent = {
@@ -395,7 +405,11 @@ class AnimationDebugger {
     };
 
     this.debugger.logEvent(event);
-    this.debugger.logInGroup('Complete:', { targetIndex, finalY, duration: `${duration.toFixed(1)}ms` });
+    this.debugger.logInGroup('Complete:', {
+      targetIndex,
+      finalY,
+      duration: `${duration.toFixed(1)}ms`,
+    });
     this.debugger.endGroup();
 
     this.activeAnimationId = null;
@@ -413,10 +427,10 @@ class AnimationDebugger {
     };
 
     this.debugger.logEvent(event);
-    console.warn(
-      `[Animation] ⚠️ onComplete guard triggered - animation was stopped`,
-      { stoppedId: animationId, currentActiveId }
-    );
+    console.warn(`[Animation] ⚠️ onComplete guard triggered - animation was stopped`, {
+      stoppedId: animationId,
+      currentActiveId,
+    });
     this.debugger.endGroup();
   }
 

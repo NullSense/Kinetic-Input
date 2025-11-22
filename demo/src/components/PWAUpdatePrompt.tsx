@@ -46,7 +46,7 @@ export function PWAUpdatePrompt() {
           const resp = await fetch(swUrl, {
             cache: 'no-store',
             headers: {
-              'cache': 'no-store',
+              cache: 'no-store',
               'cache-control': 'no-cache',
             },
           });

@@ -121,9 +121,7 @@ export default function App() {
             enableHaptics={true}
             enableAudioFeedback={true}
           />
-          <p className="mt-4 text-sm text-muted text-center">
-            Current value: {basicValue} reps
-          </p>
+          <p className="mt-4 text-sm text-muted text-center">Current value: {basicValue} reps</p>
         </div>
       ),
     },
@@ -237,7 +235,7 @@ export default function App() {
     },
   ];
 
-  const currentTab = tabs.find(tab => tab.id === activeTab) || tabs[0];
+  const currentTab = tabs.find((tab) => tab.id === activeTab) || tabs[0];
 
   return (
     <section id="examples" className="py-16 px-4x bg-hairline/30">
@@ -250,11 +248,10 @@ export default function App() {
           transition={{ duration: 0.4 }}
           className="text-center mb-12"
         >
-          <h2 className="font-display text-5xl text-accent mb-3x">
-            EXAMPLES
-          </h2>
+          <h2 className="font-display text-5xl text-accent mb-3x">EXAMPLES</h2>
           <p className="text-lg text-muted max-w-2xl mx-auto">
-            Explore code examples and interact with the components. All examples are fully functional.
+            Explore code examples and interact with the components. All examples are fully
+            functional.
           </p>
         </motion.div>
 
@@ -267,9 +264,10 @@ export default function App() {
                 onClick={() => setActiveTab(tab.id)}
                 className={`
                   px-4 py-2 rounded-xs text-sm font-medium transition-all duration-fast
-                  ${activeTab === tab.id
-                    ? 'bg-accent/20 text-accent border border-accent/30'
-                    : 'text-muted hover:text-fg hover:bg-white/5'
+                  ${
+                    activeTab === tab.id
+                      ? 'bg-accent/20 text-accent border border-accent/30'
+                      : 'text-muted hover:text-fg hover:bg-white/5'
                   }
                 `}
               >

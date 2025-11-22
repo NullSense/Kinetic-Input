@@ -62,26 +62,26 @@ export function HapticsIndicator() {
 
   if (hapticsSupported === null) return null;
 
-  const animationProps = prefersReducedMotion ? {} : {
-    initial: { opacity: 0, x: 20 },
-    animate: { opacity: 1, x: 0 },
-    transition: { duration: 0.2, ease: [0.4, 0, 0.2, 1] as [number, number, number, number] },
-  };
+  const animationProps = prefersReducedMotion
+    ? {}
+    : {
+        initial: { opacity: 0, x: 20 },
+        animate: { opacity: 1, x: 0 },
+        transition: { duration: 0.2, ease: [0.4, 0, 0.2, 1] as [number, number, number, number] },
+      };
 
   return (
-    <motion.div
-      {...animationProps}
-      className="inline-block font-sans"
-    >
+    <motion.div {...animationProps} className="inline-block font-sans">
       <button
         onClick={() => setIsExpanded(!isExpanded)}
         className={`
           flex items-center gap-2x px-3x py-2x
           transition-all duration-fast
           border focus-accent
-          ${hapticsSupported
-            ? 'bg-success/10 border-success/30 hover:bg-success/20'
-            : 'bg-danger/10 border-danger/30 hover:bg-danger/20'
+          ${
+            hapticsSupported
+              ? 'bg-success/10 border-success/30 hover:bg-success/20'
+              : 'bg-danger/10 border-danger/30 hover:bg-danger/20'
           }
         `}
       >
@@ -91,7 +91,9 @@ export function HapticsIndicator() {
           <AlertCircle className="w-4 h-4 text-danger" strokeWidth={2} />
         )}
 
-        <span className={`text-sm font-medium ${hapticsSupported ? 'text-success' : 'text-danger'}`}>
+        <span
+          className={`text-sm font-medium ${hapticsSupported ? 'text-success' : 'text-danger'}`}
+        >
           {hapticsSupported ? 'HAPTICS' : 'NO HAPTICS'}
         </span>
 
@@ -167,9 +169,7 @@ export function HapticsIndicator() {
                       <li>• iOS Safari (requires user gesture)</li>
                       <li>• Security/privacy settings</li>
                     </ul>
-                    <p className="mt-2x text-accent">
-                      💡 Try this on a mobile device
-                    </p>
+                    <p className="mt-2x text-accent">💡 Try this on a mobile device</p>
                   </div>
                 </>
               )}

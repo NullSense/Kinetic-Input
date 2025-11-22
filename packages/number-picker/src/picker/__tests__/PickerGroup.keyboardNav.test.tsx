@@ -22,7 +22,9 @@ describe('PickerGroup keyboard navigation', () => {
       </PickerGroup>
     );
 
-    const column = screen.getByRole('option', { name: '2' }).closest('.picker-column') as HTMLElement;
+    const column = screen
+      .getByRole('option', { name: '2' })
+      .closest('.picker-column') as HTMLElement;
     column.focus();
 
     // Right arrow should increment
@@ -98,12 +100,7 @@ describe('PickerGroup keyboard navigation', () => {
     const user = userEvent.setup();
 
     render(
-      <PickerGroup
-        value={{ a: '1', b: '2' }}
-        onChange={onChange}
-        itemHeight={40}
-        height={200}
-      >
+      <PickerGroup value={{ a: '1', b: '2' }} onChange={onChange} itemHeight={40} height={200}>
         <PickerColumn name="a">
           <PickerItem value="1">A1</PickerItem>
           <PickerItem value="2">A2</PickerItem>
@@ -129,12 +126,7 @@ describe('PickerGroup keyboard navigation', () => {
     const user = userEvent.setup();
 
     render(
-      <PickerGroup
-        value={{ a: '1', b: '2' }}
-        onChange={onChange}
-        itemHeight={40}
-        height={200}
-      >
+      <PickerGroup value={{ a: '1', b: '2' }} onChange={onChange} itemHeight={40} height={200}>
         <PickerColumn name="a">
           <PickerItem value="1">A1</PickerItem>
           <PickerItem value="2">A2</PickerItem>

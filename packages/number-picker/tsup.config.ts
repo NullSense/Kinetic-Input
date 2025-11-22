@@ -6,18 +6,18 @@ export default defineConfig({
     'quick/index': 'src/quick/index.ts',
     'wheel/index': 'src/wheel/index.ts',
     'config/index': 'src/config/index.ts',
-    'types/index': 'src/types/index.ts'
+    'types/index': 'src/types/index.ts',
   },
   dts: {
     compilerOptions: {
       composite: false,
-      customConditions: []
-    }
+      customConditions: [],
+    },
   },
   tsconfig: 'tsconfig.dts.json',
   format: ['esm'],
   treeshake: true,
   sourcemap: true,
   clean: true,
-  publicDir: 'src/styles'   // -> dist/styles/*
+  publicDir: 'src/styles', // -> dist/styles/*
 });

@@ -5,7 +5,10 @@
 
 import type { SnapPhysicsConfig } from '../picker/types/snapPhysics';
 import { DEFAULT_SNAP_PHYSICS } from '../config/physics';
-import { countDecimals as countDecimalsUtil, createFormatter as createFormatterUtil } from '../quick/utils';
+import {
+  countDecimals as countDecimalsUtil,
+  createFormatter as createFormatterUtil,
+} from '../quick/utils';
 
 // ============ Types ============
 
@@ -69,12 +72,7 @@ export const generateRangeOptions = ({
   }
 
   // Calculate decimal places for precision
-  const decimalPlaces = Math.max(
-    countDecimals(step),
-    countDecimals(min),
-    countDecimals(max),
-    0
-  );
+  const decimalPlaces = Math.max(countDecimals(step), countDecimals(min), countDecimals(max), 0);
 
   const defaultFormatter = formatter ?? createFormatter(decimalPlaces);
 
@@ -115,9 +113,7 @@ export const generateRangeOptions = ({
  * normalizeOptions([{ value: 1 }, { value: 2, label: "Two" }])
  * // Returns: [{ value: 1, label: "1", key: "opt-0-1" }, { value: 2, label: "Two", key: "opt-1-2" }]
  */
-export const normalizeOptions = (
-  options: PickerOption[]
-): NormalizedPickerOption[] =>
+export const normalizeOptions = (options: PickerOption[]): NormalizedPickerOption[] =>
   options.map((option, index) => ({
     ...option,
     label: option.label ?? option.value.toString(),

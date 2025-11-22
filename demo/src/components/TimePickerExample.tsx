@@ -9,9 +9,7 @@ export function TimePickerExample() {
   const [time, setTime] = useState({ hours: '10', minutes: '30', period: 'AM' });
 
   const hours = Array.from({ length: 12 }, (_, i) => String(i + 1));
-  const minutes = Array.from({ length: 60 }, (_, i) =>
-    String(i).padStart(2, '0')
-  );
+  const minutes = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0'));
   const periods = ['AM', 'PM'];
 
   return (
@@ -32,11 +30,7 @@ export function TimePickerExample() {
             m: time.minutes,
             p: time.period,
           }}
-          onChange={(newValue: {
-            h: string | number;
-            m: string | number;
-            p: string | number;
-          }) =>
+          onChange={(newValue: { h: string | number; m: string | number; p: string | number }) =>
             setTime({
               hours: String(newValue.h),
               minutes: String(newValue.m),
@@ -58,9 +52,7 @@ export function TimePickerExample() {
             ))}
           </PickerColumn>
 
-          <div className="flex items-center text-accent text-2xl font-bold self-center">
-            :
-          </div>
+          <div className="flex items-center text-accent text-2xl font-bold self-center">:</div>
 
           <PickerColumn name="m" className="flex-1">
             {minutes.map((m) => (

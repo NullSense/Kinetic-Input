@@ -69,9 +69,7 @@ export function createPointerCaptureHandlers(callbacks: PointerCaptureCallbacks)
 
     // Normalize pointer type
     const pointerType: PointerType =
-      event.pointerType === 'mouse' ||
-      event.pointerType === 'pen' ||
-      event.pointerType === 'touch'
+      event.pointerType === 'mouse' || event.pointerType === 'pen' || event.pointerType === 'touch'
         ? event.pointerType
         : '';
 

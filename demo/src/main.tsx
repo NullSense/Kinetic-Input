@@ -7,5 +7,5 @@ import '../../packages/number-picker/src/styles/all.css';
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <App />
-  </StrictMode>,
+  </StrictMode>
 );

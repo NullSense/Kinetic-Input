@@ -334,12 +334,10 @@ export function PresetsGallery() {
           transition={{ duration: 0.4 }}
           className="text-center mb-12"
         >
-          <h2 className="font-display text-5xl text-accent mb-3x">
-            PRESETS
-          </h2>
+          <h2 className="font-display text-5xl text-accent mb-3x">PRESETS</h2>
           <p className="text-lg text-muted max-w-2xl mx-auto">
-            Fully themeable and customizable. Start with a preset or build your
-            own design system integration.
+            Fully themeable and customizable. Start with a preset or build your own design system
+            integration.
           </p>
         </motion.div>
 
@@ -371,9 +369,13 @@ export function PresetsGallery() {
 
               {/* Preview Swatch */}
               <div className="flex gap-2">
-                <div className={`w-8 h-8 rounded-sm ${preset.theme.bg} ${preset.theme.border} border-2`} />
+                <div
+                  className={`w-8 h-8 rounded-sm ${preset.theme.bg} ${preset.theme.border} border-2`}
+                />
                 <div className={`w-8 h-8 rounded-sm ${preset.theme.fg.replace('text-', 'bg-')}`} />
-                <div className={`w-8 h-8 rounded-sm ${preset.theme.accent.replace('text-', 'bg-')}`} />
+                <div
+                  className={`w-8 h-8 rounded-sm ${preset.theme.accent.replace('text-', 'bg-')}`}
+                />
               </div>
             </motion.button>
           ))}
@@ -418,18 +420,12 @@ export function PresetsGallery() {
 
                 {/* Content */}
                 <div className="mb-6x">
-                  <h3 className="text-2xl font-semibold mb-2x">
-                    {selectedPreset.name}
-                  </h3>
-                  <p className="text-sm opacity-70">
-                    {selectedPreset.description}
-                  </p>
+                  <h3 className="text-2xl font-semibold mb-2x">{selectedPreset.name}</h3>
+                  <p className="text-sm opacity-70">{selectedPreset.description}</p>
                 </div>
 
                 <div>
-                  <div className="block text-sm font-medium mb-2x uppercase">
-                    Try it out
-                  </div>
+                  <div className="block text-sm font-medium mb-2x uppercase">Try it out</div>
                   <CollapsiblePicker
                     {...DEMO_PICKERS.weight}
                     value={presetValue}
@@ -443,9 +439,7 @@ export function PresetsGallery() {
                   <div className="flex items-center justify-between mb-3x">
                     <div className="flex items-center gap-2">
                       <Code2 className="w-4 h-4 opacity-70" strokeWidth={2} />
-                      <div className="text-sm font-medium uppercase">
-                        Code Example
-                      </div>
+                      <div className="text-sm font-medium uppercase">Code Example</div>
                     </div>
                     {/* Copy Button */}
                     <button
@@ -468,14 +462,25 @@ export function PresetsGallery() {
                   </div>
                   <SyntaxHighlighter
                     language="typescript"
-                    style={['bg-slate-100', 'bg-indigo-50', 'bg-yellow-400', 'bg-white'].includes(selectedPreset.theme.bg) ? vs : vscDarkPlus}
+                    style={
+                      ['bg-slate-100', 'bg-indigo-50', 'bg-yellow-400', 'bg-white'].includes(
+                        selectedPreset.theme.bg
+                      )
+                        ? vs
+                        : vscDarkPlus
+                    }
                     customStyle={{
                       margin: 0,
                       borderRadius: '2px',
                       fontSize: '0.8125rem',
                       lineHeight: '1.5',
                       border: '1px solid rgba(0, 0, 0, 0.2)',
-                      backgroundColor: ['bg-slate-100', 'bg-indigo-50', 'bg-yellow-400', 'bg-white'].includes(selectedPreset.theme.bg)
+                      backgroundColor: [
+                        'bg-slate-100',
+                        'bg-indigo-50',
+                        'bg-yellow-400',
+                        'bg-white',
+                      ].includes(selectedPreset.theme.bg)
                         ? 'rgba(255, 255, 255, 0.8)'
                         : 'rgba(0, 0, 0, 0.3)',
                       maxHeight: '300px',
@@ -488,9 +493,7 @@ export function PresetsGallery() {
                 </div>
 
                 <div className="mt-6x pt-6x border-t opacity-50">
-                  <p className="text-xs">
-                    Click outside to close • Drag to interact
-                  </p>
+                  <p className="text-xs">Click outside to close • Drag to interact</p>
                 </div>
               </motion.div>
             </motion.div>

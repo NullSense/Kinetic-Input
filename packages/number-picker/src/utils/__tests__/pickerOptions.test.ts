@@ -44,7 +44,7 @@ describe('countDecimals', () => {
   it('handles numbers with trailing zeros', () => {
     expect(countDecimals(1.0)).toBe(0);
     expect(countDecimals(1.5)).toBe(1);
-    expect(countDecimals(1.50)).toBe(1); // JavaScript normalizes this
+    expect(countDecimals(1.5)).toBe(1); // JavaScript normalizes this
   });
 });
 
@@ -191,10 +191,7 @@ describe('normalizeOptions', () => {
   });
 
   it('handles string values', () => {
-    const input: PickerOption[] = [
-      { value: 'small', label: 'Small' },
-      { value: 'large' },
-    ];
+    const input: PickerOption[] = [{ value: 'small', label: 'Small' }, { value: 'large' }];
 
     const result = normalizeOptions(input);
 
@@ -205,11 +202,7 @@ describe('normalizeOptions', () => {
   });
 
   it('handles mixed numeric and string values', () => {
-    const input: PickerOption[] = [
-      { value: 1, label: 'First' },
-      { value: 'custom' },
-      { value: 3 },
-    ];
+    const input: PickerOption[] = [{ value: 1, label: 'First' }, { value: 'custom' }, { value: 3 }];
 
     const result = normalizeOptions(input);
 
@@ -252,10 +245,7 @@ describe('normalizeOptions', () => {
   });
 
   it('handles decimal values in keys', () => {
-    const input: PickerOption[] = [
-      { value: 1.5, label: 'One point five' },
-      { value: 2.75 },
-    ];
+    const input: PickerOption[] = [{ value: 1.5, label: 'One point five' }, { value: 2.75 }];
 
     const result = normalizeOptions(input);
 

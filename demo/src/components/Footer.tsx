@@ -15,9 +15,7 @@ export function Footer() {
       <div className="container mx-auto px-4x py-8x">
         <div className="flex flex-col md:flex-row items-center justify-between gap-4x">
           {/* Logo */}
-          <div className="font-display text-xl text-accent">
-            KINETIC INPUT
-          </div>
+          <div className="font-display text-xl text-accent">KINETIC INPUT</div>
 
           {/* Links */}
           <div className="flex items-center gap-6x text-sm">
@@ -45,9 +43,7 @@ export function Footer() {
           </div>
 
           {/* Copyright */}
-          <div className="text-sm text-muted">
-            © {currentYear} Tensil
-          </div>
+          <div className="text-sm text-muted">© {currentYear} Tensil</div>
         </div>
 
         {/* Bottom Note */}

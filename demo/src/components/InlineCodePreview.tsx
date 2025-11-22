@@ -23,7 +23,7 @@ export function InlineCodePreview({
   description,
   code,
   preview,
-  delay = 0
+  delay = 0,
 }: InlineCodePreviewProps) {
   const [copied, setCopied] = useState(false);
 
@@ -50,9 +50,7 @@ export function InlineCodePreview({
         <div className="flex items-start justify-between">
           <div>
             <h3 className="text-lg font-semibold text-fg mb-1">{title}</h3>
-            {description && (
-              <p className="text-sm text-muted">{description}</p>
-            )}
+            {description && <p className="text-sm text-muted">{description}</p>}
           </div>
           <button
             onClick={copyToClipboard}
@@ -105,9 +103,7 @@ export function InlineCodePreview({
 
         {/* Component Panel - First on mobile, right on desktop */}
         <div className="order-1 lg:order-2 p-6 lg:p-8 bg-bg/20 border-b lg:border-b-0 lg:border-l border-hairline lg:min-w-[400px] lg:max-w-[480px] flex items-center justify-center">
-          <div className="w-full max-w-sm">
-            {preview}
-          </div>
+          <div className="w-full max-w-sm">{preview}</div>
         </div>
       </div>
     </motion.div>

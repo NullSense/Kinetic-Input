@@ -25,9 +25,7 @@ describe('CollapsiblePicker single-gesture mode', () => {
 
   it('opens and scrolls in single gesture (touch-to-open-and-drag)', async () => {
     const onChange = vi.fn();
-    const { getByTestId } = render(
-      <CollapsiblePicker {...baseProps} onChange={onChange} />,
-    );
+    const { getByTestId } = render(<CollapsiblePicker {...baseProps} onChange={onChange} />);
 
     const surface = getByTestId('picker-surface');
     expect(surface.getAttribute('data-state')).toBe('closed');

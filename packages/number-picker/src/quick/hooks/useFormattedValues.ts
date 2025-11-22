@@ -92,7 +92,8 @@ export const useFormattedValues = ({
   const getValidValue = useCallback(
     (val: number | undefined): number => {
       if (val !== undefined && val >= min && val <= max) return val;
-      if (initialValue !== undefined && initialValue >= min && initialValue <= max) return initialValue;
+      if (initialValue !== undefined && initialValue >= min && initialValue <= max)
+        return initialValue;
       if (lastValue !== undefined && lastValue >= min && lastValue <= max) return lastValue;
       return min;
     },

@@ -48,15 +48,13 @@ export function Hero() {
           transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
           className="text-center mb-12"
         >
-          <h1 className="font-display text-7xl md:text-8xl text-accent mb-4x">
-            KINETIC INPUT
-          </h1>
+          <h1 className="font-display text-7xl md:text-8xl text-accent mb-4x">KINETIC INPUT</h1>
           <p className="text-xl md:text-2xl text-fg max-w-3xl mx-auto mb-3x text-balance">
             High-performance momentum-driven number pickers for React.
           </p>
           <p className="text-muted max-w-2xl mx-auto text-balance">
-            Built with precision engineering for mobile-first experiences.
-            Optimized for touch, haptics, and smooth physics-based settling.
+            Built with precision engineering for mobile-first experiences. Optimized for touch,
+            haptics, and smooth physics-based settling.
           </p>
         </motion.div>
 
@@ -78,31 +76,22 @@ export function Hero() {
           className="glass-subtle p-8x max-w-md mx-auto mb-12"
         >
           <div className="text-center mb-6x">
-            <h2 className="text-2xl font-semibold text-fg mb-2x">
-              Try it yourself
-            </h2>
-            <p className="text-sm text-muted">
-              Tap to expand • Drag to scrub • Feel the momentum
-            </p>
+            <h2 className="text-2xl font-semibold text-fg mb-2x">Try it yourself</h2>
+            <p className="text-sm text-muted">Tap to expand • Drag to scrub • Feel the momentum</p>
           </div>
 
           <div className="space-y-4x">
-            <CollapsiblePicker
-              {...DEMO_PICKERS.weight}
-              value={weight}
-              onChange={setWeight}
-            />
+            <CollapsiblePicker {...DEMO_PICKERS.weight} value={weight} onChange={setWeight} />
 
-            <CollapsiblePicker
-              {...DEMO_PICKERS.reps}
-              value={reps}
-              onChange={setReps}
-            />
+            <CollapsiblePicker {...DEMO_PICKERS.reps} value={reps} onChange={setReps} />
           </div>
 
           <div className="mt-6x pt-6x border-t border-hairline text-center">
             <p className="text-sm text-muted">
-              Current selection: <span className="text-accent font-mono font-semibold">{weight} kg × {reps} reps</span>
+              Current selection:{' '}
+              <span className="text-accent font-mono font-semibold">
+                {weight} kg × {reps} reps
+              </span>
             </p>
           </div>
         </motion.div>
@@ -120,15 +109,9 @@ export function Hero() {
               className="glass-subtle p-4x text-center hover:bg-accent/5 transition-colors duration-fast"
             >
               <stat.icon className="w-8 h-8 text-accent mx-auto mb-3x" strokeWidth={2} />
-              <div className="font-mono text-3xl font-bold text-fg mb-1x">
-                {stat.value}
-              </div>
-              <div className="text-sm font-semibold text-muted mb-1x">
-                {stat.label}
-              </div>
-              <div className="text-xs text-muted">
-                {stat.description}
-              </div>
+              <div className="font-mono text-3xl font-bold text-fg mb-1x">{stat.value}</div>
+              <div className="text-sm font-semibold text-muted mb-1x">{stat.label}</div>
+              <div className="text-xs text-muted">{stat.description}</div>
             </div>
           ))}
         </motion.div>

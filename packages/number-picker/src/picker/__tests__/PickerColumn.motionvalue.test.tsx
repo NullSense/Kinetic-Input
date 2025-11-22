@@ -1,25 +1,25 @@
-import { describe, it, expect, vi } from 'vitest'
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { userEvent } from '@testing-library/user-event'
-import { useCallback, useEffect, useState, type ReactNode } from 'react'
-import Picker from '../PickerGroup'
-import PickerColumn from '../PickerColumn'
-import PickerItem from '../PickerItem'
+import { describe, it, expect, vi } from 'vitest';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { userEvent } from '@testing-library/user-event';
+import { useCallback, useEffect, useState, type ReactNode } from 'react';
+import Picker from '../PickerGroup';
+import PickerColumn from '../PickerColumn';
+import PickerItem from '../PickerItem';
 
 // Helper to simulate sequential pointer moves without await-in-loop
 async function simulatePointerDrag(user: ReturnType<typeof userEvent.setup>, count: number) {
-  const moves = []
+  const moves = [];
   for (let i = 0; i < count; i++) {
-    moves.push({ coords: { x: 0, y: i * 2 } })
+    moves.push({ coords: { x: 0, y: i * 2 } });
   }
   // Execute sequentially using reduce to avoid await-in-loop
   await moves.reduce(
     async (prev, coords) => {
-      await prev
-      return user.pointer(coords)
+      await prev;
+      return user.pointer(coords);
     },
     Promise.resolve() as Promise<void>
-  )
+  );
 }
 
 /**
@@ -37,27 +37,28 @@ async function simulatePointerDrag(user: ReturnType<typeof userEvent.setup>, cou
 /**
  * Mock DOMRect for testing
  */
-const mockRect = () => ({
-  top: 0,
-  bottom: 200,
-  height: 200,
-  left: 0,
-  right: 100,
-  width: 100,
-  x: 0,
-  y: 0,
-  toJSON: () => ({}),
-}) as DOMRect;
+const mockRect = () =>
+  ({
+    top: 0,
+    bottom: 200,
+    height: 200,
+    left: 0,
+    right: 100,
+    width: 100,
+    x: 0,
+    y: 0,
+    toJSON: () => ({}),
+  }) as DOMRect;
 
 interface TestPickerProps {
-  children: ReactNode
-  value?: string
-  onValueChange?: (value: string) => void
-  onVisualValueChange?: (value: string | number) => void
-  onDragStart?: () => void
-  onDragEnd?: (hasMoved: boolean) => void
-  itemHeight?: number
-  height?: number
+  children: ReactNode;
+  value?: string;
+  onValueChange?: (value: string) => void;
+  onVisualValueChange?: (value: string | number) => void;
+  onDragStart?: () => void;
+  onDragEnd?: (hasMoved: boolean) => void;
+  itemHeight?: number;
+  height?: number;
 }
 
 /**
@@ -70,24 +71,24 @@ function TestPicker({
   itemHeight = 40,
   height = 200,
 }: TestPickerProps) {
-  const [internalValue, setInternalValue] = useState(value ?? 'Option 2')
+  const [internalValue, setInternalValue] = useState(value ?? 'Option 2');
 
   useEffect(() => {
     if (value !== undefined) {
-      setInternalValue(value)
+      setInternalValue(value);
     }
-  }, [value])
+  }, [value]);
 
   const handleChange = useCallback(
     (next: { test: string | number }) => {
-      const resolved = next.test as string
+      const resolved = next.test as string;
       if (value === undefined) {
-        setInternalValue(resolved)
+        setInternalValue(resolved);
       }
-      onValueChange(resolved)
+      onValueChange(resolved);
     },
     [onValueChange, value]
-  )
+  );
 
   return (
     <Picker
@@ -98,11 +99,11 @@ function TestPicker({
     >
       {children}
     </Picker>
-  )
+  );
 }
 
 describe('PickerColumn MotionValue Performance', () => {
-  const options = ['Option 1', 'Option 2', 'Option 3', 'Option 4', 'Option 5']
+  const options = ['Option 1', 'Option 2', 'Option 3', 'Option 4', 'Option 5'];
 
   describe('MotionValue Usage', () => {
     it('uses MotionValue for scroll position (not useState)', () => {
@@ -118,17 +119,17 @@ describe('PickerColumn MotionValue Performance', () => {
             ))}
           </PickerColumn>
         </TestPicker>
-      )
+      );
 
       // MotionValue should be used for the scroll transform
       // The motion.div will be present in the rendered output
-      expect(container.firstChild).toBeDefined()
-    })
+      expect(container.firstChild).toBeDefined();
+    });
 
     it('commits final scroll position to React state on pointer up', async () => {
       // Tests that onChange is eventually called after pointer up
-      const onValueChange = vi.fn()
-      const user = userEvent.setup()
+      const onValueChange = vi.fn();
+      const user = userEvent.setup();
 
       render(
         <TestPicker onValueChange={onValueChange}>
@@ -140,35 +141,38 @@ describe('PickerColumn MotionValue Performance', () => {
             ))}
           </PickerColumn>
         </TestPicker>
-      )
+      );
 
       // Simulate drag
-      const pickerContent = screen.getByText('Option 2').parentElement
-      expect(pickerContent).toBeDefined()
+      const pickerContent = screen.getByText('Option 2').parentElement;
+      expect(pickerContent).toBeDefined();
 
       // Pointer down
-      await user.pointer({ target: pickerContent!, keys: '[MouseLeft>]' })
+      await user.pointer({ target: pickerContent!, keys: '[MouseLeft>]' });
 
       // Move (should update MotionValue, not trigger re-render)
-      await user.pointer({ target: pickerContent!, coords: { x: 0, y: 50 } })
+      await user.pointer({ target: pickerContent!, coords: { x: 0, y: 50 } });
 
       // Pointer up (should commit to React state)
-      await user.pointer({ keys: '[/MouseLeft]' })
+      await user.pointer({ keys: '[/MouseLeft]' });
 
       // Verify value was committed (onValueChange called)
       // Note: Actual value depends on snap physics, just verify it was called
-      await waitFor(() => {
-        expect(onValueChange).toHaveBeenCalled()
-      }, { timeout: 1500 })
-    })
-  })
+      await waitFor(
+        () => {
+          expect(onValueChange).toHaveBeenCalled();
+        },
+        { timeout: 1500 }
+      );
+    });
+  });
 
   describe('Render Count During Interaction', () => {
     it('does not re-render for every pixel during drag', () => {
-      const renderSpy = vi.fn()
+      const renderSpy = vi.fn();
 
       const TestWrapper = ({ value = 'Option 2' }: { value?: string }) => {
-        renderSpy()
+        renderSpy();
         return (
           <TestPicker value={value}>
             <PickerColumn name="test">
@@ -179,28 +183,28 @@ describe('PickerColumn MotionValue Performance', () => {
               ))}
             </PickerColumn>
           </TestPicker>
-        )
-      }
+        );
+      };
 
-      const { rerender } = render(<TestWrapper />)
+      const { rerender } = render(<TestWrapper />);
 
       // Initial render
-      expect(renderSpy).toHaveBeenCalledTimes(1)
+      expect(renderSpy).toHaveBeenCalledTimes(1);
 
       // Simulate parent re-render (would happen 60x/sec with useState)
-      rerender(<TestWrapper />)
+      rerender(<TestWrapper />);
 
       // Should only render when props actually change
       // (MotionValue updates don't cause re-renders)
-      expect(renderSpy).toHaveBeenCalledTimes(2) // Initial + one rerender
-    })
-  })
+      expect(renderSpy).toHaveBeenCalledTimes(2); // Initial + one rerender
+    });
+  });
 
   describe('Value Commit Strategy', () => {
     it('commits value only on pointer up, not during drag', async () => {
       // Tests that onChange is not called during drag
-      const onValueChange = vi.fn()
-      const user = userEvent.setup()
+      const onValueChange = vi.fn();
+      const user = userEvent.setup();
 
       render(
         <TestPicker onValueChange={onValueChange}>
@@ -212,27 +216,27 @@ describe('PickerColumn MotionValue Performance', () => {
             ))}
           </PickerColumn>
         </TestPicker>
-      )
+      );
 
-      const pickerContent = screen.getByText('Option 2').parentElement!
+      const pickerContent = screen.getByText('Option 2').parentElement!;
 
       // Start drag
-      await user.pointer({ target: pickerContent, keys: '[MouseLeft>]' })
+      await user.pointer({ target: pickerContent, keys: '[MouseLeft>]' });
 
       // Move multiple times
-      await user.pointer({ coords: { x: 0, y: 50 } })
-      await user.pointer({ coords: { x: 0, y: 100 } })
-      await user.pointer({ coords: { x: 0, y: 150 } })
+      await user.pointer({ coords: { x: 0, y: 50 } });
+      await user.pointer({ coords: { x: 0, y: 100 } });
+      await user.pointer({ coords: { x: 0, y: 150 } });
 
       // Should NOT have called onValueChange yet (still dragging)
-      expect(onValueChange).not.toHaveBeenCalled()
+      expect(onValueChange).not.toHaveBeenCalled();
 
       // Release
-      await user.pointer({ keys: '[/MouseLeft]' })
+      await user.pointer({ keys: '[/MouseLeft]' });
 
-      await waitFor(() => expect(onValueChange).toHaveBeenCalled())
-    })
-  })
+      await waitFor(() => expect(onValueChange).toHaveBeenCalled());
+    });
+  });
 
   describe('Performance Metrics', () => {
     it('maintains constant memory usage during long drag', () => {
@@ -249,14 +253,14 @@ describe('PickerColumn MotionValue Performance', () => {
             ))}
           </PickerColumn>
         </TestPicker>
-      )
+      );
 
       // Verify component renders without error
-      expect(container.firstChild).toBeDefined()
+      expect(container.firstChild).toBeDefined();
 
       // Memory profiling would require actual performance tools
       // This test mainly documents the expected behavior
-    })
+    });
 
     it('uses GPU-accelerated transform (not top/left)', () => {
       const { container } = render(
@@ -269,23 +273,23 @@ describe('PickerColumn MotionValue Performance', () => {
             ))}
           </PickerColumn>
         </TestPicker>
-      )
+      );
 
       // Framer Motion applies transforms via inline styles or CSS variables
       // The important part is that the component renders successfully
-      expect(container.firstChild).toBeDefined()
+      expect(container.firstChild).toBeDefined();
 
       // Note: Framer Motion v11+ may use CSS variables for transforms
       // so we can't reliably test for style*="transform" in the markup
       // The actual transform is applied via motion.div which handles GPU acceleration
-    })
-  })
+    });
+  });
 
   describe('Edge Cases', () => {
     it('handles rapid pointer events without dropping frames', async () => {
       // Tests that rapid pointer events are handled correctly
-      const onValueChange = vi.fn()
-      const user = userEvent.setup()
+      const onValueChange = vi.fn();
+      const user = userEvent.setup();
 
       render(
         <TestPicker onValueChange={onValueChange}>
@@ -297,30 +301,32 @@ describe('PickerColumn MotionValue Performance', () => {
             ))}
           </PickerColumn>
         </TestPicker>
-      )
+      );
 
-      const pickerContent = screen.getByText('Option 2').parentElement!
+      const pickerContent = screen.getByText('Option 2').parentElement!;
 
       // Simulate rapid movement (60 events in quick succession)
-      await user.pointer({ target: pickerContent, keys: '[MouseLeft>]' })
-      await simulatePointerDrag(user, 60)
-      await user.pointer({ keys: '[/MouseLeft]' })
+      await user.pointer({ target: pickerContent, keys: '[MouseLeft>]' });
+      await simulatePointerDrag(user, 60);
+      await user.pointer({ keys: '[/MouseLeft]' });
 
       // Should handle all events without error
       // MotionValue batches updates efficiently
-      await waitFor(() => {
-        expect(onValueChange).toHaveBeenCalled() // Called after release
-      }, { timeout: 1500 })
-    })
-
-  })
+      await waitFor(
+        () => {
+          expect(onValueChange).toHaveBeenCalled(); // Called after release
+        },
+        { timeout: 1500 }
+      );
+    });
+  });
 
   describe('Integration with Snap Physics', () => {
     it('accepts snap physics config and renders all options', async () => {
       // This test verifies the component integrates with snap physics
       // The actual snap physics calculations are tested in their own test suite
       // Here we verify the component structure supports snapping behavior
-      const onValueChange = vi.fn()
+      const onValueChange = vi.fn();
 
       const { container } = render(
         <TestPicker onValueChange={onValueChange} itemHeight={40}>
@@ -332,32 +338,31 @@ describe('PickerColumn MotionValue Performance', () => {
             ))}
           </PickerColumn>
         </TestPicker>
-      )
+      );
 
       // Verify all options are rendered (required for snapping to work)
-      options.forEach(opt => {
-        expect(screen.getByText(opt)).toBeDefined()
-      })
+      options.forEach((opt) => {
+        expect(screen.getByText(opt)).toBeDefined();
+      });
 
       // Verify component renders with custom itemHeight prop
-      expect(container.firstChild).toBeDefined()
+      expect(container.firstChild).toBeDefined();
 
       // Note: Actual snap physics behavior is tested in the snap physics test suite
       // This test verifies the component correctly accepts and renders with snap config
-    })
-  })
+    });
+  });
 
   describe('Row click selection', () => {
-
     const getColumn = (testId: string) => {
-      const node = screen.getByTestId(testId) as HTMLElement
-      node.getBoundingClientRect = vi.fn(mockRect) as unknown as () => DOMRect
-      return node
-    }
+      const node = screen.getByTestId(testId) as HTMLElement;
+      node.getBoundingClientRect = vi.fn(mockRect) as unknown as () => DOMRect;
+      return node;
+    };
 
     it('selects adjacent rows when clicking just above or below the center', async () => {
       // Tests row click selection
-      const onValueChange = vi.fn()
+      const onValueChange = vi.fn();
 
       render(
         <TestPicker onValueChange={onValueChange}>
@@ -369,19 +374,19 @@ describe('PickerColumn MotionValue Performance', () => {
             ))}
           </PickerColumn>
         </TestPicker>
-      )
+      );
 
-      const column = getColumn('picker-column-test')
+      const column = getColumn('picker-column-test');
 
-      fireEvent.pointerDown(column, { pointerId: 1, pointerType: 'mouse', clientY: 100 })
-      fireEvent.pointerUp(column, { pointerId: 1, pointerType: 'mouse', clientY: 60 })
+      fireEvent.pointerDown(column, { pointerId: 1, pointerType: 'mouse', clientY: 100 });
+      fireEvent.pointerUp(column, { pointerId: 1, pointerType: 'mouse', clientY: 60 });
 
-      await waitFor(() => expect(onValueChange).toHaveBeenCalledWith('Option 1'))
-    })
+      await waitFor(() => expect(onValueChange).toHaveBeenCalledWith('Option 1'));
+    });
 
     it('allows touch taps above/below the center to step one row at a time', async () => {
       // Tests touch tap selection
-      const onValueChange = vi.fn()
+      const onValueChange = vi.fn();
 
       render(
         <TestPicker onValueChange={onValueChange}>
@@ -393,19 +398,19 @@ describe('PickerColumn MotionValue Performance', () => {
             ))}
           </PickerColumn>
         </TestPicker>
-      )
+      );
 
-      const column = getColumn('picker-column-touch')
+      const column = getColumn('picker-column-touch');
 
-      fireEvent.pointerDown(column, { pointerId: 2, pointerType: 'touch', clientY: 60 })
-      fireEvent.pointerUp(column, { pointerId: 2, pointerType: 'touch', clientY: 60 })
+      fireEvent.pointerDown(column, { pointerId: 2, pointerType: 'touch', clientY: 60 });
+      fireEvent.pointerUp(column, { pointerId: 2, pointerType: 'touch', clientY: 60 });
 
-      await waitFor(() => expect(onValueChange).toHaveBeenLastCalledWith('Option 1'))
+      await waitFor(() => expect(onValueChange).toHaveBeenLastCalledWith('Option 1'));
 
-      fireEvent.pointerDown(column, { pointerId: 3, pointerType: 'touch', clientY: 140 })
-      fireEvent.pointerUp(column, { pointerId: 3, pointerType: 'touch', clientY: 140 })
+      fireEvent.pointerDown(column, { pointerId: 3, pointerType: 'touch', clientY: 140 });
+      fireEvent.pointerUp(column, { pointerId: 3, pointerType: 'touch', clientY: 140 });
 
-      await waitFor(() => expect(onValueChange).toHaveBeenLastCalledWith('Option 2'))
-    })
-  })
-})
+      await waitFor(() => expect(onValueChange).toHaveBeenLastCalledWith('Option 2'));
+    });
+  });
+});

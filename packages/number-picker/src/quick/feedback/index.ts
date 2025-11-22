@@ -8,16 +8,8 @@
  * @module feedback
  */
 
-import {
-  createHapticAdapter,
-  type HapticAdapter,
-  type HapticAdapterOptions,
-} from './haptics';
-import {
-  createAudioAdapter,
-  type AudioAdapter,
-  type AudioAdapterOptions,
-} from './audio';
+import { createHapticAdapter, type HapticAdapter, type HapticAdapterOptions } from './haptics';
+import { createAudioAdapter, type AudioAdapter, type AudioAdapterOptions } from './audio';
 
 export { createHapticAdapter, type HapticAdapter, type HapticAdapterOptions } from './haptics';
 export { createAudioAdapter, type AudioAdapter, type AudioAdapterOptions } from './audio';

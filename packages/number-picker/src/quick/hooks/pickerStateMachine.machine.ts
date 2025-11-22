@@ -110,10 +110,7 @@ export const pickerStateMachine = setup({
         },
         EXTERNAL_CLOSE: {
           target: 'closed',
-          actions: [
-            pickerActions.notifyExternalClose,
-            pickerActions.resetInteractionState,
-          ],
+          actions: [pickerActions.notifyExternalClose, pickerActions.resetInteractionState],
         },
       },
     },
@@ -130,10 +127,7 @@ export const pickerStateMachine = setup({
         },
         EXTERNAL_CLOSE: {
           target: 'closed',
-          actions: [
-            pickerActions.notifyExternalClose,
-            pickerActions.resetInteractionState,
-          ],
+          actions: [pickerActions.notifyExternalClose, pickerActions.resetInteractionState],
         },
       },
       after: {
@@ -164,10 +158,7 @@ export const pickerStateMachine = setup({
         },
         EXTERNAL_CLOSE: {
           target: 'closed',
-          actions: [
-            pickerActions.notifyExternalClose,
-            pickerActions.resetInteractionState,
-          ],
+          actions: [pickerActions.notifyExternalClose, pickerActions.resetInteractionState],
         },
       },
       after: {

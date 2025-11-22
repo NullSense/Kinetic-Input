@@ -12,7 +12,9 @@ export const PickerConfigProvider = PickerColumnConfigContext.Provider;
 export function usePickerConfig(componentName: string) {
   const context = useContext(PickerColumnConfigContext);
   if (context === null) {
-    const error = new Error(`<${componentName} /> is missing a parent <Picker.Column /> component.`);
+    const error = new Error(
+      `<${componentName} /> is missing a parent <Picker.Column /> component.`
+    );
     if (Error.captureStackTrace) {
       Error.captureStackTrace(error, usePickerConfig);
     }
