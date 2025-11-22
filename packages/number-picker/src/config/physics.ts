@@ -13,9 +13,9 @@ import type { SnapPhysicsConfig } from '../picker/types/snapPhysics';
 
 /**
  * Maximum overscroll distance in pixels when dragging beyond bounds
- * Reduced from 80 to 50 for gentler rebound
+ * Reduced from 80 → 50 → 30 for minimal rebound
  */
-export const MAX_OVERSCROLL_PIXELS = 50;
+export const MAX_OVERSCROLL_PIXELS = 30;
 
 /**
  * Minimum drag distance in pixels before picker opens (prevents accidental opens)
@@ -53,9 +53,9 @@ export const DOM_DELTA_MODE = {
 /**
  * Exponent for overscroll damping calculation
  * Lower = more resistance, Higher = less resistance
- * Reduced from 0.8 to 0.65 for stronger damping (less violent rebound)
+ * Reduced from 0.8 → 0.65 → 0.5 for very strong damping (gentle, non-bouncy rebound)
  */
-export const OVERSCROLL_DAMPING_EXPONENT = 0.65;
+export const OVERSCROLL_DAMPING_EXPONENT = 0.5;
 
 /**
  * Exponent for snap zone intensity calculation

@@ -328,8 +328,8 @@ export function usePickerPhysics({
 
       const controls = animate(yRaw, target, {
         type: 'spring',
-        stiffness: 300,
-        damping: 34,
+        stiffness: 200,
+        damping: 40,
         restDelta: 0.5,
         restSpeed: 10,
         onComplete: () => {
@@ -442,8 +442,8 @@ export function usePickerPhysics({
           onComplete?.();
         },
         snapSpring: {
-          stiffness: 300,
-          damping: 34,
+          stiffness: 200,
+          damping: 40,
           restDelta: 0.5,
           restSpeed: 10,
         },
