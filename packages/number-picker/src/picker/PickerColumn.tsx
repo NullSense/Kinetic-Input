@@ -62,6 +62,7 @@ function PickerColumn({
     wheelDeltaCap,
     value: groupValue,
     optionGroups,
+    onGesture: contextOnGesture,
   } = usePickerData('Picker.Column');
 
   const value = useMemo(() => groupValue[key], [groupValue, key]);
@@ -117,6 +118,19 @@ function PickerColumn({
 
   const pickerActions = usePickerActions('Picker.Column');
 
+  // Merge context gesture handler with prop gesture handler
+  const mergedOnGesture = useMemo(() => {
+    if (!contextOnGesture && !onGesture) return undefined;
+    if (!contextOnGesture) return onGesture;
+    if (!onGesture) return contextOnGesture;
+
+    // If both exist, call both handlers
+    return (event: Parameters<typeof contextOnGesture>[0]) => {
+      contextOnGesture(event);
+      onGesture(event);
+    };
+  }, [contextOnGesture, onGesture]);
+
   const {
     columnRef,
     ySnap,
@@ -142,7 +156,7 @@ function PickerColumn({
     wheelSensitivity,
     wheelDeltaCap,
     changeValue: pickerActions.change,
-    onGesture,
+    onGesture: mergedOnGesture,
     snapConfig,
     virtualization: virtualizationConfig,
   });
@@ -313,6 +327,7 @@ function PickerColumn({
               const optionId = optionIdProp ?? `picker-option-${key}-${absoluteIndex}`;
 
               return (
+                // eslint-disable-next-line jsx-a11y/click-events-have-key-events -- Keyboard navigation handled by parent column
                 <div
                   key={absoluteIndex}
                   className={className}

@@ -60,6 +60,7 @@ function AnimatedDemo({
       return;
     }
 
+    // eslint-disable-next-line no-await-in-loop -- Intentional sequential animation
     const animate = async () => {
       if (mode === 'quick') {
         // === Quick Pick: ONE single gesture with immediate close ===
@@ -113,6 +114,7 @@ function AnimatedDemo({
             dragValueStart + (dragValueEnd - dragValueStart) * progressPct
           );
           onValueChange(newValue);
+          // eslint-disable-next-line no-await-in-loop
           await new Promise((resolve) => setTimeout(resolve, dragDuration / dragSteps));
         }
         await dragPromise;
@@ -196,6 +198,7 @@ function AnimatedDemo({
             flickValueStart + (flickValueMid - flickValueStart) * progressPct
           );
           onValueChange(newValue);
+          // eslint-disable-next-line no-await-in-loop
           await new Promise((resolve) => setTimeout(resolve, flickDuration / flickSteps));
         }
         await flickPromise;
@@ -215,6 +218,7 @@ function AnimatedDemo({
             momentumValueStart + (momentumValueEnd - momentumValueStart) * easedProgress
           );
           onValueChange(newValue);
+          // eslint-disable-next-line no-await-in-loop
           await new Promise((resolve) => setTimeout(resolve, momentumDuration / momentumSteps));
         }
 
@@ -295,6 +299,7 @@ function AnimatedDemo({
             drag1ValueStart + (drag1ValueEnd - drag1ValueStart) * progressPct
           );
           onValueChange(newValue);
+          // eslint-disable-next-line no-await-in-loop
           await new Promise((resolve) => setTimeout(resolve, drag1Duration / drag1Steps));
         }
         await drag1Promise;
@@ -330,6 +335,7 @@ function AnimatedDemo({
             drag2ValueStart + (drag2ValueEnd - drag2ValueStart) * progressPct
           );
           onValueChange(newValue);
+          // eslint-disable-next-line no-await-in-loop
           await new Promise((resolve) => setTimeout(resolve, drag2Duration / drag2Steps));
         }
         await drag2Promise;
@@ -371,6 +377,7 @@ function AnimatedDemo({
             });
           }
 
+          // eslint-disable-next-line no-await-in-loop
           await new Promise((resolve) => setTimeout(resolve, scrollDuration / scrollSteps));
         }
 
@@ -407,6 +414,7 @@ function AnimatedDemo({
       onPickerStateChange(false);
       onValueChange(initialValue);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- Animation control functions are stable
   }, [isPlaying, mode, controls, onPickerStateChange, onValueChange, initialValue, targetValue]);
 
   return (
@@ -613,15 +621,15 @@ export function InteractionModes() {
                 </div>
               )}
 
-              {/* Real Picker - controlled by animation when playing, user when paused */}
-              <div className="relative z-0">
+              {/* Real Picker - fully controlled by animation (non-interactive) */}
+              <div className="relative z-0 pointer-events-none">
                 <CollapsiblePicker
                   label="Weight"
                   value={quickValue}
                   onChange={setQuickValue}
-                  isOpen={quickPlaying ? quickIsOpen : undefined}
-                  onRequestOpen={quickPlaying ? undefined : () => setQuickIsOpen(true)}
-                  onRequestClose={quickPlaying ? undefined : () => setQuickIsOpen(false)}
+                  isOpen={quickIsOpen}
+                  onRequestOpen={() => setQuickIsOpen(true)}
+                  onRequestClose={() => setQuickIsOpen(false)}
                   unit="kg"
                   min={40}
                   max={120}
@@ -693,15 +701,15 @@ export function InteractionModes() {
                 </div>
               )}
 
-              {/* Real Picker - controlled by animation when playing, user when paused */}
-              <div className="relative z-0">
+              {/* Real Picker - fully controlled by animation (non-interactive) */}
+              <div className="relative z-0 pointer-events-none">
                 <CollapsiblePicker
                   label="Speed"
                   value={flickValue}
                   onChange={setFlickValue}
-                  isOpen={flickPlaying ? flickIsOpen : undefined}
-                  onRequestOpen={flickPlaying ? undefined : () => setFlickIsOpen(true)}
-                  onRequestClose={flickPlaying ? undefined : () => setFlickIsOpen(false)}
+                  isOpen={flickIsOpen}
+                  onRequestOpen={() => setFlickIsOpen(true)}
+                  onRequestClose={() => setFlickIsOpen(false)}
                   unit="mph"
                   min={20}
                   max={100}
@@ -773,15 +781,15 @@ export function InteractionModes() {
                 </div>
               )}
 
-              {/* Real Picker - controlled by animation when playing, user when paused */}
-              <div className="relative z-0">
+              {/* Real Picker - fully controlled by animation (non-interactive) */}
+              <div className="relative z-0 pointer-events-none">
                 <CollapsiblePicker
                   label="Reps"
                   value={browseValue}
                   onChange={setBrowseValue}
-                  isOpen={browsePlaying ? browseIsOpen : undefined}
-                  onRequestOpen={browsePlaying ? undefined : () => setBrowseIsOpen(true)}
-                  onRequestClose={browsePlaying ? undefined : () => setBrowseIsOpen(false)}
+                  isOpen={browseIsOpen}
+                  onRequestOpen={() => setBrowseIsOpen(true)}
+                  onRequestClose={() => setBrowseIsOpen(false)}
                   unit="reps"
                   min={1}
                   max={30}
@@ -816,7 +824,7 @@ export function InteractionModes() {
         >
           <p className="text-sm text-muted">
             💡 <strong>Pro tip:</strong> The picker automatically detects your interaction pattern
-            and applies the appropriate timing. No mode switching needed!
+            and applies the appropriate timing. No mode switching needed! Use the pause/play buttons to control the animations.
           </p>
         </motion.div>
       </div>
