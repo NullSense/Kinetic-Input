@@ -39,6 +39,9 @@ export const usePickerFeedback = ({
   const [adapters, setAdapters] = useState<FeedbackAdapters>({ haptics: null, audio: null });
 
   useEffect(() => {
+    // Track whether this effect has been cleaned up (prevents stale updates)
+    let isCancelled = false;
+
     // Only load feedback module if at least one feature is enabled
     if (!enableHaptics && !enableAudioFeedback) {
       setAdapters({ haptics: null, audio: null });
@@ -49,6 +52,9 @@ export const usePickerFeedback = ({
     // This enables true tree-shaking when feedback is disabled
     import('../feedback')
       .then(({ createFeedbackAdapters }) => {
+        // Guard: Don't apply adapters if this effect was cleaned up (deps changed)
+        if (isCancelled) return;
+
         const newAdapters = createFeedbackAdapters({
           enableHaptics,
           enableAudioFeedback,
@@ -59,9 +65,16 @@ export const usePickerFeedback = ({
         setAdapters(newAdapters);
       })
       .catch(() => {
+        // Guard: Don't set null adapters if this effect was cleaned up
+        if (isCancelled) return;
         // Graceful fallback if module fails to load
         setAdapters({ haptics: null, audio: null });
       });
+
+    // Cleanup: Mark this effect as cancelled when deps change
+    return () => {
+      isCancelled = true;
+    };
   }, [
     enableHaptics,
     enableAudioFeedback,
