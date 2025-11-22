@@ -252,9 +252,10 @@ export function usePickerPhysics({
       const option = options[targetIndex];
       if (option) {
         changeValue(key, option.value);
+        emitter.valueCommit(option.value, targetIndex);
       }
     },
-    [changeValue, key, options]
+    [changeValue, emitter, key, options]
   );
 
   const finishAnimationInstantly = useCallback(() => {
