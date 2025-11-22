@@ -135,7 +135,7 @@ const CollapsibleNumberPickerComponent: React.FC<CollapsiblePickerProps> = ({
     openedViaRef,
     currentGestureSource,
     isOpeningInteraction,
-    deferGestureCloseRef,
+    deferGestureCloseRef: _deferGestureCloseRef,
   } = usePickerCoordinator({
     visibility: {
       showPicker,
@@ -355,7 +355,10 @@ const CollapsibleNumberPicker = React.memo(
 );
 
 // Shallow equality helper for objects
-function shallowEqual(obj1: any, obj2: any): boolean {
+function shallowEqual(
+  obj1: Record<string, unknown> | undefined,
+  obj2: Record<string, unknown> | undefined
+): boolean {
   if (obj1 === obj2) return true;
   if (!obj1 || !obj2) return false;
 

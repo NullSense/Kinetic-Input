@@ -318,7 +318,7 @@ export function PresetsGallery() {
       await navigator.clipboard.writeText(text);
       setCopiedPresetCode(true);
       setTimeout(() => setCopiedPresetCode(false), 2000);
-    } catch (err) {
+    } catch {
       // Silent fail - clipboard API may not be available
     }
   };

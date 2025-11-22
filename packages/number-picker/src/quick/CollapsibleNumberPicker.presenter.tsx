@@ -1,10 +1,8 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, type CSSProperties } from 'react';
 import { motion } from 'framer-motion';
 import { ChevronDown, ChevronUp } from 'lucide-react';
-import { PickerBody } from './CollapsibleNumberPicker.pickerBody';
-import type { PickerBodyProps } from './CollapsibleNumberPicker.pickerBody';
+import { PickerBody, type PickerBodyProps } from './CollapsibleNumberPicker.pickerBody';
 import type { CollapsiblePickerTheme } from './types';
-import type { CSSProperties } from 'react';
 
 export type CSSVariableStyles = CSSProperties & Record<`--${string}`, string>;
 
