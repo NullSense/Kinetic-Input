@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { debugLog } from '../../utils/debug';
-import { createFeedbackAdapters, type FeedbackAdapters } from '../feedback';
+import type { FeedbackAdapters } from '../feedback';
 import type { QuickPickerFeedbackConfig } from '../types';
 
 type PickerValue = { value: string };
@@ -34,24 +34,39 @@ export const usePickerFeedback = ({
     onChange,
     feedbackOverrides,
 }: UsePickerFeedbackArgs) => {
-    // Create feedback adapters (memoized to avoid recreating on every render)
-    const adapters = useMemo<FeedbackAdapters>(
-        () =>
-            createFeedbackAdapters({
+    // Lazy-load feedback adapters only when needed (tree-shaking optimization)
+    // If both features are disabled, the feedback module won't be bundled at all
+    const [adapters, setAdapters] = useState<FeedbackAdapters>({ haptics: null, audio: null });
+
+    useEffect(() => {
+        // Only load feedback module if at least one feature is enabled
+        if (!enableHaptics && !enableAudioFeedback) {
+            setAdapters({ haptics: null, audio: null });
+            return;
+        }
+
+        // Dynamic import - code splits the feedback module
+        // This enables true tree-shaking when feedback is disabled
+        import('../feedback').then(({ createFeedbackAdapters }) => {
+            const newAdapters = createFeedbackAdapters({
                 enableHaptics,
                 enableAudioFeedback,
                 hapticsOptions: feedbackOverrides?.haptics,
                 audioOptions: feedbackOverrides?.audio,
                 adapters: feedbackOverrides?.adapters,
-            }),
-        [
-            enableHaptics,
-            enableAudioFeedback,
-            feedbackOverrides?.adapters,
-            feedbackOverrides?.audio,
-            feedbackOverrides?.haptics,
-        ]
-    );
+            });
+            setAdapters(newAdapters);
+        }).catch(() => {
+            // Graceful fallback if module fails to load
+            setAdapters({ haptics: null, audio: null });
+        });
+    }, [
+        enableHaptics,
+        enableAudioFeedback,
+        feedbackOverrides?.adapters,
+        feedbackOverrides?.audio,
+        feedbackOverrides?.haptics,
+    ]);
 
     // Track state for haptic feedback (avoid duplicate vibrations)
     const lastHapticValueRef = useRef<string | null>(null);
