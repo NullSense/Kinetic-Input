@@ -39,7 +39,11 @@ vi.mock('../../gestures', async () => {
 
 vi.mock('../../utils/frictionMomentum', () => frictionMomentumMock);
 
-type Option = { value: string; render: (state: { selected: boolean; visuallySelected: boolean }) => React.ReactNode; props: Record<string, unknown> };
+type Option = {
+  value: string;
+  render: (state: { selected: boolean; visuallySelected: boolean }) => React.ReactNode;
+  props: Record<string, unknown>;
+};
 const makeOptions = (count: number): Option[] =>
   Array.from({ length: count }).map((_, index) => ({
     value: `Option ${index + 1}`,
@@ -81,19 +85,30 @@ describe('usePickerPhysics velocity wiring', () => {
       releasePointerCapture: vi.fn(),
       addEventListener: vi.fn(),
       removeEventListener: vi.fn(),
-      getBoundingClientRect: () => ({ top: 0, bottom: 200, height: 200, width: 100, left: 0, right: 100, x: 0, y: 0, toJSON: () => {} }),
+      getBoundingClientRect: () => ({
+        top: 0,
+        bottom: 200,
+        height: 200,
+        width: 100,
+        left: 0,
+        right: 100,
+        x: 0,
+        y: 0,
+        toJSON: () => {},
+      }),
     } as unknown as HTMLDivElement;
     act(() => {
       result.current.columnRef.current = columnNode;
     });
 
-    const pointerEvent = (clientY: number) => ({
-      pointerId: 1,
-      pointerType: 'touch',
-      clientY,
-      currentTarget: columnNode,
-      target: columnNode,
-    }) as unknown as React.PointerEvent<HTMLDivElement>;
+    const pointerEvent = (clientY: number) =>
+      ({
+        pointerId: 1,
+        pointerType: 'touch',
+        clientY,
+        currentTarget: columnNode,
+        target: columnNode,
+      }) as unknown as React.PointerEvent<HTMLDivElement>;
 
     velocityState.value = 640;
     act(() => {
@@ -249,7 +264,17 @@ describe('usePickerPhysics velocity wiring', () => {
       releasePointerCapture: vi.fn(),
       addEventListener: vi.fn(),
       removeEventListener: vi.fn(),
-      getBoundingClientRect: () => ({ top: 0, bottom: 200, height: 200, width: 100, left: 0, right: 100, x: 0, y: 0, toJSON: () => {} }),
+      getBoundingClientRect: () => ({
+        top: 0,
+        bottom: 200,
+        height: 200,
+        width: 100,
+        left: 0,
+        right: 100,
+        x: 0,
+        y: 0,
+        toJSON: () => {},
+      }),
     } as unknown as HTMLDivElement;
 
     act(() => {
@@ -262,9 +287,27 @@ describe('usePickerPhysics velocity wiring', () => {
     frictionMomentumMock.animateMomentumWithFriction.mockClear();
 
     act(() => {
-      result.current.handlePointerDown({ pointerId: 1, pointerType: 'touch', clientY: 100, currentTarget: columnNode, target: columnNode } as unknown as React.PointerEvent<HTMLDivElement>);
-      result.current.handlePointerMove({ pointerId: 1, pointerType: 'touch', clientY: 60, currentTarget: columnNode, target: columnNode } as unknown as React.PointerEvent<HTMLDivElement>);
-      result.current.handlePointerUp({ pointerId: 1, pointerType: 'touch', clientY: 60, currentTarget: columnNode, target: columnNode } as unknown as React.PointerEvent<HTMLDivElement>);
+      result.current.handlePointerDown({
+        pointerId: 1,
+        pointerType: 'touch',
+        clientY: 100,
+        currentTarget: columnNode,
+        target: columnNode,
+      } as unknown as React.PointerEvent<HTMLDivElement>);
+      result.current.handlePointerMove({
+        pointerId: 1,
+        pointerType: 'touch',
+        clientY: 60,
+        currentTarget: columnNode,
+        target: columnNode,
+      } as unknown as React.PointerEvent<HTMLDivElement>);
+      result.current.handlePointerUp({
+        pointerId: 1,
+        pointerType: 'touch',
+        clientY: 60,
+        currentTarget: columnNode,
+        target: columnNode,
+      } as unknown as React.PointerEvent<HTMLDivElement>);
     });
 
     // CRITICAL ASSERTION: Momentum should NOT be triggered (velocity = 0 means direct snap)
@@ -293,7 +336,17 @@ describe('usePickerPhysics velocity wiring', () => {
       releasePointerCapture: vi.fn(),
       addEventListener: vi.fn(),
       removeEventListener: vi.fn(),
-      getBoundingClientRect: () => ({ top: 0, bottom: 200, height: 200, width: 100, left: 0, right: 100, x: 0, y: 0, toJSON: () => {} }),
+      getBoundingClientRect: () => ({
+        top: 0,
+        bottom: 200,
+        height: 200,
+        width: 100,
+        left: 0,
+        right: 100,
+        x: 0,
+        y: 0,
+        toJSON: () => {},
+      }),
     } as unknown as HTMLDivElement;
 
     act(() => {
@@ -305,9 +358,27 @@ describe('usePickerPhysics velocity wiring', () => {
     frictionMomentumMock.animateMomentumWithFriction.mockClear();
 
     act(() => {
-      result.current.handlePointerDown({ pointerId: 1, pointerType: 'touch', clientY: 100, currentTarget: columnNode, target: columnNode } as unknown as React.PointerEvent<HTMLDivElement>);
-      result.current.handlePointerMove({ pointerId: 1, pointerType: 'touch', clientY: 60, currentTarget: columnNode, target: columnNode } as unknown as React.PointerEvent<HTMLDivElement>);
-      result.current.handlePointerUp({ pointerId: 1, pointerType: 'touch', clientY: 60, currentTarget: columnNode, target: columnNode } as unknown as React.PointerEvent<HTMLDivElement>);
+      result.current.handlePointerDown({
+        pointerId: 1,
+        pointerType: 'touch',
+        clientY: 100,
+        currentTarget: columnNode,
+        target: columnNode,
+      } as unknown as React.PointerEvent<HTMLDivElement>);
+      result.current.handlePointerMove({
+        pointerId: 1,
+        pointerType: 'touch',
+        clientY: 60,
+        currentTarget: columnNode,
+        target: columnNode,
+      } as unknown as React.PointerEvent<HTMLDivElement>);
+      result.current.handlePointerUp({
+        pointerId: 1,
+        pointerType: 'touch',
+        clientY: 60,
+        currentTarget: columnNode,
+        target: columnNode,
+      } as unknown as React.PointerEvent<HTMLDivElement>);
     });
 
     // Verify momentum started
@@ -353,7 +424,17 @@ describe('usePickerPhysics velocity wiring', () => {
       releasePointerCapture: vi.fn(),
       addEventListener: vi.fn(),
       removeEventListener: vi.fn(),
-      getBoundingClientRect: () => ({ top: 0, bottom: 200, height: 200, width: 100, left: 0, right: 100, x: 0, y: 0, toJSON: () => {} }),
+      getBoundingClientRect: () => ({
+        top: 0,
+        bottom: 200,
+        height: 200,
+        width: 100,
+        left: 0,
+        right: 100,
+        x: 0,
+        y: 0,
+        toJSON: () => {},
+      }),
     } as unknown as HTMLDivElement;
 
     act(() => {
@@ -365,9 +446,27 @@ describe('usePickerPhysics velocity wiring', () => {
     frictionMomentumMock.animateMomentumWithFriction.mockClear();
 
     act(() => {
-      result.current.handlePointerDown({ pointerId: 1, pointerType: 'touch', clientY: 100, currentTarget: columnNode, target: columnNode } as unknown as React.PointerEvent<HTMLDivElement>);
-      result.current.handlePointerMove({ pointerId: 1, pointerType: 'touch', clientY: 80, currentTarget: columnNode, target: columnNode } as unknown as React.PointerEvent<HTMLDivElement>);
-      result.current.handlePointerUp({ pointerId: 1, pointerType: 'touch', clientY: 80, currentTarget: columnNode, target: columnNode } as unknown as React.PointerEvent<HTMLDivElement>);
+      result.current.handlePointerDown({
+        pointerId: 1,
+        pointerType: 'touch',
+        clientY: 100,
+        currentTarget: columnNode,
+        target: columnNode,
+      } as unknown as React.PointerEvent<HTMLDivElement>);
+      result.current.handlePointerMove({
+        pointerId: 1,
+        pointerType: 'touch',
+        clientY: 80,
+        currentTarget: columnNode,
+        target: columnNode,
+      } as unknown as React.PointerEvent<HTMLDivElement>);
+      result.current.handlePointerUp({
+        pointerId: 1,
+        pointerType: 'touch',
+        clientY: 80,
+        currentTarget: columnNode,
+        target: columnNode,
+      } as unknown as React.PointerEvent<HTMLDivElement>);
     });
 
     const slowMomentumCall = frictionMomentumMock.animateMomentumWithFriction.mock.calls[0];
@@ -379,9 +478,27 @@ describe('usePickerPhysics velocity wiring', () => {
     frictionMomentumMock.animateMomentumWithFriction.mockClear();
 
     act(() => {
-      result.current.handlePointerDown({ pointerId: 2, pointerType: 'touch', clientY: 100, currentTarget: columnNode, target: columnNode } as unknown as React.PointerEvent<HTMLDivElement>);
-      result.current.handlePointerMove({ pointerId: 2, pointerType: 'touch', clientY: 80, currentTarget: columnNode, target: columnNode } as unknown as React.PointerEvent<HTMLDivElement>);
-      result.current.handlePointerUp({ pointerId: 2, pointerType: 'touch', clientY: 80, currentTarget: columnNode, target: columnNode } as unknown as React.PointerEvent<HTMLDivElement>);
+      result.current.handlePointerDown({
+        pointerId: 2,
+        pointerType: 'touch',
+        clientY: 100,
+        currentTarget: columnNode,
+        target: columnNode,
+      } as unknown as React.PointerEvent<HTMLDivElement>);
+      result.current.handlePointerMove({
+        pointerId: 2,
+        pointerType: 'touch',
+        clientY: 80,
+        currentTarget: columnNode,
+        target: columnNode,
+      } as unknown as React.PointerEvent<HTMLDivElement>);
+      result.current.handlePointerUp({
+        pointerId: 2,
+        pointerType: 'touch',
+        clientY: 80,
+        currentTarget: columnNode,
+        target: columnNode,
+      } as unknown as React.PointerEvent<HTMLDivElement>);
     });
 
     const fastMomentumCall = frictionMomentumMock.animateMomentumWithFriction.mock.calls[0];

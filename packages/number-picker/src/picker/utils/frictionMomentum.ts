@@ -164,7 +164,11 @@ export function animateMomentumWithFriction(
   /**
    * Calculate new position from velocity
    */
-  const updatePosition = (currentPos: number, currentVelocity: number, deltaTime: number): number => {
+  const updatePosition = (
+    currentPos: number,
+    currentVelocity: number,
+    deltaTime: number
+  ): number => {
     const deltaPos = currentVelocity * (deltaTime / 1000); // Convert ms to seconds
     return currentPos + deltaPos;
   };
@@ -176,7 +180,10 @@ export function animateMomentumWithFriction(
    * while velocity is high, as this causes premature snapping when passing
    * near snap points, resulting in "go past then back" bounce-back behavior.
    */
-  const shouldSnap = (currentPos: number, currentVelocity: number): {
+  const shouldSnap = (
+    currentPos: number,
+    currentVelocity: number
+  ): {
     should: boolean;
     reason?: string;
   } => {

@@ -15,6 +15,8 @@
     "dev": "npm run dev:demo",
     "dev:demo": "npm run dev --workspace=demo",
     "typecheck": "npm run typecheck --workspaces --if-present",
+    "format": "oxfmt .",
+    "format:check": "oxfmt --check .",
     "lint": "oxlint .",
     "lint:fix": "oxlint --fix .",
     "lint:dead-code": "knip",
@@ -23,7 +25,8 @@
     "test:ui": "npm run test:ui --workspace=packages/number-picker",
     "test:coverage": "npm run test:coverage --workspace=packages/number-picker",
     "validate": "npm run typecheck && npm run lint && npm run lint:dead-code && npm test",
-    "ci": "npm run validate"
+    "ci": "npm run validate",
+    "prepare": "node -e \"try { require('husky'); process.exit(0); } catch (e) { if (e.code === 'MODULE_NOT_FOUND') process.exit(1); throw e; }\" && husky || true"
   },
   "keywords": [
     "react",
@@ -54,6 +57,7 @@
     "jsdom": "^27.2.0",
     "knip": "^5.70.1",
     "lint-staged": "^16.2.7",
+    "oxfmt": "^0.14.0",
     "oxlint": "^1.29.0",
     "vitest": "^4.0.12"
   },

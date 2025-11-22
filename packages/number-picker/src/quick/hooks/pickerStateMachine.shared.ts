@@ -28,7 +28,15 @@ export type PickerEvent =
   | { type: 'AUTO_CLOSE' };
 
 export interface CloseContext {
-  reason: 'gesture' | 'idle' | 'backdrop-click' | 'escape' | 'middle-row-highlight-click' | 'click-outside' | 'external-close' | string;
+  reason:
+    | 'gesture'
+    | 'idle'
+    | 'backdrop-click'
+    | 'escape'
+    | 'middle-row-highlight-click'
+    | 'click-outside'
+    | 'external-close'
+    | string;
   atBoundary: boolean;
 }
 

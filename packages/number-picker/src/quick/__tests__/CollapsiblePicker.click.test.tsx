@@ -12,9 +12,7 @@ describe('CollapsiblePicker click-to-open', () => {
   } as const;
 
   it('opens when clicking on the picker surface', async () => {
-    const { getByTestId } = render(
-      <CollapsiblePicker {...baseProps} />,
-    );
+    const { getByTestId } = render(<CollapsiblePicker {...baseProps} />);
 
     const surface = getByTestId('picker-surface');
 
@@ -34,9 +32,7 @@ describe('CollapsiblePicker click-to-open', () => {
 
   it('opens when using userEvent.click', async () => {
     const user = userEvent.setup();
-    const { getByTestId } = render(
-      <CollapsiblePicker {...baseProps} />,
-    );
+    const { getByTestId } = render(<CollapsiblePicker {...baseProps} />);
 
     const surface = getByTestId('picker-surface');
 
@@ -51,9 +47,7 @@ describe('CollapsiblePicker click-to-open', () => {
   });
 
   it('opens with touch pointer type', async () => {
-    const { getByTestId } = render(
-      <CollapsiblePicker {...baseProps} />,
-    );
+    const { getByTestId } = render(<CollapsiblePicker {...baseProps} />);
 
     const surface = getByTestId('picker-surface');
 
@@ -76,9 +70,7 @@ describe('CollapsiblePicker click-to-open', () => {
   });
 
   it('opens with pen pointer type', async () => {
-    const { getByTestId } = render(
-      <CollapsiblePicker {...baseProps} />,
-    );
+    const { getByTestId } = render(<CollapsiblePicker {...baseProps} />);
 
     const surface = getByTestId('picker-surface');
 
@@ -108,7 +100,7 @@ describe('CollapsiblePicker click-to-open', () => {
         isOpen={false}
         onRequestOpen={onRequestOpen}
         onRequestClose={onRequestClose}
-      />,
+      />
     );
 
     const surface = getByTestId('picker-surface');
@@ -143,7 +135,7 @@ describe('CollapsiblePicker click-to-open', () => {
   it('calls onChange when closed (uncontrolled mode)', async () => {
     const onChange = vi.fn();
     const { getByTestId } = render(
-      <CollapsiblePicker {...baseProps} value={10} onChange={onChange} />,
+      <CollapsiblePicker {...baseProps} value={10} onChange={onChange} />
     );
 
     const surface = getByTestId('picker-surface');

@@ -15,7 +15,12 @@ const pendingAnimations = vi.hoisted(() => [] as PendingAnimation[]);
 
 const animateMock = vi.hoisted(() =>
   vi.fn((motionValue: unknown, to: unknown, config: { onComplete?: () => void } = {}) => {
-    const record: PendingAnimation = { motionValue: motionValue as MotionValue<number>, to: to as number, config, stopped: false };
+    const record: PendingAnimation = {
+      motionValue: motionValue as MotionValue<number>,
+      to: to as number,
+      config,
+      stopped: false,
+    };
     pendingAnimations.push(record);
     return {
       stop: () => {
@@ -95,7 +100,7 @@ describe('usePickerPhysics', () => {
         ...baseConfig,
         options,
         selectedIndex: 3,
-      }),
+      })
     );
 
     const maxTranslate = baseConfig.height / 2 - baseConfig.itemHeight / 2;
@@ -116,7 +121,7 @@ describe('usePickerPhysics', () => {
           options: makeOptions(optionCount),
           selectedIndex: 1,
         }),
-      { initialProps: { optionCount: 10 } },
+      { initialProps: { optionCount: 10 } }
     );
 
     await waitFor(() => expect(result.current.windowLength).toBe(10));
@@ -134,7 +139,7 @@ describe('usePickerPhysics', () => {
         options,
         selectedIndex: 0,
         onGesture,
-      }),
+      })
     );
 
     await waitFor(() => expect(result.current.centerIndex).toBe(0));
@@ -150,7 +155,7 @@ describe('usePickerPhysics', () => {
       const visualChangeCalls = onGesture.mock.calls.filter(
         (call) => call[0].type === 'value:visual'
       );
-      expect(visualChangeCalls.some(call => call[0].value === 'Option 2')).toBe(true);
+      expect(visualChangeCalls.some((call) => call[0].value === 'Option 2')).toBe(true);
     });
   });
 
@@ -163,7 +168,7 @@ describe('usePickerPhysics', () => {
         options,
         selectedIndex: 2,
         changeValue,
-      }),
+      })
     );
 
     const columnNode = {
@@ -220,7 +225,7 @@ describe('usePickerPhysics', () => {
         options,
         selectedIndex: 4,
         changeValue,
-      }),
+      })
     );
 
     const columnTarget = {
@@ -289,7 +294,7 @@ describe('usePickerPhysics', () => {
           options,
           selectedIndex: 2,
           onGesture,
-        }),
+        })
       );
 
       const columnNode = {
@@ -331,7 +336,7 @@ describe('usePickerPhysics', () => {
           options,
           selectedIndex: 2,
           onGesture,
-        }),
+        })
       );
 
       const columnNode = {
@@ -366,7 +371,7 @@ describe('usePickerPhysics', () => {
           boundary: 'max',
           value: options[2].value,
           timestamp: expect.any(Number),
-        }),
+        })
       );
     });
 
@@ -379,7 +384,7 @@ describe('usePickerPhysics', () => {
           options,
           selectedIndex: 0,
           onGesture,
-        }),
+        })
       );
 
       const columnNode = {
@@ -414,7 +419,7 @@ describe('usePickerPhysics', () => {
           boundary: 'min',
           value: options[0].value,
           timestamp: expect.any(Number),
-        }),
+        })
       );
     });
 
@@ -427,7 +432,7 @@ describe('usePickerPhysics', () => {
           options,
           selectedIndex: 0,
           onGesture,
-        }),
+        })
       );
 
       await waitFor(() => expect(result.current.centerIndex).toBe(0));
@@ -446,7 +451,7 @@ describe('usePickerPhysics', () => {
             value: 'Option 2',
             index: 1,
             timestamp: expect.any(Number),
-          }),
+          })
         );
       });
     });
@@ -462,7 +467,7 @@ describe('usePickerPhysics', () => {
           options,
           selectedIndex: 2,
           changeValue,
-        }),
+        })
       );
 
       // Set picker at exact target position for index 2
@@ -531,7 +536,7 @@ describe('usePickerPhysics', () => {
           options,
           selectedIndex: 2,
           changeValue,
-        }),
+        })
       );
 
       // Set position slightly off target (within 1px threshold)
@@ -561,7 +566,7 @@ describe('usePickerPhysics', () => {
           options,
           selectedIndex: 5,
           changeValue,
-        }),
+        })
       );
 
       // Simulate rapid animations (e.g., wheel scroll)

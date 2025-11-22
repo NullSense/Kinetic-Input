@@ -6,103 +6,103 @@ import * as keyboardModule from '../useKeyboardControls';
 type GestureSource = 'pointer' | 'wheel' | null;
 
 describe('useQuickNumberControllers', () => {
-    const handlePickerOpen = vi.fn();
-    const handlePickerClose = vi.fn();
-    const handleValueChange = vi.fn();
-    const openedViaRef: React.MutableRefObject<GestureSource> = { current: null };
-    const currentGestureSource: React.MutableRefObject<GestureSource> = { current: null };
-    const isOpeningInteraction: React.MutableRefObject<boolean> = { current: false };
-    const stateMachine = {
-        handlePointerDown: vi.fn(),
-        handlePointerUp: vi.fn(),
-        handleMomentumEnd: vi.fn(),
-        resetIdleTimer: vi.fn(),
-    };
+  const handlePickerOpen = vi.fn();
+  const handlePickerClose = vi.fn();
+  const handleValueChange = vi.fn();
+  const openedViaRef: React.MutableRefObject<GestureSource> = { current: null };
+  const currentGestureSource: React.MutableRefObject<GestureSource> = { current: null };
+  const isOpeningInteraction: React.MutableRefObject<boolean> = { current: false };
+  const stateMachine = {
+    handlePointerDown: vi.fn(),
+    handlePointerUp: vi.fn(),
+    handleMomentumEnd: vi.fn(),
+    resetIdleTimer: vi.fn(),
+  };
 
-    beforeEach(() => {
-        vi.spyOn(keyboardModule, 'useKeyboardControls').mockReturnValue({
-            handleKeyDown: vi.fn(),
-        });
+  beforeEach(() => {
+    vi.spyOn(keyboardModule, 'useKeyboardControls').mockReturnValue({
+      handleKeyDown: vi.fn(),
+    });
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    handlePickerOpen.mockReset();
+    handlePickerClose.mockReset();
+    handleValueChange.mockReset();
+  });
+
+  it('exposes handleKeyDown from useKeyboardControls', () => {
+    const { result } = renderHook(() =>
+      useQuickNumberControllers({
+        showPicker: false,
+        totalValues: 3,
+        values: ['1', '2', '3'],
+        selectedIndex: 0,
+        selectedValue: { value: '1' },
+        handlePickerOpen,
+        handlePickerClose,
+        handleValueChange,
+        openedViaRef,
+        currentGestureSource,
+        isOpeningInteraction,
+        stateMachine,
+        lastValue: undefined,
+        onChange: vi.fn(),
+      })
+    );
+
+    expect(result.current.handleKeyDown).toBeDefined();
+    expect(keyboardModule.useKeyboardControls).toHaveBeenCalledWith({
+      showPicker: false,
+      totalValues: 3,
+      values: ['1', '2', '3'],
+      selectedIndex: 0,
+      selectedValue: { value: '1' },
+      handlePickerOpen,
+      handlePickerClose,
+      handleValueChange,
+      openedViaRef,
+      currentGestureSource,
+      isOpeningInteraction,
+      stateMachine,
+    });
+  });
+
+  it('commits last value when available', () => {
+    const onChange = vi.fn();
+    const { result, rerender } = renderHook(
+      (props: { lastValue?: number }) =>
+        useQuickNumberControllers({
+          showPicker: false,
+          totalValues: 3,
+          values: ['1', '2', '3'],
+          selectedIndex: 0,
+          selectedValue: { value: '1' },
+          handlePickerOpen,
+          handlePickerClose,
+          handleValueChange,
+          openedViaRef,
+          currentGestureSource,
+          isOpeningInteraction,
+          stateMachine,
+          lastValue: props.lastValue,
+          onChange,
+        }),
+      { initialProps: { lastValue: 42 } }
+    );
+
+    act(() => {
+      result.current.handleUseLastValue();
     });
 
-    afterEach(() => {
-        vi.restoreAllMocks();
-        handlePickerOpen.mockReset();
-        handlePickerClose.mockReset();
-        handleValueChange.mockReset();
+    expect(onChange).toHaveBeenCalledWith(42);
+
+    rerender({ lastValue: undefined });
+    act(() => {
+      result.current.handleUseLastValue();
     });
 
-    it('exposes handleKeyDown from useKeyboardControls', () => {
-        const { result } = renderHook(() =>
-            useQuickNumberControllers({
-                showPicker: false,
-                totalValues: 3,
-                values: ['1', '2', '3'],
-                selectedIndex: 0,
-                selectedValue: { value: '1' },
-                handlePickerOpen,
-                handlePickerClose,
-                handleValueChange,
-                openedViaRef,
-                currentGestureSource,
-                isOpeningInteraction,
-                stateMachine,
-                lastValue: undefined,
-                onChange: vi.fn(),
-            })
-        );
-
-        expect(result.current.handleKeyDown).toBeDefined();
-        expect(keyboardModule.useKeyboardControls).toHaveBeenCalledWith({
-            showPicker: false,
-            totalValues: 3,
-            values: ['1', '2', '3'],
-            selectedIndex: 0,
-            selectedValue: { value: '1' },
-            handlePickerOpen,
-            handlePickerClose,
-            handleValueChange,
-            openedViaRef,
-            currentGestureSource,
-            isOpeningInteraction,
-            stateMachine,
-        });
-    });
-
-    it('commits last value when available', () => {
-        const onChange = vi.fn();
-        const { result, rerender } = renderHook(
-            (props: { lastValue?: number }) =>
-                useQuickNumberControllers({
-                    showPicker: false,
-                    totalValues: 3,
-                    values: ['1', '2', '3'],
-                    selectedIndex: 0,
-                    selectedValue: { value: '1' },
-                    handlePickerOpen,
-                    handlePickerClose,
-                    handleValueChange,
-                    openedViaRef,
-                    currentGestureSource,
-                    isOpeningInteraction,
-                    stateMachine,
-                    lastValue: props.lastValue,
-                    onChange,
-                }),
-            { initialProps: { lastValue: 42 } }
-        );
-
-        act(() => {
-            result.current.handleUseLastValue();
-        });
-
-        expect(onChange).toHaveBeenCalledWith(42);
-
-        rerender({ lastValue: undefined });
-        act(() => {
-            result.current.handleUseLastValue();
-        });
-
-        expect(onChange).toHaveBeenCalledTimes(1);
-    });
+    expect(onChange).toHaveBeenCalledTimes(1);
+  });
 });

@@ -80,24 +80,25 @@ export function CapabilitiesIndicator() {
 
   const testAudio = () => {
     try {
-      const AudioContextConstructor = window.AudioContext || (window as WindowWithWebkit).webkitAudioContext;
+      const AudioContextConstructor =
+        window.AudioContext || (window as WindowWithWebkit).webkitAudioContext;
       if (!AudioContextConstructor) return;
       const audioCtx = new AudioContextConstructor();
       const oscillator = audioCtx.createOscillator();
       const gainNode = audioCtx.createGain();
-      
+
       oscillator.connect(gainNode);
       gainNode.connect(audioCtx.destination);
-      
+
       oscillator.frequency.value = 800;
       gainNode.gain.value = 0.1;
-      
+
       oscillator.start();
       setTimeout(() => {
         oscillator.stop();
         audioCtx.close();
       }, 100);
-      
+
       setAudioAllowed(true);
     } catch (error) {
       console.error('Audio test failed:', error);
@@ -109,38 +110,44 @@ export function CapabilitiesIndicator() {
     { name: 'audio', supported: audioAllowed, relevant: true },
   ];
 
-  const allSupported = capabilities.every(c => c.supported || !c.relevant);
-  const someSupported = capabilities.some(c => c.supported && c.relevant);
+  const allSupported = capabilities.every((c) => c.supported || !c.relevant);
+  const someSupported = capabilities.some((c) => c.supported && c.relevant);
 
-  const animationProps = prefersReducedMotion ? {} : {
-    initial: { opacity: 0, x: 20 },
-    animate: { opacity: 1, x: 0 },
-    transition: { duration: 0.2, ease: [0.4, 0, 0.2, 1] as [number, number, number, number] },
-  };
+  const animationProps = prefersReducedMotion
+    ? {}
+    : {
+        initial: { opacity: 0, x: 20 },
+        animate: { opacity: 1, x: 0 },
+        transition: { duration: 0.2, ease: [0.4, 0, 0.2, 1] as [number, number, number, number] },
+      };
 
   return (
-    <motion.div
-      {...animationProps}
-      className="inline-block font-sans"
-    >
+    <motion.div {...animationProps} className="inline-block font-sans">
       <button
         onClick={() => setIsExpanded(!isExpanded)}
         className={`
           flex items-center gap-2x px-3x py-2x
           transition-all duration-fast
           border focus-accent
-          ${allSupported
-            ? 'bg-success/10 border-success/30 hover:bg-success/20'
-            : someSupported
-            ? 'bg-warning/10 border-warning/30 hover:bg-warning/20'
-            : 'bg-danger/10 border-danger/30 hover:bg-danger/20'
+          ${
+            allSupported
+              ? 'bg-success/10 border-success/30 hover:bg-success/20'
+              : someSupported
+                ? 'bg-warning/10 border-warning/30 hover:bg-warning/20'
+                : 'bg-danger/10 border-danger/30 hover:bg-danger/20'
           }
         `}
       >
-        <Smartphone className={`w-4 h-4 ${allSupported ? 'text-success' : someSupported ? 'text-warning' : 'text-danger'}`} strokeWidth={2} />
+        <Smartphone
+          className={`w-4 h-4 ${allSupported ? 'text-success' : someSupported ? 'text-warning' : 'text-danger'}`}
+          strokeWidth={2}
+        />
 
-        <span className={`text-sm font-medium ${allSupported ? 'text-success' : someSupported ? 'text-warning' : 'text-danger'}`}>
-          {isMobile ? 'MOBILE' : 'DESKTOP'} • {hapticsSupported ? '✓' : '✗'} HAPTICS • {audioAllowed ? '✓' : '✗'} AUDIO
+        <span
+          className={`text-sm font-medium ${allSupported ? 'text-success' : someSupported ? 'text-warning' : 'text-danger'}`}
+        >
+          {isMobile ? 'MOBILE' : 'DESKTOP'} • {hapticsSupported ? '✓' : '✗'} HAPTICS •{' '}
+          {audioAllowed ? '✓' : '✗'} AUDIO
         </span>
 
         <motion.div
@@ -175,7 +182,9 @@ export function CapabilitiesIndicator() {
                       {isMobile ? 'Mobile Device Detected' : 'Desktop Device'}
                     </p>
                     <p className="text-xs text-muted">
-                      {isMobile ? 'Touch screen + mobile browser' : 'Best experienced on mobile for haptics'}
+                      {isMobile
+                        ? 'Touch screen + mobile browser'
+                        : 'Best experienced on mobile for haptics'}
                     </p>
                   </div>
                 </div>
@@ -195,8 +204,8 @@ export function CapabilitiesIndicator() {
                       {hapticsSupported
                         ? 'Pickers provide tactile feedback on scroll'
                         : isMobile
-                        ? 'Not available (browser or device limitation)'
-                        : 'Not available on desktop devices'}
+                          ? 'Not available (browser or device limitation)'
+                          : 'Not available on desktop devices'}
                     </p>
                   </div>
                 </div>
@@ -242,8 +251,8 @@ export function CapabilitiesIndicator() {
               <div className="space-y-1 text-xs text-muted font-mono">
                 <div className="flex justify-between">
                   <span>Touch Support:</span>
-                  <span className={('ontouchstart' in window) ? 'text-success' : 'text-danger'}>
-                    {('ontouchstart' in window) ? 'YES' : 'NO'}
+                  <span className={'ontouchstart' in window ? 'text-success' : 'text-danger'}>
+                    {'ontouchstart' in window ? 'YES' : 'NO'}
                   </span>
                 </div>
                 <div className="flex justify-between">

@@ -43,9 +43,8 @@ function PickerItem({ children, value, ...restProps }: PickerItemProps) {
   const pickerActions = usePickerActions('Picker.Item');
 
   const render = useCallback(
-    (state: PickerItemRenderProps) =>
-      isFunction(children) ? children(state) : children,
-    [children],
+    (state: PickerItemRenderProps) => (isFunction(children) ? children(state) : children),
+    [children]
   );
 
   const option = useMemo(
@@ -54,7 +53,7 @@ function PickerItem({ children, value, ...restProps }: PickerItemProps) {
       render,
       props: restProps,
     }),
-    [value, render, restProps],
+    [value, render, restProps]
   );
 
   useEffect(() => pickerActions.registerOption(key, option), [key, option, pickerActions]);

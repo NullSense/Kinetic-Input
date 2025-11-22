@@ -78,9 +78,7 @@ export function createVelocityTracker(config: VelocityTrackerConfig = {}) {
     const now = Date.now();
 
     // Filter out stale samples
-    const recentSamples = samples.filter(
-      (sample) => now - sample.timestamp <= maxSampleAge
-    );
+    const recentSamples = samples.filter((sample) => now - sample.timestamp <= maxSampleAge);
 
     if (recentSamples.length < 2) {
       return 0;
@@ -92,7 +90,10 @@ export function createVelocityTracker(config: VelocityTrackerConfig = {}) {
 
     // Use linear regression for better noise resistance
     const n = recentSamples.length;
-    let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
+    let sumX = 0,
+      sumY = 0,
+      sumXY = 0,
+      sumX2 = 0;
 
     recentSamples.forEach((sample) => {
       const x = sample.timestamp - timeOffset; // Relative time in ms (0, 16, 32, ...)
@@ -117,14 +118,14 @@ export function createVelocityTracker(config: VelocityTrackerConfig = {}) {
 
     debugPickerLog('VELOCITY CALCULATED', {
       sampleCount: n,
-      timeSpan: (recentSamples[n-1].timestamp - recentSamples[0].timestamp) + 'ms',
-      positionDelta: (recentSamples[n-1].position - recentSamples[0].position).toFixed(1) + 'px',
+      timeSpan: recentSamples[n - 1].timestamp - recentSamples[0].timestamp + 'ms',
+      positionDelta: (recentSamples[n - 1].position - recentSamples[0].position).toFixed(1) + 'px',
       slope: slope.toFixed(3) + ' px/ms',
       velocity: velocity.toFixed(1) + ' px/s',
-      samples: recentSamples.map(s => ({
-        relTime: (s.timestamp - timeOffset) + 'ms',
-        pos: s.position.toFixed(1) + 'px'
-      }))
+      samples: recentSamples.map((s) => ({
+        relTime: s.timestamp - timeOffset + 'ms',
+        pos: s.position.toFixed(1) + 'px',
+      })),
     });
 
     return velocity;

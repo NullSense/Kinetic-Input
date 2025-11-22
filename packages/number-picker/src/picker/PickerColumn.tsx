@@ -6,7 +6,8 @@ import type { SnapPhysicsConfig } from './types/snapPhysics';
 import { usePickerPhysics } from './hooks/usePickerPhysics';
 import type { PickerGestureHandler } from './gestures';
 
-export interface PickerColumnProps extends Omit<HTMLProps<HTMLDivElement>, 'onDragStart' | 'onDragEnd'> {
+export interface PickerColumnProps
+  extends Omit<HTMLProps<HTMLDivElement>, 'onDragStart' | 'onDragEnd'> {
   name: string;
   /** Event-driven gesture handler */
   onGesture?: PickerGestureHandler;
@@ -65,7 +66,10 @@ function PickerColumn({
 
   const value = useMemo(() => groupValue[key], [groupValue, key]);
   // Use direct options if provided (bypasses O(n²) registration), otherwise fall back to registered options
-  const options = useMemo(() => directOptions || optionGroups[key] || [], [directOptions, key, optionGroups]);
+  const options = useMemo(
+    () => directOptions || optionGroups[key] || [],
+    [directOptions, key, optionGroups]
+  );
 
   // Fast path: detect if values are sequential [0,1,2,...] or ["0","1","2",...]
   const isSequential = useMemo(() => {
@@ -108,7 +112,7 @@ function PickerColumn({
       slotCount: SLOT_COUNT,
       overscan: OVERSCAN_ROWS + Math.floor(VISIBLE_ROWS / 2),
     }),
-    [],
+    []
   );
 
   const pickerActions = usePickerActions('Picker.Column');
@@ -143,10 +147,7 @@ function PickerColumn({
     virtualization: virtualizationConfig,
   });
 
-  const pickerConfigValue = useMemo(
-    () => ({ key, isPickerOpen }),
-    [isPickerOpen, key],
-  );
+  const pickerConfigValue = useMemo(() => ({ key, isPickerOpen }), [isPickerOpen, key]);
 
   // Keyboard navigation support
   const handleKeyDown = useCallback(
@@ -198,7 +199,7 @@ function PickerColumn({
         }
       }
     },
-    [options, selectedIndex, key, pickerActions, interruptMomentum],
+    [options, selectedIndex, key, pickerActions, interruptMomentum]
   );
 
   // Pre-compute base item style (shared by all 250 items) to avoid recreating it in the loop
@@ -296,10 +297,19 @@ function PickerColumn({
               const visuallySelected = absoluteIndex === centerIndex;
               const content = option.render({ selected, visuallySelected, value: option.value });
               const optionProps = option.props ?? {};
-              const { style: optionStyle, className, role, onClick: userOnClick, id: optionIdProp, ...rest } = optionProps;
+              const {
+                style: optionStyle,
+                className,
+                role,
+                onClick: userOnClick,
+                id: optionIdProp,
+                ...rest
+              } = optionProps;
 
               // Reuse base style, only spread if custom style exists
-              const mergedStyle = optionStyle ? { ...baseItemStyle, ...optionStyle } : baseItemStyle;
+              const mergedStyle = optionStyle
+                ? { ...baseItemStyle, ...optionStyle }
+                : baseItemStyle;
               const optionId = optionIdProp ?? `picker-option-${key}-${absoluteIndex}`;
 
               return (

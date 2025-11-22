@@ -154,7 +154,7 @@ export type PointerType = 'mouse' | 'pen' | 'touch' | '';
  */
 export type ExtractEvent<
   TEvent extends PickerGestureEvent,
-  TType extends PickerGestureEvent['type']
+  TType extends PickerGestureEvent['type'],
 > = Extract<TEvent, { type: TType }>;
 
 /**

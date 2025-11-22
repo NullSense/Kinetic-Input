@@ -19,13 +19,11 @@ export function useSnappedIndexStore(
   ySnap: MotionValue<number>,
   rowHeight: number,
   maxTranslate: number,
-  lastIndex: number,
+  lastIndex: number
 ) {
   // ✅ FIX: Initialize with actual current index from MotionValue
   // Without this, indexRef starts at 0 even if ySnap is already at the correct position
-  const indexRef = useRef(
-    clampIndex(indexFromY(ySnap.get(), rowHeight, maxTranslate), lastIndex)
-  );
+  const indexRef = useRef(clampIndex(indexFromY(ySnap.get(), rowHeight, maxTranslate), lastIndex));
   const subscribersRef = useRef(new Set<() => void>());
 
   // ✅ FIX: Sync indexRef when dependencies change (on mount and when picker config updates)

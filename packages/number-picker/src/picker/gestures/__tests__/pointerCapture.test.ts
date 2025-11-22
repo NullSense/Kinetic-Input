@@ -98,9 +98,7 @@ describe('createPointerCaptureHandlers', () => {
       handlers.handlePointerDown(createMockPointerEvent({ clientY: 100 }));
       handlers.handlePointerCancel(createMockPointerEvent());
 
-      expect(onCancel).toHaveBeenCalledWith(
-        expect.objectContaining({ startY: 100 })
-      );
+      expect(onCancel).toHaveBeenCalledWith(expect.objectContaining({ startY: 100 }));
       expect(handlers.getState()).toBeNull();
     });
   });
@@ -110,26 +108,18 @@ describe('createPointerCaptureHandlers', () => {
       const onCapture = vi.fn();
       const handlers = createPointerCaptureHandlers({ onCapture });
 
-      handlers.handlePointerDown(
-        createMockPointerEvent({ pointerType: 'mouse' })
-      );
+      handlers.handlePointerDown(createMockPointerEvent({ pointerType: 'mouse' }));
 
-      expect(onCapture).toHaveBeenCalledWith(
-        expect.objectContaining({ pointerType: 'mouse' })
-      );
+      expect(onCapture).toHaveBeenCalledWith(expect.objectContaining({ pointerType: 'mouse' }));
     });
 
     it('correctly identifies touch pointers', () => {
       const onCapture = vi.fn();
       const handlers = createPointerCaptureHandlers({ onCapture });
 
-      handlers.handlePointerDown(
-        createMockPointerEvent({ pointerType: 'touch' })
-      );
+      handlers.handlePointerDown(createMockPointerEvent({ pointerType: 'touch' }));
 
-      expect(onCapture).toHaveBeenCalledWith(
-        expect.objectContaining({ pointerType: 'touch' })
-      );
+      expect(onCapture).toHaveBeenCalledWith(expect.objectContaining({ pointerType: 'touch' }));
     });
 
     it('correctly identifies pen pointers', () => {
@@ -138,9 +128,7 @@ describe('createPointerCaptureHandlers', () => {
 
       handlers.handlePointerDown(createMockPointerEvent({ pointerType: 'pen' }));
 
-      expect(onCapture).toHaveBeenCalledWith(
-        expect.objectContaining({ pointerType: 'pen' })
-      );
+      expect(onCapture).toHaveBeenCalledWith(expect.objectContaining({ pointerType: 'pen' }));
     });
 
     it('normalizes unknown pointer types to empty string', () => {
@@ -148,12 +136,12 @@ describe('createPointerCaptureHandlers', () => {
       const handlers = createPointerCaptureHandlers({ onCapture });
 
       handlers.handlePointerDown(
-        createMockPointerEvent({ pointerType: 'unknown' as unknown as React.PointerEvent<HTMLElement>['pointerType'] })
+        createMockPointerEvent({
+          pointerType: 'unknown' as unknown as React.PointerEvent<HTMLElement>['pointerType'],
+        })
       );
 
-      expect(onCapture).toHaveBeenCalledWith(
-        expect.objectContaining({ pointerType: '' })
-      );
+      expect(onCapture).toHaveBeenCalledWith(expect.objectContaining({ pointerType: '' }));
     });
   });
 
@@ -186,15 +174,17 @@ describe('createPointerCaptureHandlers', () => {
 
       // If pointer is captured, leave should not cancel
       const eventWithCapture = createMockPointerEvent();
-      (eventWithCapture.currentTarget.hasPointerCapture as unknown as ReturnType<typeof vi.fn>).mockReturnValue(true);
+      (
+        eventWithCapture.currentTarget.hasPointerCapture as unknown as ReturnType<typeof vi.fn>
+      ).mockReturnValue(true);
       handlers.handlePointerLeave(eventWithCapture);
       expect(onCancel).not.toHaveBeenCalled();
 
       // If pointer is NOT captured, leave should cancel
       const eventWithoutCapture = createMockPointerEvent();
-      (eventWithoutCapture.currentTarget.hasPointerCapture as unknown as ReturnType<typeof vi.fn>).mockReturnValue(
-        false
-      );
+      (
+        eventWithoutCapture.currentTarget.hasPointerCapture as unknown as ReturnType<typeof vi.fn>
+      ).mockReturnValue(false);
       handlers.handlePointerLeave(eventWithoutCapture);
       expect(onCancel).toHaveBeenCalled();
     });

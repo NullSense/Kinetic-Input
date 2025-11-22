@@ -21,7 +21,6 @@ export type {
  * - Controlled/uncontrolled mode support
  */
 
-
 // ============ React Hook ============
 
 /**
@@ -63,10 +62,16 @@ export const usePickerStateMachine = ({
   const handlePointerUp = useCallback(() => send({ type: 'POINTER_UP' }), [send]);
   const handleWheelStart = useCallback(() => send({ type: 'WHEEL_START' }), [send]);
   const handleWheelIdle = useCallback(() => send({ type: 'WHEEL_IDLE' }), [send]);
-  const handleMomentumEnd = useCallback((atBoundary: boolean) => send({ type: 'MOMENTUM_END', atBoundary }), [send]);
+  const handleMomentumEnd = useCallback(
+    (atBoundary: boolean) => send({ type: 'MOMENTUM_END', atBoundary }),
+    [send]
+  );
   const resetIdleTimer = useCallback(() => send({ type: 'RESET_IDLE' }), [send]);
   const forceClose = useCallback(() => send({ type: 'FORCE_CLOSE' }), [send]);
-  const handleExternalClose = useCallback((reason?: string) => send({ type: 'EXTERNAL_CLOSE', reason }), [send]);
+  const handleExternalClose = useCallback(
+    (reason?: string) => send({ type: 'EXTERNAL_CLOSE', reason }),
+    [send]
+  );
 
   // Compute boolean values
   const stateValue = state.value as 'closed' | 'interacting' | 'settling' | 'idle';
@@ -75,31 +80,34 @@ export const usePickerStateMachine = ({
   const shouldBlockClose = isInteracting || isSettling;
 
   // ✅ Memoize return object to prevent creating new object on every render
-  return useMemo(() => ({
-    state: stateValue,
-    isInteracting,
-    isSettling,
-    shouldBlockClose,
-    handlePointerDown,
-    handlePointerUp,
-    handleWheelStart,
-    handleWheelIdle,
-    handleMomentumEnd,
-    resetIdleTimer,
-    forceClose,
-    handleExternalClose,
-  }), [
-    stateValue,
-    isInteracting,
-    isSettling,
-    shouldBlockClose,
-    handlePointerDown,
-    handlePointerUp,
-    handleWheelStart,
-    handleWheelIdle,
-    handleMomentumEnd,
-    resetIdleTimer,
-    forceClose,
-    handleExternalClose,
-  ]);
+  return useMemo(
+    () => ({
+      state: stateValue,
+      isInteracting,
+      isSettling,
+      shouldBlockClose,
+      handlePointerDown,
+      handlePointerUp,
+      handleWheelStart,
+      handleWheelIdle,
+      handleMomentumEnd,
+      resetIdleTimer,
+      forceClose,
+      handleExternalClose,
+    }),
+    [
+      stateValue,
+      isInteracting,
+      isSettling,
+      shouldBlockClose,
+      handlePointerDown,
+      handlePointerUp,
+      handleWheelStart,
+      handleWheelIdle,
+      handleMomentumEnd,
+      resetIdleTimer,
+      forceClose,
+      handleExternalClose,
+    ]
+  );
 };

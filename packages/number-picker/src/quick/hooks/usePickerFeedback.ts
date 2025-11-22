@@ -1,18 +1,18 @@
-import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { debugLog } from '../../utils/debug';
-import { createFeedbackAdapters, type FeedbackAdapters } from '../feedback';
+import type { FeedbackAdapters } from '../feedback';
 import type { QuickPickerFeedbackConfig } from '../types';
 
 type PickerValue = { value: string };
 
 type UsePickerFeedbackArgs = {
-    enableHaptics: boolean;
-    enableAudioFeedback: boolean;
-    showPicker: boolean;
-    selectedValue: PickerValue;
-    setSelectedValue: (value: PickerValue) => void;
-    onChange: (value: number) => void;
-    feedbackOverrides?: QuickPickerFeedbackConfig;
+  enableHaptics: boolean;
+  enableAudioFeedback: boolean;
+  showPicker: boolean;
+  selectedValue: PickerValue;
+  setSelectedValue: (value: PickerValue) => void;
+  onChange: (value: number) => void;
+  feedbackOverrides?: QuickPickerFeedbackConfig;
 };
 
 /**
@@ -26,170 +26,204 @@ type UsePickerFeedbackArgs = {
  * @returns {{ handleVisualValueChange: Function, handleValueChange: Function }} Feedback handlers.
  */
 export const usePickerFeedback = ({
+  enableHaptics,
+  enableAudioFeedback,
+  showPicker,
+  selectedValue,
+  setSelectedValue,
+  onChange,
+  feedbackOverrides,
+}: UsePickerFeedbackArgs) => {
+  // Lazy-load feedback adapters only when needed (tree-shaking optimization)
+  // If both features are disabled, the feedback module won't be bundled at all
+  const [adapters, setAdapters] = useState<FeedbackAdapters>({ haptics: null, audio: null });
+
+  useEffect(() => {
+    // Track whether this effect has been cleaned up (prevents stale updates)
+    let isCancelled = false;
+
+    // Only load feedback module if at least one feature is enabled
+    if (!enableHaptics && !enableAudioFeedback) {
+      setAdapters({ haptics: null, audio: null });
+      return;
+    }
+
+    // Dynamic import - code splits the feedback module
+    // This enables true tree-shaking when feedback is disabled
+    import('../feedback')
+      .then(({ createFeedbackAdapters }) => {
+        // Guard: Don't apply adapters if this effect was cleaned up (deps changed)
+        if (isCancelled) return;
+
+        const newAdapters = createFeedbackAdapters({
+          enableHaptics,
+          enableAudioFeedback,
+          hapticsOptions: feedbackOverrides?.haptics,
+          audioOptions: feedbackOverrides?.audio,
+          adapters: feedbackOverrides?.adapters,
+        });
+        setAdapters(newAdapters);
+      })
+      .catch(() => {
+        // Guard: Don't set null adapters if this effect was cleaned up
+        if (isCancelled) return;
+        // Graceful fallback if module fails to load
+        setAdapters({ haptics: null, audio: null });
+      });
+
+    // Cleanup: Mark this effect as cancelled when deps change
+    return () => {
+      isCancelled = true;
+    };
+  }, [
     enableHaptics,
     enableAudioFeedback,
-    showPicker,
-    selectedValue,
-    setSelectedValue,
-    onChange,
-    feedbackOverrides,
-}: UsePickerFeedbackArgs) => {
-    // Create feedback adapters (memoized to avoid recreating on every render)
-    const adapters = useMemo<FeedbackAdapters>(
-        () =>
-            createFeedbackAdapters({
-                enableHaptics,
-                enableAudioFeedback,
-                hapticsOptions: feedbackOverrides?.haptics,
-                audioOptions: feedbackOverrides?.audio,
-                adapters: feedbackOverrides?.adapters,
-            }),
-        [
-            enableHaptics,
-            enableAudioFeedback,
-            feedbackOverrides?.adapters,
-            feedbackOverrides?.audio,
-            feedbackOverrides?.haptics,
-        ]
-    );
+    feedbackOverrides?.adapters,
+    feedbackOverrides?.audio,
+    feedbackOverrides?.haptics,
+  ]);
 
-    // Track state for haptic feedback (avoid duplicate vibrations)
-    const lastHapticValueRef = useRef<string | null>(null);
+  // Track state for haptic feedback (avoid duplicate vibrations)
+  const lastHapticValueRef = useRef<string | null>(null);
 
-    // Track whether the value changed during this picker session
-    const sessionValueChangedRef = useRef(false);
-    const prevShowPickerRef = useRef(showPicker);
-    const lastCommittedValueRef = useRef<string>(selectedValue.value);
-    const initialValueOnOpenRef = useRef<string>(selectedValue.value);
-    const lastVisualValueRef = useRef<string | null>(null);
+  // Track whether the value changed during this picker session
+  const sessionValueChangedRef = useRef(false);
+  const prevShowPickerRef = useRef(showPicker);
+  const lastCommittedValueRef = useRef<string>(selectedValue.value);
+  const initialValueOnOpenRef = useRef<string>(selectedValue.value);
+  const lastVisualValueRef = useRef<string | null>(null);
 
-    // Initialize refs on mount
-    useEffect(() => {
-        if (lastHapticValueRef.current === null) {
-            lastHapticValueRef.current = selectedValue.value;
-        }
-        lastCommittedValueRef.current = selectedValue.value;
-    }, [selectedValue.value]);
+  // Initialize refs on mount
+  useEffect(() => {
+    if (lastHapticValueRef.current === null) {
+      lastHapticValueRef.current = selectedValue.value;
+    }
+    lastCommittedValueRef.current = selectedValue.value;
+  }, [selectedValue.value]);
 
-    // Trigger haptic feedback on value scroll
-    const triggerHaptics = useCallback((isSettle?: boolean) => {
-        adapters.haptics?.trigger(isSettle);
-    }, [adapters.haptics]);
+  // Trigger haptic feedback on value scroll
+  const triggerHaptics = useCallback(
+    (isSettle?: boolean) => {
+      adapters.haptics?.trigger(isSettle);
+    },
+    [adapters.haptics]
+  );
 
-    // Trigger audio confirmation on value commit
-    const triggerConfirmationAudio = useCallback(() => {
-        adapters.audio?.playConfirmation();
-    }, [adapters.audio]);
+  // Trigger audio confirmation on value commit
+  const triggerConfirmationAudio = useCallback(() => {
+    adapters.audio?.playConfirmation();
+  }, [adapters.audio]);
 
-    // Track picker open/close state for session management
-    useEffect(() => {
-        const prev = prevShowPickerRef.current;
-        if (!prev && showPicker) {
-            // Picker opening - reset session tracking and capture initial value
-            sessionValueChangedRef.current = false;
-            initialValueOnOpenRef.current = selectedValue.value;
-            lastVisualValueRef.current = null;
-        }
-        prevShowPickerRef.current = showPicker;
-    }, [showPicker, selectedValue.value]);
+  // Track picker open/close state for session management
+  useEffect(() => {
+    const prev = prevShowPickerRef.current;
+    if (!prev && showPicker) {
+      // Picker opening - reset session tracking and capture initial value
+      sessionValueChangedRef.current = false;
+      initialValueOnOpenRef.current = selectedValue.value;
+      lastVisualValueRef.current = null;
+    }
+    prevShowPickerRef.current = showPicker;
+  }, [showPicker, selectedValue.value]);
 
-    // Handle visual value changes (scrolling) - triggers haptics
-    const handleVisualValueChange = useCallback(
-        (value: string | number, meta?: { isSettle?: boolean }) => {
-            const next = String(value);
-            // Track visual value for audio confirmation on close
-            lastVisualValueRef.current = next;
+  // Handle visual value changes (scrolling) - triggers haptics
+  const handleVisualValueChange = useCallback(
+    (value: string | number, meta?: { isSettle?: boolean }) => {
+      const next = String(value);
+      // Track visual value for audio confirmation on close
+      lastVisualValueRef.current = next;
 
-            if (next !== lastHapticValueRef.current) {
-                lastHapticValueRef.current = next;
-                triggerHaptics(meta?.isSettle);
-            }
-        },
-        [triggerHaptics]
-    );
+      if (next !== lastHapticValueRef.current) {
+        lastHapticValueRef.current = next;
+        triggerHaptics(meta?.isSettle);
+      }
+    },
+    [triggerHaptics]
+  );
 
-    // Handle committed value changes - track changes, but don't play audio yet
-    // Audio is played when picker closes (see useEffect above)
-    const handleValueChange = useCallback(
-        (newValue: PickerValue) => {
-            setSelectedValue(newValue);
-            const parsed = parseFloat(newValue.value);
+  // Handle committed value changes - track changes, but don't play audio yet
+  // Audio is played when picker closes (see useEffect above)
+  const handleValueChange = useCallback(
+    (newValue: PickerValue) => {
+      setSelectedValue(newValue);
+      const parsed = parseFloat(newValue.value);
 
-            if (!Number.isNaN(parsed)) {
-                onChange(parsed);
-            }
+      if (!Number.isNaN(parsed)) {
+        onChange(parsed);
+      }
 
-            // Track that value changed this session, but don't play confirmation yet
-            // Confirmation plays when picker closes (avoids sound on open/scroll)
-            const valueChanged = newValue.value !== lastCommittedValueRef.current;
-            debugLog('handleValueChange', {
-                newValue: newValue.value,
-                lastCommitted: lastCommittedValueRef.current,
-                valueChanged,
-                willPlayAudio: valueChanged,
-            });
+      // Track that value changed this session, but don't play confirmation yet
+      // Confirmation plays when picker closes (avoids sound on open/scroll)
+      const valueChanged = newValue.value !== lastCommittedValueRef.current;
+      debugLog('handleValueChange', {
+        newValue: newValue.value,
+        lastCommitted: lastCommittedValueRef.current,
+        valueChanged,
+        willPlayAudio: valueChanged,
+      });
 
-            if (valueChanged) {
-                sessionValueChangedRef.current = true;
-                lastCommittedValueRef.current = newValue.value;
-            }
-        },
-        [onChange, setSelectedValue]
-    );
+      if (valueChanged) {
+        sessionValueChangedRef.current = true;
+        lastCommittedValueRef.current = newValue.value;
+      }
+    },
+    [onChange, setSelectedValue]
+  );
 
-    // Cleanup adapters on unmount
-    useEffect(
-        () => () => {
-            adapters.audio?.cleanup();
-            adapters.haptics?.cleanup();
-        },
-        [adapters]
-    );
+  // Cleanup adapters on unmount
+  useEffect(
+    () => () => {
+      adapters.audio?.cleanup();
+      adapters.haptics?.cleanup();
+    },
+    [adapters]
+  );
 
-    // Cleanup audio context when picker closes (free resources)
-    // Delay cleanup to allow confirmation sound to play first
-    useEffect(() => {
-        if (!showPicker) {
-            const timeoutId = setTimeout(() => {
-                adapters.audio?.cleanup();
-            }, 500); // Wait 500ms for confirmation sound to finish
-            return () => clearTimeout(timeoutId);
-        }
-    }, [showPicker, adapters.audio]);
+  // Cleanup audio context when picker closes (free resources)
+  // Delay cleanup to allow confirmation sound to play first
+  useEffect(() => {
+    if (!showPicker) {
+      const timeoutId = setTimeout(() => {
+        adapters.audio?.cleanup();
+      }, 500); // Wait 500ms for confirmation sound to finish
+      return () => clearTimeout(timeoutId);
+    }
+  }, [showPicker, adapters.audio]);
 
-    // Function to play confirmation if value changed during session
-    // Called when picker closes (before animation) for better UX timing
-    const playConfirmationIfChanged = useCallback(() => {
-        // Check if value changed in any of these ways:
-        // 1. Via committed change (sessionValueChangedRef = true) - normal settle flow
-        // 2. Via visual change that hasn't committed yet (lastVisualValueRef != initialValueOnOpenRef) - interrupted settle
-        // 3. Current value differs from initial (catch-all for edge cases)
-        const currentValueDiffersFromInitial = selectedValue.value !== initialValueOnOpenRef.current;
-        const visualValueChanged =
-            lastVisualValueRef.current !== null &&
-            lastVisualValueRef.current !== initialValueOnOpenRef.current;
+  // Function to play confirmation if value changed during session
+  // Called when picker closes (before animation) for better UX timing
+  const playConfirmationIfChanged = useCallback(() => {
+    // Check if value changed in any of these ways:
+    // 1. Via committed change (sessionValueChangedRef = true) - normal settle flow
+    // 2. Via visual change that hasn't committed yet (lastVisualValueRef != initialValueOnOpenRef) - interrupted settle
+    // 3. Current value differs from initial (catch-all for edge cases)
+    const currentValueDiffersFromInitial = selectedValue.value !== initialValueOnOpenRef.current;
+    const visualValueChanged =
+      lastVisualValueRef.current !== null &&
+      lastVisualValueRef.current !== initialValueOnOpenRef.current;
 
-        const shouldPlayAudio = sessionValueChangedRef.current || visualValueChanged || currentValueDiffersFromInitial;
+    const shouldPlayAudio =
+      sessionValueChangedRef.current || visualValueChanged || currentValueDiffersFromInitial;
 
-        debugLog('playConfirmationIfChanged', {
-            sessionValueChanged: sessionValueChangedRef.current,
-            visualValueChanged,
-            currentValueDiffersFromInitial,
-            shouldPlayAudio,
-            lastVisualValue: lastVisualValueRef.current,
-            initialValue: initialValueOnOpenRef.current,
-            lastCommittedValue: lastCommittedValueRef.current,
-            currentValue: selectedValue.value,
-        });
+    debugLog('playConfirmationIfChanged', {
+      sessionValueChanged: sessionValueChangedRef.current,
+      visualValueChanged,
+      currentValueDiffersFromInitial,
+      shouldPlayAudio,
+      lastVisualValue: lastVisualValueRef.current,
+      initialValue: initialValueOnOpenRef.current,
+      lastCommittedValue: lastCommittedValueRef.current,
+      currentValue: selectedValue.value,
+    });
 
-        if (shouldPlayAudio) {
-            triggerConfirmationAudio();
-        }
-        sessionValueChangedRef.current = false;
-        lastVisualValueRef.current = null;
-    }, [triggerConfirmationAudio, selectedValue.value]);
+    if (shouldPlayAudio) {
+      triggerConfirmationAudio();
+    }
+    sessionValueChangedRef.current = false;
+    lastVisualValueRef.current = null;
+  }, [triggerConfirmationAudio, selectedValue.value]);
 
-    return { handleVisualValueChange, handleValueChange, playConfirmationIfChanged };
+  return { handleVisualValueChange, handleValueChange, playConfirmationIfChanged };
 };
 
 export type { UsePickerFeedbackArgs };

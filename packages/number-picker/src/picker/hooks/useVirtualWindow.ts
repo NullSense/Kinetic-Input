@@ -31,10 +31,7 @@ export function useVirtualWindow({
     };
   }, [centerIndex, optionCount, overscan, slotCount]);
 
-  const virtualOffsetY = useMemo(
-    () => startIndex * itemHeight,
-    [itemHeight, startIndex],
-  );
+  const virtualOffsetY = useMemo(() => startIndex * itemHeight, [itemHeight, startIndex]);
 
   return { startIndex, windowLength, virtualOffsetY };
 }

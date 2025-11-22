@@ -1,9 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import {
-  CollapsiblePicker,
-  Picker,
-} from '@tensil/kinetic-input';
+import { CollapsiblePicker, Picker } from '@tensil/kinetic-input';
 import { Code2 } from 'lucide-react';
 import { DEMO_PICKERS } from '../config/pickerDefaults';
 import { TimePickerExample } from './TimePickerExample';
@@ -31,11 +28,10 @@ export function ComponentShowcase() {
           transition={{ duration: 0.4 }}
           className="text-center mb-12"
         >
-          <h2 className="font-display text-5xl text-accent mb-3x">
-            COMPONENTS
-          </h2>
+          <h2 className="font-display text-5xl text-accent mb-3x">COMPONENTS</h2>
           <p className="text-lg text-muted max-w-2xl mx-auto">
-            Three levels of abstraction. Compact inputs for forms. Inline wheels for dashboards. Multi-column foundation for complex pickers.
+            Three levels of abstraction. Compact inputs for forms. Inline wheels for dashboards.
+            Multi-column foundation for complex pickers.
           </p>
         </motion.div>
 
@@ -51,22 +47,14 @@ export function ComponentShowcase() {
           >
             <div className="flex items-start justify-between mb-4x">
               <div>
-                <h3 className="text-xl font-semibold text-fg mb-1x">
-                  CollapsiblePicker
-                </h3>
-                <p className="text-sm text-muted">
-                  Animated input with modal expansion
-                </p>
+                <h3 className="text-xl font-semibold text-fg mb-1x">CollapsiblePicker</h3>
+                <p className="text-sm text-muted">Animated input with modal expansion</p>
               </div>
               <Code2 className="w-5 h-5 text-accent" strokeWidth={2} />
             </div>
 
             <div className="space-y-4x">
-              <CollapsiblePicker
-                {...DEMO_PICKERS.weight}
-                value={weight}
-                onChange={setWeight}
-              />
+              <CollapsiblePicker {...DEMO_PICKERS.weight} value={weight} onChange={setWeight} />
 
               <div className="pt-4x border-t border-hairline">
                 <p className="text-xs text-muted mb-2x">Features:</p>
@@ -90,22 +78,14 @@ export function ComponentShowcase() {
           >
             <div className="flex items-start justify-between mb-4x">
               <div>
-                <h3 className="text-xl font-semibold text-fg mb-1x">
-                  Picker
-                </h3>
-                <p className="text-sm text-muted">
-                  Lightweight wheel without chrome
-                </p>
+                <h3 className="text-xl font-semibold text-fg mb-1x">Picker</h3>
+                <p className="text-sm text-muted">Lightweight wheel without chrome</p>
               </div>
               <Code2 className="w-5 h-5 text-accent" strokeWidth={2} />
             </div>
 
             <div className="space-y-4x">
-              <Picker
-                {...DEMO_PICKERS.distance}
-                value={distance}
-                onChange={setDistance}
-              />
+              <Picker {...DEMO_PICKERS.distance} value={distance} onChange={setDistance} />
 
               <div className="pt-4x border-t border-hairline">
                 <p className="text-xs text-muted mb-2x">Features:</p>
@@ -129,12 +109,8 @@ export function ComponentShowcase() {
           >
             <div className="flex items-start justify-between mb-4x">
               <div>
-                <h3 className="text-xl font-semibold text-fg mb-1x">
-                  PickerGroup
-                </h3>
-                <p className="text-sm text-muted">
-                  Multi-column foundation (time picker)
-                </p>
+                <h3 className="text-xl font-semibold text-fg mb-1x">PickerGroup</h3>
+                <p className="text-sm text-muted">Multi-column foundation (time picker)</p>
               </div>
               <Code2 className="w-5 h-5 text-accent" strokeWidth={2} />
             </div>
@@ -154,7 +130,6 @@ export function ComponentShowcase() {
             </div>
           </motion.div>
         </div>
-
       </div>
     </section>
   );

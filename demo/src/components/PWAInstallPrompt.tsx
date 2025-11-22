@@ -94,9 +94,7 @@ export function PWAInstallPrompt() {
               <Smartphone className="w-5 h-5 text-accent" strokeWidth={2} />
             </div>
             <div className="flex-1">
-              <h3 className="text-sm font-semibold text-fg mb-1x">
-                Install Kinetic Input
-              </h3>
+              <h3 className="text-sm font-semibold text-fg mb-1x">Install Kinetic Input</h3>
               <p className="text-xs text-muted mb-3x">
                 Add to your home screen for quick access and offline support
               </p>

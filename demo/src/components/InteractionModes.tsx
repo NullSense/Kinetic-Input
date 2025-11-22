@@ -38,7 +38,7 @@ function AnimatedDemo({
   onPickerStateChange,
   onValueChange,
   initialValue,
-  targetValue
+  targetValue,
 }: AnimatedDemoProps) {
   const controls = useAnimationControls();
   const clickPulseControls = useAnimationControls();
@@ -49,7 +49,7 @@ function AnimatedDemo({
     clickPulseControls.start({
       scale: [0, 2.5],
       opacity: [0.8, 0],
-      transition: { duration: 0.6, ease: 'easeOut' }
+      transition: { duration: 0.6, ease: 'easeOut' },
     });
   };
 
@@ -68,28 +68,28 @@ function AnimatedDemo({
         onPickerStateChange(false);
         onValueChange(initialValue);
         setCursorType('pointer');
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise((resolve) => setTimeout(resolve, 100));
 
         // Cursor appears
         await controls.start({
           y: 0,
           opacity: [0, 1],
           scale: 1,
-          transition: { duration: 0.3, ease: 'easeOut' }
+          transition: { duration: 0.3, ease: 'easeOut' },
         });
 
         // CLICK to open picker - show visual click feedback
         triggerClickPulse();
         await controls.start({
           scale: [1, 0.85, 1],
-          transition: { duration: 0.3 }
+          transition: { duration: 0.3 },
         });
 
         // Open picker after click
         onPickerStateChange(true);
 
         // Brief wait to show picker opened
-        await new Promise(resolve => setTimeout(resolve, 200));
+        await new Promise((resolve) => setTimeout(resolve, 200));
 
         // === Single smooth drag gesture ===
         const dragDuration = 900;
@@ -103,43 +103,44 @@ function AnimatedDemo({
         const dragPromise = controls.start({
           y: [dragYStart, dragYEnd],
           scale: [1, 0.9, 0.95],
-          transition: { duration: dragDuration / 1000, ease: 'easeOut' }
+          transition: { duration: dragDuration / 1000, ease: 'easeOut' },
         });
 
         // Sync value changes with cursor position
         for (let i = 0; i <= dragSteps; i++) {
           const progressPct = i / dragSteps;
-          const newValue = Math.round(dragValueStart + (dragValueEnd - dragValueStart) * progressPct);
+          const newValue = Math.round(
+            dragValueStart + (dragValueEnd - dragValueStart) * progressPct
+          );
           onValueChange(newValue);
-          await new Promise(resolve => setTimeout(resolve, dragDuration / dragSteps));
+          await new Promise((resolve) => setTimeout(resolve, dragDuration / dragSteps));
         }
         await dragPromise;
 
         // Release - picker closes immediately (quick pick behavior)
         await controls.start({
           scale: 1,
-          transition: { duration: 0.2 }
+          transition: { duration: 0.2 },
         });
-        await new Promise(resolve => setTimeout(resolve, 150)); // 150ms close delay
+        await new Promise((resolve) => setTimeout(resolve, 150)); // 150ms close delay
 
         onPickerStateChange(false);
 
         // Brief hold to show closed state
-        await new Promise(resolve => setTimeout(resolve, 400));
+        await new Promise((resolve) => setTimeout(resolve, 400));
 
         // Fade out
         await controls.start({
           opacity: 0,
           scale: 1.1,
-          transition: { duration: 0.3 }
+          transition: { duration: 0.3 },
         });
 
-        await new Promise(resolve => setTimeout(resolve, 800));
+        await new Promise((resolve) => setTimeout(resolve, 800));
 
         // Reset
         controls.set({ y: 0, opacity: 0, scale: 1 });
         animate();
-
       } else if (mode === 'flick') {
         // === Flick Mode: Click to open, wait idle, then fast flick with momentum ===
 
@@ -147,28 +148,28 @@ function AnimatedDemo({
         onPickerStateChange(false);
         onValueChange(initialValue);
         setCursorType('pointer');
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise((resolve) => setTimeout(resolve, 100));
 
         // Cursor appears
         await controls.start({
           y: 0,
           opacity: [0, 1],
           scale: 1,
-          transition: { duration: 0.3, ease: 'easeOut' }
+          transition: { duration: 0.3, ease: 'easeOut' },
         });
 
         // CLICK to open picker - show visual click feedback
         triggerClickPulse();
         await controls.start({
           scale: [1, 0.85, 1],
-          transition: { duration: 0.3 }
+          transition: { duration: 0.3 },
         });
 
         // Open picker after click
         onPickerStateChange(true);
 
         // Wait IDLE - showing picker is open, waiting for interaction
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise((resolve) => setTimeout(resolve, 1000));
 
         // === Fast flick gesture ===
         // Quick drag with momentum
@@ -184,16 +185,18 @@ function AnimatedDemo({
           scale: [1, 0.85, 1], // Release at end
           transition: {
             duration: flickDuration / 1000,
-            ease: [0.2, 0.9, 0.3, 1] as [number, number, number, number] // Fast acceleration
-          }
+            ease: [0.2, 0.9, 0.3, 1] as [number, number, number, number], // Fast acceleration
+          },
         });
 
         // Fast drag to mid-point
         for (let i = 0; i <= flickSteps; i++) {
           const progressPct = i / flickSteps;
-          const newValue = Math.round(flickValueStart + (flickValueMid - flickValueStart) * progressPct);
+          const newValue = Math.round(
+            flickValueStart + (flickValueMid - flickValueStart) * progressPct
+          );
           onValueChange(newValue);
-          await new Promise(resolve => setTimeout(resolve, flickDuration / flickSteps));
+          await new Promise((resolve) => setTimeout(resolve, flickDuration / flickSteps));
         }
         await flickPromise;
 
@@ -208,34 +211,35 @@ function AnimatedDemo({
           const progressPct = i / momentumSteps;
           // Deceleration curve
           const easedProgress = 1 - Math.pow(1 - progressPct, 2);
-          const newValue = Math.round(momentumValueStart + (momentumValueEnd - momentumValueStart) * easedProgress);
+          const newValue = Math.round(
+            momentumValueStart + (momentumValueEnd - momentumValueStart) * easedProgress
+          );
           onValueChange(newValue);
-          await new Promise(resolve => setTimeout(resolve, momentumDuration / momentumSteps));
+          await new Promise((resolve) => setTimeout(resolve, momentumDuration / momentumSteps));
         }
 
         // Values have settled - wait IDLE for the 2.5s settle timeout
         // Picker stays open, showing the settled state
-        await new Promise(resolve => setTimeout(resolve, 2500));
+        await new Promise((resolve) => setTimeout(resolve, 2500));
 
         // Picker auto-closes after idle/settle timeout
         onPickerStateChange(false);
 
         // Brief hold to show closed state
-        await new Promise(resolve => setTimeout(resolve, 400));
+        await new Promise((resolve) => setTimeout(resolve, 400));
 
         // Fade out
         await controls.start({
           opacity: 0,
           scale: 1.1,
-          transition: { duration: 0.3 }
+          transition: { duration: 0.3 },
         });
 
-        await new Promise(resolve => setTimeout(resolve, 800));
+        await new Promise((resolve) => setTimeout(resolve, 800));
 
         // Reset
         controls.set({ y: 0, opacity: 0, scale: 1 });
         animate();
-
       } else {
         // === Browse Mode: Click to open, then drag, release, drag back, then scroll wheel ===
 
@@ -243,21 +247,21 @@ function AnimatedDemo({
         onPickerStateChange(false);
         onValueChange(initialValue);
         setCursorType('pointer');
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise((resolve) => setTimeout(resolve, 100));
 
         // Cursor appears
         await controls.start({
           y: 0,
           opacity: [0, 1],
           scale: 1,
-          transition: { duration: 0.3 }
+          transition: { duration: 0.3 },
         });
 
         // CLICK to open picker - show visual click feedback
         triggerClickPulse();
         await controls.start({
           scale: [1, 0.85, 1],
-          transition: { duration: 0.3 }
+          transition: { duration: 0.3 },
         });
 
         // Open picker after click
@@ -265,12 +269,12 @@ function AnimatedDemo({
 
         // Wait IDLE - demonstrating the 2.5s idle timeout before any interaction
         // This shows: click to open, picker stays open, waiting for user input
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        await new Promise((resolve) => setTimeout(resolve, 1500));
 
         // === Gesture 1: Drag DOWN (pointer) ===
         // Pulse to indicate drag interaction starting
         triggerClickPulse();
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise((resolve) => setTimeout(resolve, 100));
 
         const drag1Duration = 800;
         const drag1Steps = 30;
@@ -282,28 +286,30 @@ function AnimatedDemo({
         const drag1Promise = controls.start({
           y: [drag1YStart, drag1YEnd],
           scale: [1, 0.9, 0.95],
-          transition: { duration: drag1Duration / 1000, ease: 'easeOut' }
+          transition: { duration: drag1Duration / 1000, ease: 'easeOut' },
         });
 
         for (let i = 0; i <= drag1Steps; i++) {
           const progressPct = i / drag1Steps;
-          const newValue = Math.round(drag1ValueStart + (drag1ValueEnd - drag1ValueStart) * progressPct);
+          const newValue = Math.round(
+            drag1ValueStart + (drag1ValueEnd - drag1ValueStart) * progressPct
+          );
           onValueChange(newValue);
-          await new Promise(resolve => setTimeout(resolve, drag1Duration / drag1Steps));
+          await new Promise((resolve) => setTimeout(resolve, drag1Duration / drag1Steps));
         }
         await drag1Promise;
 
         // Release (but picker stays open - browse mode)
         await controls.start({
           scale: 1,
-          transition: { duration: 0.2 }
+          transition: { duration: 0.2 },
         });
-        await new Promise(resolve => setTimeout(resolve, 300));
+        await new Promise((resolve) => setTimeout(resolve, 300));
 
         // === Gesture 2: Drag UP (pointer - changed mind) ===
         // Pulse to indicate new drag interaction starting
         triggerClickPulse();
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise((resolve) => setTimeout(resolve, 100));
 
         const drag2Duration = 900;
         const drag2Steps = 35;
@@ -315,23 +321,25 @@ function AnimatedDemo({
         const drag2Promise = controls.start({
           y: [drag2YStart, drag2YEnd],
           scale: [1, 0.9, 0.95],
-          transition: { duration: drag2Duration / 1000, ease: 'easeOut' }
+          transition: { duration: drag2Duration / 1000, ease: 'easeOut' },
         });
 
         for (let i = 0; i <= drag2Steps; i++) {
           const progressPct = i / drag2Steps;
-          const newValue = Math.round(drag2ValueStart + (drag2ValueEnd - drag2ValueStart) * progressPct);
+          const newValue = Math.round(
+            drag2ValueStart + (drag2ValueEnd - drag2ValueStart) * progressPct
+          );
           onValueChange(newValue);
-          await new Promise(resolve => setTimeout(resolve, drag2Duration / drag2Steps));
+          await new Promise((resolve) => setTimeout(resolve, drag2Duration / drag2Steps));
         }
         await drag2Promise;
 
         // Release
         await controls.start({
           scale: 1,
-          transition: { duration: 0.2 }
+          transition: { duration: 0.2 },
         });
-        await new Promise(resolve => setTimeout(resolve, 400));
+        await new Promise((resolve) => setTimeout(resolve, 400));
 
         // === Gesture 3: SCROLL WHEEL (change cursor to wheel icon) ===
         // Keep cursor at same position (drag2YEnd = -10)
@@ -339,7 +347,7 @@ function AnimatedDemo({
         setCursorType('wheel');
 
         // Brief pause to show the cursor change
-        await new Promise(resolve => setTimeout(resolve, 300));
+        await new Promise((resolve) => setTimeout(resolve, 300));
 
         // Scroll wheel action: multiple small scrolls to target value
         // Scroll down (increase values) - cursor stays at Y=-10
@@ -350,27 +358,29 @@ function AnimatedDemo({
 
         for (let i = 0; i <= scrollSteps; i++) {
           const progressPct = i / scrollSteps;
-          const newValue = Math.round(scrollValueStart + (scrollValueEnd - scrollValueStart) * progressPct);
+          const newValue = Math.round(
+            scrollValueStart + (scrollValueEnd - scrollValueStart) * progressPct
+          );
           onValueChange(newValue);
 
           // Subtle pulse animation for wheel scrolling
           if (i % 4 === 0) {
             controls.start({
               scale: [1, 0.95, 1],
-              transition: { duration: 0.15 }
+              transition: { duration: 0.15 },
             });
           }
 
-          await new Promise(resolve => setTimeout(resolve, scrollDuration / scrollSteps));
+          await new Promise((resolve) => setTimeout(resolve, scrollDuration / scrollSteps));
         }
 
         // Revert back to regular pointer cursor after scrolling completes
         setCursorType('pointer');
-        await new Promise(resolve => setTimeout(resolve, 200));
+        await new Promise((resolve) => setTimeout(resolve, 200));
 
         // Idle pause - picker stays open for the full 2.5s timeout
         // Cursor stays as pointer, showing idle wait state
-        await new Promise(resolve => setTimeout(resolve, 2500));
+        await new Promise((resolve) => setTimeout(resolve, 2500));
 
         // Picker auto-closes after idle
         onPickerStateChange(false);
@@ -378,10 +388,10 @@ function AnimatedDemo({
         // Fade out
         await controls.start({
           opacity: 0,
-          transition: { duration: 0.3 }
+          transition: { duration: 0.3 },
         });
 
-        await new Promise(resolve => setTimeout(resolve, 600));
+        await new Promise((resolve) => setTimeout(resolve, 600));
 
         // Reset
         setCursorType('pointer');
@@ -503,7 +513,7 @@ function TimingBadge({ time, label, isActive }: TimingBadgeProps) {
       initial={{ scale: 0.9, opacity: 0 }}
       animate={{
         scale: isActive ? 1 : 0.95,
-        opacity: isActive ? 1 : 0.6
+        opacity: isActive ? 1 : 0.6,
       }}
       transition={{ duration: 0.3 }}
       className={`inline-flex items-center gap-2x px-3x py-1.5x rounded-full border ${
@@ -546,12 +556,10 @@ export function InteractionModes() {
           transition={{ duration: 0.4 }}
           className="text-center mb-10"
         >
-          <h2 className="font-display text-4xl md:text-5xl text-accent mb-3x">
-            INTERACTION MODES
-          </h2>
+          <h2 className="font-display text-4xl md:text-5xl text-accent mb-3x">INTERACTION MODES</h2>
           <p className="text-lg text-muted max-w-2xl mx-auto">
-            Watch the automated demos or interact with the pickers yourself!
-            The component supports quick picks, momentum flicking, and multi-gesture browsing.
+            Watch the automated demos or interact with the pickers yourself! The component supports
+            quick picks, momentum flicking, and multi-gesture browsing.
           </p>
         </motion.div>
 
@@ -572,9 +580,7 @@ export function InteractionModes() {
                   <MousePointerClick className="w-6 h-6 text-accent" />
                   <h3 className="font-display text-2xl text-fg">Quick Pick</h3>
                 </div>
-                <p className="text-sm text-muted">
-                  One gesture → Auto-closes immediately
-                </p>
+                <p className="text-sm text-muted">One gesture → Auto-closes immediately</p>
               </div>
 
               {/* Play/Pause Control */}
@@ -631,8 +637,7 @@ export function InteractionModes() {
               <TimingBadge time="150ms" label="after release" isActive />
               <div className="text-xs text-muted">
                 ✓ Click → One smooth drag → Release → Closes in 150ms
-                <br />
-                ✓ Perfect for quick single adjustments
+                <br />✓ Perfect for quick single adjustments
               </div>
             </div>
 
@@ -655,9 +660,7 @@ export function InteractionModes() {
                   <Zap className="w-6 h-6 text-accent" />
                   <h3 className="font-display text-2xl text-fg">Flick</h3>
                 </div>
-                <p className="text-sm text-muted">
-                  Fast flick → Momentum → Settles
-                </p>
+                <p className="text-sm text-muted">Fast flick → Momentum → Settles</p>
               </div>
 
               {/* Play/Pause Control */}
@@ -714,8 +717,7 @@ export function InteractionModes() {
               <TimingBadge time="2.5s" label="settle timeout" isActive />
               <div className="text-xs text-muted">
                 ✓ Fast flick → Momentum → Settles
-                <br />
-                ✓ Auto-closes after 2.5s settle timeout
+                <br />✓ Auto-closes after 2.5s settle timeout
               </div>
             </div>
 
@@ -738,9 +740,7 @@ export function InteractionModes() {
                   <MousePointer2 className="w-6 h-6 text-accent" />
                   <h3 className="font-display text-2xl text-fg">Browse Mode</h3>
                 </div>
-                <p className="text-sm text-muted">
-                  Multiple gestures → Closes after idle
-                </p>
+                <p className="text-sm text-muted">Multiple gestures → Closes after idle</p>
               </div>
 
               {/* Play/Pause Control */}
@@ -797,8 +797,7 @@ export function InteractionModes() {
               <TimingBadge time="2.5s" label="idle timeout" isActive />
               <div className="text-xs text-muted">
                 ✓ Drag, release, drag back, scroll wheel
-                <br />
-                ✓ Auto-closes after 2.5s of inactivity
+                <br />✓ Auto-closes after 2.5s of inactivity
               </div>
             </div>
 

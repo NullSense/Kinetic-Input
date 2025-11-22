@@ -59,15 +59,18 @@ export const useHighlightTap = ({
     [enabled, isPointInside]
   );
 
-  const handlePointerMoveCapture = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
-    const tracker = trackerRef.current;
-    if (!tracker || tracker.pointerId !== event.pointerId || tracker.moved) return;
-    const deltaX = Math.abs(event.clientX - tracker.startX);
-    const deltaY = Math.abs(event.clientY - tracker.startY);
-    if (deltaX > movementThreshold || deltaY > movementThreshold) {
-      tracker.moved = true;
-    }
-  }, [movementThreshold]);
+  const handlePointerMoveCapture = useCallback(
+    (event: React.PointerEvent<HTMLDivElement>) => {
+      const tracker = trackerRef.current;
+      if (!tracker || tracker.pointerId !== event.pointerId || tracker.moved) return;
+      const deltaX = Math.abs(event.clientX - tracker.startX);
+      const deltaY = Math.abs(event.clientY - tracker.startY);
+      if (deltaX > movementThreshold || deltaY > movementThreshold) {
+        tracker.moved = true;
+      }
+    },
+    [movementThreshold]
+  );
 
   const handlePointerUpCapture = useCallback(
     (event: React.PointerEvent<HTMLDivElement>) => {

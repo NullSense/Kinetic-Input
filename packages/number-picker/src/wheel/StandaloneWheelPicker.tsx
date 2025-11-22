@@ -1,4 +1,4 @@
-import React, { useMemo, useCallback, CSSProperties } from 'react';
+import React, { useMemo, useCallback, type CSSProperties } from 'react';
 import PickerGroup, { type PickerOption as PickerGroupOption } from '../picker';
 import type { SnapPhysicsConfig } from '../picker/types/snapPhysics';
 import {
@@ -106,7 +106,10 @@ const StandaloneWheelPicker: React.FC<StandaloneWheelPickerProps> = ({
       if (!option) return null;
 
       if (renderItem) {
-        return renderItem(option, { selected: state.selected, visuallySelected: state.visuallySelected });
+        return renderItem(option, {
+          selected: state.selected,
+          visuallySelected: state.visuallySelected,
+        });
       }
 
       return (
@@ -114,8 +117,8 @@ const StandaloneWheelPicker: React.FC<StandaloneWheelPickerProps> = ({
           className={`np-wheel-item ${state.selected || state.visuallySelected ? 'np-wheel-item-selected' : ''}`}
           style={{
             color: state.selected
-              ? option.accentColor ?? accentColor
-              : option.accentColor ?? '#E7EDF2',
+              ? (option.accentColor ?? accentColor)
+              : (option.accentColor ?? '#E7EDF2'),
           }}
         >
           <span>{option.label}</span>
@@ -142,14 +145,19 @@ const StandaloneWheelPicker: React.FC<StandaloneWheelPickerProps> = ({
     () =>
       ({
         '--picker-highlight-color': mergedHighlight,
-      } as CSSProperties),
+      }) as CSSProperties,
     [mergedHighlight]
   );
 
   return (
     <div className={`np-wheel-picker ${className}`} style={containerStyle}>
       <div className="np-wheel-container">
-        <PickerGroup value={pickerValue} onChange={handleValueChange} height={pickerHeight} itemHeight={itemHeight}>
+        <PickerGroup
+          value={pickerValue}
+          onChange={handleValueChange}
+          height={pickerHeight}
+          itemHeight={itemHeight}
+        >
           <PickerGroup.Column name="value" snapConfig={mergedSnapConfig} options={pickerOptions} />
         </PickerGroup>
       </div>

@@ -24,11 +24,8 @@ export const clampIndex = (index: number, lastIndex: number) =>
  * @param {number} maxTranslate
  * @returns {number}
  */
-export const indexFromY = (
-  translateY: number,
-  rowHeight: number,
-  maxTranslate: number,
-) => Math.round((maxTranslate - translateY) / rowHeight);
+export const indexFromY = (translateY: number, rowHeight: number, maxTranslate: number) =>
+  Math.round((maxTranslate - translateY) / rowHeight);
 
 /**
  * Calculates the translateY offset for the provided index.
@@ -42,5 +39,5 @@ export const yFromIndex = (
   index: number,
   rowHeight: number,
   maxTranslate: number,
-  lastIndex: number,
+  lastIndex: number
 ) => maxTranslate - clampIndex(index, lastIndex) * rowHeight;

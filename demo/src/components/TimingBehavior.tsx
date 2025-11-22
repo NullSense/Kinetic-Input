@@ -41,7 +41,12 @@ export function TimingBehavior() {
   const presets = [
     { name: 'instant', values: '50ms / 300ms / 1.5s', use: 'Fast data entry' },
     { name: 'fast', values: '100ms / 500ms / 2.5s', use: 'Desktop workflows' },
-    { name: 'balanced', values: '150ms / 800ms / 2.5s', use: 'Default - General use', isDefault: true },
+    {
+      name: 'balanced',
+      values: '150ms / 800ms / 2.5s',
+      use: 'Default - General use',
+      isDefault: true,
+    },
     { name: 'patient', values: '300ms / 1200ms / 6s', use: 'Mobile / Accessibility' },
   ];
 
@@ -56,11 +61,10 @@ export function TimingBehavior() {
           transition={{ duration: 0.4 }}
           className="text-center mb-12"
         >
-          <h2 className="font-display text-5xl text-accent mb-3x">
-            SMART AUTO-CLOSE
-          </h2>
+          <h2 className="font-display text-5xl text-accent mb-3x">SMART AUTO-CLOSE</h2>
           <p className="text-lg text-muted max-w-2xl mx-auto">
-            Context-aware timing that adapts to your interaction style. No manual close buttons needed.
+            Context-aware timing that adapts to your interaction style. No manual close buttons
+            needed.
           </p>
         </motion.div>
 
@@ -83,17 +87,11 @@ export function TimingBehavior() {
                   <h3 className="font-display text-sm text-fg uppercase tracking-wider">
                     {item.event}
                   </h3>
-                  <p className="text-xl font-mono text-accent font-bold">
-                    {item.timeout}
-                  </p>
+                  <p className="text-xl font-mono text-accent font-bold">{item.timeout}</p>
                 </div>
               </div>
-              <p className="text-sm text-muted mb-2x">
-                {item.description}
-              </p>
-              <code className="text-xs text-accent/70 font-mono">
-                {item.technical}
-              </code>
+              <p className="text-sm text-muted mb-2x">{item.description}</p>
+              <code className="text-xs text-accent/70 font-mono">{item.technical}</code>
             </motion.div>
           ))}
         </div>
@@ -106,9 +104,7 @@ export function TimingBehavior() {
           transition={{ duration: 0.4 }}
           className="glass-subtle p-6x"
         >
-          <h3 className="font-display text-2xl text-accent mb-4x text-center">
-            Timing Presets
-          </h3>
+          <h3 className="font-display text-2xl text-accent mb-4x text-center">Timing Presets</h3>
           <div className="overflow-x-auto">
             <table className="w-full text-left">
               <thead>
@@ -128,28 +124,20 @@ export function TimingBehavior() {
                 {presets.map((preset) => (
                   <tr
                     key={preset.name}
-                    className={`border-b border-accent/10 ${
-                      preset.isDefault ? 'bg-accent/5' : ''
-                    }`}
+                    className={`border-b border-accent/10 ${preset.isDefault ? 'bg-accent/5' : ''}`}
                   >
                     <td className="py-3x pr-4x">
                       <code className="text-accent font-mono text-sm">
                         {preset.name}
                         {preset.isDefault && (
-                          <span className="ml-2x text-xs text-accent/70">
-                            (default)
-                          </span>
+                          <span className="ml-2x text-xs text-accent/70">(default)</span>
                         )}
                       </code>
                     </td>
                     <td className="py-3x pr-4x">
-                      <code className="text-fg font-mono text-sm">
-                        {preset.values}
-                      </code>
+                      <code className="text-fg font-mono text-sm">{preset.values}</code>
                     </td>
-                    <td className="py-3x text-muted text-sm">
-                      {preset.use}
-                    </td>
+                    <td className="py-3x text-muted text-sm">{preset.use}</td>
                   </tr>
                 ))}
               </tbody>
@@ -157,7 +145,8 @@ export function TimingBehavior() {
           </div>
           <div className="mt-4x text-center">
             <p className="text-xs text-muted">
-              Use <code className="text-accent font-mono">timingPreset</code> prop to customize behavior
+              Use <code className="text-accent font-mono">timingPreset</code> prop to customize
+              behavior
             </p>
           </div>
         </motion.div>

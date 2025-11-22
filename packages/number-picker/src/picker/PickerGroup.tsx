@@ -20,7 +20,11 @@ const DEFAULT_WHEEL_DELTA_CAP = 1.25;
 
 interface Option {
   value: string | number;
-  render: (state: { selected: boolean; visuallySelected: boolean; value: string | number }) => ReactNode;
+  render: (state: {
+    selected: boolean;
+    visuallySelected: boolean;
+    value: string | number;
+  }) => ReactNode;
   props: Omit<HTMLProps<HTMLDivElement>, 'children' | 'value'>;
 }
 
@@ -87,7 +91,7 @@ function pickerGroupReducer(
     type: 'REGISTER_OPTION' | 'UNREGISTER_OPTION';
     key: string;
     option: Option;
-  },
+  }
 ) {
   switch (action.type) {
     case 'REGISTER_OPTION': {
@@ -164,7 +168,7 @@ function PickerGroupRoot<TType extends PickerValue>(props: PickerGroupRootProps<
       width: '100%',
       pointerEvents: 'none',
     }),
-    [itemHeight],
+    [itemHeight]
   );
   const containerStyle = useMemo<CSSProperties>(
     () => ({
@@ -176,14 +180,14 @@ function PickerGroupRoot<TType extends PickerValue>(props: PickerGroupRootProps<
       touchAction: 'none',
       contain: 'layout paint size style',
     }),
-    [height],
+    [height]
   );
 
   const [optionGroups, dispatch] = useReducer(pickerGroupReducer, {});
 
   const pickerGroupData = useMemo(
     () => ({ height, itemHeight, wheelSensitivity, wheelDeltaCap, value, optionGroups }),
-    [height, itemHeight, optionGroups, value, wheelDeltaCap, wheelSensitivity],
+    [height, itemHeight, optionGroups, value, wheelDeltaCap, wheelSensitivity]
   );
 
   const valueRef = useRef(value);
@@ -201,7 +205,7 @@ function PickerGroupRoot<TType extends PickerValue>(props: PickerGroupRootProps<
       onChangeRef.current(nextPickerValue, key);
       return true;
     },
-    [], // Empty deps = stable forever
+    [] // Empty deps = stable forever
   );
   const registerOption = useCallback((key: string, option: Option) => {
     dispatch({ type: 'REGISTER_OPTION', key, option });
@@ -209,7 +213,7 @@ function PickerGroupRoot<TType extends PickerValue>(props: PickerGroupRootProps<
   }, []);
   const pickerGroupActions = useMemo(
     () => ({ registerOption, change: triggerChange }),
-    [registerOption, triggerChange],
+    [registerOption, triggerChange]
   );
 
   // Memoize merged container style to prevent object recreation
@@ -340,27 +344,17 @@ function PickerGroupRoot<TType extends PickerValue>(props: PickerGroupRootProps<
         {...restProps}
       >
         <PickerGroupActionsContext.Provider value={pickerGroupActions}>
-          <PickerGroupDataContext.Provider value={pickerGroupData}>{children}</PickerGroupDataContext.Provider>
+          <PickerGroupDataContext.Provider value={pickerGroupData}>
+            {children}
+          </PickerGroupDataContext.Provider>
         </PickerGroupActionsContext.Provider>
         {/* Overlay gradients (cheaper than mask-image) */}
-        <div
-          aria-hidden
-          style={topGradientStyle}
-        />
-        <div
-          aria-hidden
-          style={bottomGradientStyle}
-        />
+        <div aria-hidden style={topGradientStyle} />
+        <div aria-hidden style={bottomGradientStyle} />
         {showHighlightLines && (
           <div className="picker-highlight-hitbox" style={highlightStyle}>
-            <div
-              className="picker-highlight-line-top"
-              style={highlightBorderTopStyle}
-            />
-            <div
-              className="picker-highlight-line-bottom"
-              style={highlightBorderBottomStyle}
-            />
+            <div className="picker-highlight-line-top" style={highlightBorderTopStyle} />
+            <div className="picker-highlight-line-bottom" style={highlightBorderBottomStyle} />
           </div>
         )}
       </div>
