@@ -6,12 +6,16 @@ import {
   useMemo,
   useReducer,
   useRef,
+  useState,
   type CSSProperties,
   type HTMLProps,
   type ReactNode,
   type KeyboardEvent,
 } from 'react';
 import { LazyMotion, domAnimation } from 'framer-motion';
+import { usePickerGestureFeedback } from '../shared/hooks/usePickerGestureFeedback';
+import type { FeedbackAdapters } from '../quick/feedback';
+import type { PickerGestureHandler } from './gestures';
 
 const DEFAULT_HEIGHT = 216;
 const DEFAULT_ITEM_HEIGHT = 36;
@@ -43,6 +47,8 @@ export interface PickerGroupRootProps<TType extends PickerValue>
   wheelSensitivity?: number;
   wheelDeltaCap?: number;
   showHighlightLines?: boolean;
+  enableHaptics?: boolean;
+  enableAudioFeedback?: boolean;
 }
 
 const PickerGroupDataContext = createContext<{
@@ -52,6 +58,7 @@ const PickerGroupDataContext = createContext<{
   wheelDeltaCap: number;
   value: PickerValue;
   optionGroups: { [key: string]: Option[] };
+  onGesture?: PickerGestureHandler;
 } | null>(null);
 PickerGroupDataContext.displayName = 'PickerGroupDataContext';
 
@@ -130,6 +137,8 @@ function pickerGroupReducer(
  * @param {number} [props.wheelSensitivity=1] - Mouse wheel scroll speed multiplier
  * @param {number} [props.wheelDeltaCap=1.25] - Maximum wheel delta per event (prevents over-scrolling)
  * @param {boolean} [props.showHighlightLines=true] - Show selection highlight borders
+ * @param {boolean} [props.enableHaptics=false] - Enable haptic feedback on value changes
+ * @param {boolean} [props.enableAudioFeedback=false] - Enable audio feedback on value commits
  *
  * @example
  * ```tsx
@@ -138,6 +147,7 @@ function pickerGroupReducer(
  *   onChange={(value) => setTime(value)}
  *   height={216}
  *   itemHeight={36}
+ *   enableHaptics={true}
  * >
  *   <PickerColumn name="hours" options={hourOptions} />
  *   <PickerColumn name="minutes" options={minuteOptions} />
@@ -155,8 +165,46 @@ function PickerGroupRoot<TType extends PickerValue>(props: PickerGroupRootProps<
     wheelSensitivity = DEFAULT_WHEEL_SENSITIVITY,
     wheelDeltaCap = DEFAULT_WHEEL_DELTA_CAP,
     showHighlightLines = true,
+    enableHaptics = false,
+    enableAudioFeedback = false,
     ...restProps
   } = props;
+
+  // Lazy-load feedback adapters for haptics and audio (tree-shaking optimization)
+  const [adapters, setAdapters] = useState<FeedbackAdapters>({ haptics: null, audio: null });
+
+  useEffect(() => {
+    let isCancelled = false;
+
+    // Only load feedback module if at least one feature is enabled
+    if (!enableHaptics && !enableAudioFeedback) {
+      setAdapters({ haptics: null, audio: null });
+      return;
+    }
+
+    // Dynamic import for tree-shaking
+    import('../quick/feedback')
+      .then(({ createFeedbackAdapters }) => {
+        if (isCancelled) return;
+
+        const newAdapters = createFeedbackAdapters({
+          enableHaptics,
+          enableAudioFeedback,
+        });
+        setAdapters(newAdapters);
+      })
+      .catch(() => {
+        if (isCancelled) return;
+        setAdapters({ haptics: null, audio: null });
+      });
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [enableHaptics, enableAudioFeedback]);
+
+  // Create gesture handler for haptic/audio feedback
+  const onGesture = usePickerGestureFeedback(adapters);
 
   const highlightStyle = useMemo<CSSProperties>(
     () => ({
@@ -186,8 +234,8 @@ function PickerGroupRoot<TType extends PickerValue>(props: PickerGroupRootProps<
   const [optionGroups, dispatch] = useReducer(pickerGroupReducer, {});
 
   const pickerGroupData = useMemo(
-    () => ({ height, itemHeight, wheelSensitivity, wheelDeltaCap, value, optionGroups }),
-    [height, itemHeight, optionGroups, value, wheelDeltaCap, wheelSensitivity]
+    () => ({ height, itemHeight, wheelSensitivity, wheelDeltaCap, value, optionGroups, onGesture }),
+    [height, itemHeight, optionGroups, value, wheelDeltaCap, wheelSensitivity, onGesture]
   );
 
   const valueRef = useRef(value);
