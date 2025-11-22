@@ -14,7 +14,7 @@ import type { SnapPhysicsConfig } from '../picker/types/snapPhysics';
 /**
  * Maximum overscroll distance in pixels when dragging beyond bounds
  */
-export const MAX_OVERSCROLL_PIXELS = 150;
+export const MAX_OVERSCROLL_PIXELS = 100;
 
 /**
  * Minimum drag distance in pixels before picker opens (prevents accidental opens)
