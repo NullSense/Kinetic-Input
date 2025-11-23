@@ -36,9 +36,10 @@ export interface FrictionMomentumOptions {
    * Allows caller to handle boundary snap using their own animation logic
    * If provided, friction momentum will stop and delegate to this callback
    * @param boundaryType - Which boundary was hit
-   * @param clampedPosition - Position clamped to boundary
+   * @param rawPosition - Raw overshot position (BEFORE clamping/damping)
+   *                      Caller should apply their own overscroll damping
    */
-  onBoundaryHit?: (boundaryType: 'min' | 'max', clampedPosition: number) => void;
+  onBoundaryHit?: (boundaryType: 'min' | 'max', rawPosition: number) => void;
 
   /**
    * Function to calculate snap target from current position
@@ -245,13 +246,12 @@ export function animateMomentumWithFriction(
     // Check boundary collision (iOS: momentum stops at boundaries, no overscroll)
     const { hitBoundary, clampedPosition, boundaryType } = checkBoundary(newPos);
     if (hitBoundary && boundaryType) {
-      // Clamp to boundary
-      control.set(clampedPosition);
       // Zero velocity - iOS behavior: momentum stops at edges
       velocity = 0;
 
       debugPickerLog('BOUNDARY HIT → STOPPING FRICTION', {
         boundaryType,
+        rawPosition: newPos.toFixed(1),
         clampedPosition: clampedPosition.toFixed(1),
         totalTime: totalTime.toFixed(0) + 'ms',
       });
@@ -269,14 +269,18 @@ export function animateMomentumWithFriction(
 
         debugPickerLog('DELEGATING TO BOUNDARY HIT CALLBACK', {
           boundaryType,
+          rawPosition: newPos.toFixed(1),
         });
 
-        // Let caller handle the boundary snap animation
-        onBoundaryHit(boundaryType, clampedPosition);
+        // Pass RAW overshot position to caller - they will apply their own damping
+        // This ensures identical overscroll feel for both drag and momentum
+        onBoundaryHit(boundaryType, newPos);
         return;
       }
 
       // Fallback: handle boundary snap internally (legacy path)
+      // Clamp to boundary for internal handling
+      control.set(clampedPosition);
       debugPickerLog('BOUNDARY → INTERNAL SNAP', {
         clampedPosition: clampedPosition.toFixed(1),
       });

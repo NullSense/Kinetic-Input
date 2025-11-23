@@ -217,25 +217,39 @@ export function usePickerPhysics({
     overscan: virtualization.overscan,
   });
 
-  const updateScrollerWhileMoving = useCallback(
-    (nextTranslate: number) => {
-      let applied = nextTranslate;
-      if (applied < minTranslate) {
-        const distance = minTranslate - applied;
+  /**
+   * Apply overscroll damping when position exceeds boundaries
+   * Shared between drag and friction momentum for consistent feel
+   */
+  const applyOverscrollDamping = useCallback(
+    (position: number): number => {
+      if (position < minTranslate) {
+        const distance = minTranslate - position;
         const limitedDistance = Math.min(distance, MAX_OVERSCROLL_PIXELS);
         const overscroll = Math.pow(limitedDistance, OVERSCROLL_DAMPING_EXPONENT);
-        applied = minTranslate - overscroll;
-        if (distance > 0 && !boundaryHitFiredRef.current) {
+        return minTranslate - overscroll;
+      } else if (position > maxTranslate) {
+        const distance = position - maxTranslate;
+        const limitedDistance = Math.min(distance, MAX_OVERSCROLL_PIXELS);
+        const overscroll = Math.pow(limitedDistance, OVERSCROLL_DAMPING_EXPONENT);
+        return maxTranslate + overscroll;
+      }
+      return position;
+    },
+    [minTranslate, maxTranslate]
+  );
+
+  const updateScrollerWhileMoving = useCallback(
+    (nextTranslate: number) => {
+      const applied = applyOverscrollDamping(nextTranslate);
+      const didOverscroll = applied !== nextTranslate;
+
+      if (didOverscroll && !boundaryHitFiredRef.current) {
+        if (nextTranslate < minTranslate) {
           const value = options[lastIndex]?.value;
           emitter.boundaryHit('max', value);
           boundaryHitFiredRef.current = true;
-        }
-      } else if (applied > maxTranslate) {
-        const distance = applied - maxTranslate;
-        const limitedDistance = Math.min(distance, MAX_OVERSCROLL_PIXELS);
-        const overscroll = Math.pow(limitedDistance, OVERSCROLL_DAMPING_EXPONENT);
-        applied = maxTranslate + overscroll;
-        if (distance > 0 && !boundaryHitFiredRef.current) {
+        } else if (nextTranslate > maxTranslate) {
           const value = options[0]?.value;
           emitter.boundaryHit('min', value);
           boundaryHitFiredRef.current = true;
@@ -245,7 +259,7 @@ export function usePickerPhysics({
       yRaw.set(applied);
       return applied;
     },
-    [emitter, lastIndex, maxTranslate, minTranslate, options, yRaw]
+    [applyOverscrollDamping, emitter, lastIndex, minTranslate, maxTranslate, options, yRaw]
   );
 
   const commitValueAtIndex = useCallback(
@@ -438,18 +452,23 @@ export function usePickerPhysics({
           min: minTranslate,
           max: maxTranslate,
         },
-        onBoundaryHit: (boundaryType, clampedPosition) => {
-          // Reuse the same settleToIndex animation for boundary hits
-          // This ensures identical bounce-back for both single and multi-gesture modes
+        onBoundaryHit: (boundaryType, rawPosition) => {
+          // Apply the SAME overscroll damping as drag gestures
+          // This ensures identical starting position for the spring animation
+          const dampedPosition = applyOverscrollDamping(rawPosition);
+          yRaw.set(dampedPosition);
+
           const boundaryIndex = boundaryType === 'min' ? lastIndex : 0;
 
           debugPickerLog('BOUNDARY HIT → SETTLE TO INDEX', {
             boundaryType,
             boundaryIndex,
-            clampedPosition: clampedPosition.toFixed(1),
+            rawPosition: rawPosition.toFixed(1),
+            dampedPosition: dampedPosition.toFixed(1),
           });
 
           // Use the exact same settle animation as single-gesture mode
+          // Position is now overscrolled (with damping), so spring will animate back
           settleToIndex(boundaryIndex, () => {
             // Clean up friction momentum refs
             activeFrictionMomentumRef.current = null;
@@ -508,6 +527,7 @@ export function usePickerPhysics({
       activeTargetIndexRef.current = estimatedIndex;
     },
     [
+      applyOverscrollDamping,
       commitValueAtIndex,
       emitter,
       itemHeight,
