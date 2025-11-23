@@ -453,9 +453,17 @@ export function usePickerPhysics({
           max: maxTranslate,
         },
         onBoundaryHit: (boundaryType, rawPosition) => {
+          // Cap momentum overshoot to prevent aggressive bounce-back
+          // High-velocity momentum can overshoot by 50+ pixels, but drag is limited by finger movement
+          // Cap to 20px overshoot max (similar to what user can drag) for consistent feel
+          const boundary = boundaryType === 'min' ? minTranslate : maxTranslate;
+          const overshoot = Math.abs(rawPosition - boundary);
+          const cappedOvershoot = Math.min(overshoot, 20); // Cap to 20px max
+          const cappedPosition =
+            boundaryType === 'min' ? boundary - cappedOvershoot : boundary + cappedOvershoot;
+
           // Apply the SAME overscroll damping as drag gestures
-          // This ensures identical starting position for the spring animation
-          const dampedPosition = applyOverscrollDamping(rawPosition);
+          const dampedPosition = applyOverscrollDamping(cappedPosition);
           yRaw.set(dampedPosition);
 
           const boundaryIndex = boundaryType === 'min' ? lastIndex : 0;
@@ -464,6 +472,9 @@ export function usePickerPhysics({
             boundaryType,
             boundaryIndex,
             rawPosition: rawPosition.toFixed(1),
+            overshoot: overshoot.toFixed(1) + 'px',
+            cappedOvershoot: cappedOvershoot.toFixed(1) + 'px',
+            cappedPosition: cappedPosition.toFixed(1),
             dampedPosition: dampedPosition.toFixed(1),
           });
 
