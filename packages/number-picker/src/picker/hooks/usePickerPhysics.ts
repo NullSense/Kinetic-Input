@@ -252,9 +252,10 @@ export function usePickerPhysics({
       const option = options[targetIndex];
       if (option) {
         changeValue(key, option.value);
+        emitter.valueCommit(option.value, targetIndex);
       }
     },
-    [changeValue, key, options]
+    [changeValue, emitter, key, options]
   );
 
   const finishAnimationInstantly = useCallback(() => {
@@ -328,8 +329,8 @@ export function usePickerPhysics({
 
       const controls = animate(yRaw, target, {
         type: 'spring',
-        stiffness: 300,
-        damping: 34,
+        stiffness: 180,
+        damping: 25,
         restDelta: 0.5,
         restSpeed: 10,
         onComplete: () => {
@@ -442,8 +443,8 @@ export function usePickerPhysics({
           onComplete?.();
         },
         snapSpring: {
-          stiffness: 300,
-          damping: 34,
+          stiffness: 180,
+          damping: 25,
           restDelta: 0.5,
           restSpeed: 10,
         },
