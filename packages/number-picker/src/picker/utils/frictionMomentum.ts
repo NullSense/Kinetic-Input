@@ -237,12 +237,12 @@ export function animateMomentumWithFriction(
       control.set(clampedPosition);
       // Zero velocity - iOS behavior: momentum stops at edges
       velocity = 0;
-      // Immediately snap to nearest item
+      // Immediately snap to nearest item using gentler spring for boundary bounce
       debugPickerLog('BOUNDARY → SNAP', {
         clampedPosition: clampedPosition.toFixed(1),
         totalTime: totalTime.toFixed(0) + 'ms',
       });
-      transitionToSnap();
+      transitionToSnap(true); // true = use gentler boundary bounce spring
       return;
     }
 
@@ -283,8 +283,10 @@ export function animateMomentumWithFriction(
    * Note: We do NOT pass velocity to the spring to avoid overshoot and bounce.
    * The friction phase provides the momentum feel. The snap phase should be
    * a smooth, consistent settle - matching the behavior of non-flick releases.
+   *
+   * @param isBoundaryBounce - If true, use gentler spring physics for boundary bounce
    */
-  const transitionToSnap = (): void => {
+  const transitionToSnap = (isBoundaryBounce = false): void => {
     if (cancelled) return;
 
     inFrictionPhase = false;
@@ -292,12 +294,23 @@ export function animateMomentumWithFriction(
     const snapTarget = snapFunction(currentPos);
     const distanceToSnap = Math.abs(currentPos - snapTarget);
 
+    // Use gentler spring for boundary bounces to prevent aggressive swing-back
+    const springConfig = isBoundaryBounce
+      ? {
+          stiffness: 120, // Softer spring (vs 180)
+          damping: 28, // More damping to reduce oscillation (vs 25)
+          restDelta: 0.5,
+          restSpeed: 10,
+        }
+      : snapSpring;
+
     debugPickerLog('SNAP SPRING START', {
       from: currentPos.toFixed(1),
       to: snapTarget.toFixed(1),
       distance: distanceToSnap.toFixed(1) + 'px',
       frictionVelocity: velocity.toFixed(1) + ' px/s (not passed to spring)',
-      spring: snapSpring,
+      isBoundaryBounce,
+      spring: springConfig,
     });
 
     // Start spring animation WITHOUT velocity (matches non-flick behavior)
@@ -306,7 +319,7 @@ export function animateMomentumWithFriction(
       type: 'spring',
       // velocity: velocity  ← REMOVED: Causes overshoot and bounce
       // Spring starts with 0 velocity for smooth, consistent settle
-      ...snapSpring,
+      ...springConfig,
       onComplete: () => {
         debugPickerLog('SNAP SPRING COMPLETE', {
           finalPosition: control.get().toFixed(1),

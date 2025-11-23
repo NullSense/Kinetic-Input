@@ -84,8 +84,8 @@ const CollapsiblePicker: React.FC<CollapsiblePickerProps> = ({
 
   const itemHeightPx = itemHeightProp ?? ITEM_HEIGHT;
   const pickerWindowHeight = itemHeightPx * 5;
-  // Make collapsedHeight responsive: use itemHeight as base, minimum 48px
-  const collapsedHeight = Math.max(itemHeightPx, 48);
+  // Make collapsedHeight responsive: use itemHeight as base, minimum 72px (50% larger for better touch target)
+  const collapsedHeight = Math.max(itemHeightPx, 72);
   const pickerTranslate = showPicker ? -(pickerWindowHeight / 2 - collapsedHeight / 2) : undefined;
 
   const pickerSnapConfig = useMemo<SnapPhysicsConfig | undefined>(() => {

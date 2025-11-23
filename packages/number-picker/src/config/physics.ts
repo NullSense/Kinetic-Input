@@ -137,3 +137,43 @@ export const MOMENTUM_PHYSICS = {
 } as const;
 
 export type MomentumPhysicsConfig = typeof MOMENTUM_PHYSICS;
+
+/**
+ * Calculate velocity scale factor based on picker list size
+ *
+ * Uses non-linear scaling to reduce max flick velocity for larger lists:
+ * - Small lists (5-10 items): Higher velocity (~0.30-0.38)
+ * - Medium lists (20-50 items): Moderate velocity (~0.18-0.24)
+ * - Large lists (100+ items): Lower velocity (~0.13)
+ *
+ * This prevents overshooting when flicking through long lists while
+ * maintaining responsiveness for short lists.
+ *
+ * @param itemCount - Number of items in the picker list
+ * @returns Velocity scale factor (0.1 to 0.4)
+ *
+ * @example
+ * ```ts
+ * const scale = calculateFlickVelocityScale(100); // ~0.13 for 100 items
+ * const scale = calculateFlickVelocityScale(10);  // 0.30 for 10 items
+ * const adjustedVelocity = rawVelocity * scale;
+ * ```
+ */
+export function calculateFlickVelocityScale(itemCount: number): number {
+  // Base scale for a 10-item list
+  const baseScale = 0.30;
+
+  // Clamp to reasonable bounds (at least 3 items to avoid division issues)
+  const count = Math.max(itemCount, 3);
+
+  // Non-linear power scaling: scale = baseScale * (count / 10)^(-0.35)
+  // - Smaller lists get higher multiplier (e.g., 5 items → 1.27x)
+  // - Larger lists get lower multiplier (e.g., 100 items → 0.45x)
+  const scaleFactor = Math.pow(count / 10, -0.35);
+
+  // Apply scaling with reasonable bounds
+  const scale = baseScale * scaleFactor;
+
+  // Clamp to [0.08, 0.40] to prevent extreme values
+  return Math.max(0.08, Math.min(0.40, scale));
+}

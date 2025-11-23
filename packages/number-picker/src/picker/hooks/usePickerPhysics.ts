@@ -18,6 +18,7 @@ import {
   DOM_DELTA_MODE,
   OVERSCROLL_DAMPING_EXPONENT,
   MOMENTUM_PHYSICS,
+  calculateFlickVelocityScale,
 } from '../../config/physics';
 import { useSnapPhysics } from './useSnapPhysics';
 import { useVirtualWindow } from './useVirtualWindow';
@@ -403,11 +404,21 @@ export function usePickerPhysics({
       }
 
       // Start friction-based momentum animation
-      // Scale velocity to 22% for controlled, precise flick speed
-      // Lower scaling provides more predictable momentum behavior
+      // Scale velocity based on list size (non-linear):
+      // - Larger lists get lower max velocity to prevent overshooting
+      // - Smaller lists get higher max velocity for responsiveness
+      const velocityScale = calculateFlickVelocityScale(options.length);
+
+      debugPickerLog('FLICK VELOCITY SCALING', {
+        itemCount: options.length,
+        scale: velocityScale.toFixed(3),
+        rawVelocity: velocity.toFixed(1) + ' px/s',
+        scaledVelocity: (velocity * velocityScale).toFixed(1) + ' px/s',
+      });
+
       const controls = animateMomentumWithFriction({
         control: yRaw,
-        initialVelocity: velocity * 0.22,
+        initialVelocity: velocity * velocityScale,
         bounds: {
           min: minTranslate,
           max: maxTranslate,
@@ -481,6 +492,15 @@ export function usePickerPhysics({
 
       // Track this pointer ID
       capturedPointersRef.current.add(event.pointerId);
+
+      // Clear any active text selection to prevent interference
+      // When text is selected elsewhere on the page, it can block picker interactions
+      if (window.getSelection) {
+        const selection = window.getSelection();
+        if (selection && selection.rangeCount > 0) {
+          selection.removeAllRanges();
+        }
+      }
 
       debugPickerLog('POINTER DOWN', {
         pointerId: event.pointerId,
