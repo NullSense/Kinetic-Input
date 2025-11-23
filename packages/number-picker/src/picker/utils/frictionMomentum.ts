@@ -32,13 +32,13 @@ export interface FrictionMomentumOptions {
   };
 
   /**
-   * Explicit snap targets when hitting boundaries
-   * Prevents calculation errors when at edge items
+   * Callback when boundary is hit during momentum
+   * Allows caller to handle boundary snap using their own animation logic
+   * If provided, friction momentum will stop and delegate to this callback
+   * @param boundaryType - Which boundary was hit
+   * @param clampedPosition - Position clamped to boundary
    */
-  boundarySnapTargets?: {
-    min: number; // Snap target when hitting bounds.min
-    max: number; // Snap target when hitting bounds.max
-  };
+  onBoundaryHit?: (boundaryType: 'min' | 'max', clampedPosition: number) => void;
 
   /**
    * Function to calculate snap target from current position
@@ -109,7 +109,7 @@ export function animateMomentumWithFriction(
     control,
     initialVelocity,
     bounds,
-    boundarySnapTargets,
+    onBoundaryHit,
     snapFunction,
     config,
     onComplete,
@@ -244,29 +244,43 @@ export function animateMomentumWithFriction(
 
     // Check boundary collision (iOS: momentum stops at boundaries, no overscroll)
     const { hitBoundary, clampedPosition, boundaryType } = checkBoundary(newPos);
-    if (hitBoundary) {
+    if (hitBoundary && boundaryType) {
       // Clamp to boundary
       control.set(clampedPosition);
       // Zero velocity - iOS behavior: momentum stops at edges
       velocity = 0;
 
-      // Use explicit boundary snap target if provided (prevents calculation errors at edges)
-      let explicitSnapTarget: number | undefined = undefined;
-      if (boundarySnapTargets && boundaryType) {
-        explicitSnapTarget = boundarySnapTargets[boundaryType];
-        debugPickerLog('USING EXPLICIT BOUNDARY SNAP TARGET', {
-          boundaryType,
-          explicitTarget: explicitSnapTarget.toFixed(1),
-        });
-      }
-
-      // Immediately snap to nearest item (or explicit boundary item)
-      debugPickerLog('BOUNDARY → SNAP', {
+      debugPickerLog('BOUNDARY HIT → STOPPING FRICTION', {
+        boundaryType,
         clampedPosition: clampedPosition.toFixed(1),
         totalTime: totalTime.toFixed(0) + 'ms',
-        usingExplicitTarget: explicitSnapTarget !== undefined,
       });
-      transitionToSnap(explicitSnapTarget);
+
+      // If boundary hit callback provided, delegate to caller's animation logic
+      // This allows reusing the same settle animation code for both single and multi-gesture
+      if (onBoundaryHit) {
+        // Stop friction animation - caller will handle the bounce-back
+        cancelled = true;
+        if (rafId !== null) {
+          cancelAnimationFrame(rafId);
+          rafId = null;
+        }
+        inFrictionPhase = false;
+
+        debugPickerLog('DELEGATING TO BOUNDARY HIT CALLBACK', {
+          boundaryType,
+        });
+
+        // Let caller handle the boundary snap animation
+        onBoundaryHit(boundaryType, clampedPosition);
+        return;
+      }
+
+      // Fallback: handle boundary snap internally (legacy path)
+      debugPickerLog('BOUNDARY → INTERNAL SNAP', {
+        clampedPosition: clampedPosition.toFixed(1),
+      });
+      transitionToSnap();
       return;
     }
 

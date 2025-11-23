@@ -438,11 +438,29 @@ export function usePickerPhysics({
           min: minTranslate,
           max: maxTranslate,
         },
-        boundarySnapTargets: {
-          // When hitting min boundary (bottom of list), snap to last item
-          min: yFromIndex(lastIndex, itemHeight, maxTranslate, lastIndex),
-          // When hitting max boundary (top of list), snap to first item
-          max: yFromIndex(0, itemHeight, maxTranslate, lastIndex),
+        onBoundaryHit: (boundaryType, clampedPosition) => {
+          // Reuse the same settleToIndex animation for boundary hits
+          // This ensures identical bounce-back for both single and multi-gesture modes
+          const boundaryIndex = boundaryType === 'min' ? lastIndex : 0;
+
+          debugPickerLog('BOUNDARY HIT → SETTLE TO INDEX', {
+            boundaryType,
+            boundaryIndex,
+            clampedPosition: clampedPosition.toFixed(1),
+          });
+
+          // Use the exact same settle animation as single-gesture mode
+          settleToIndex(boundaryIndex, () => {
+            // Clean up friction momentum refs
+            activeFrictionMomentumRef.current = null;
+            activeTargetIndexRef.current = null;
+
+            debugPickerLog('BOUNDARY SETTLE COMPLETE', {
+              boundaryIndex,
+            });
+
+            onComplete?.();
+          });
         },
         snapFunction: (position) => {
           // Calculate which item index this position corresponds to
