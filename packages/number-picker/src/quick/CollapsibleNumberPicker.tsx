@@ -71,8 +71,8 @@ const CollapsibleNumberPickerComponent: React.FC<CollapsiblePickerProps> = ({
 
   const itemHeightPx = itemHeightProp ?? ITEM_HEIGHT;
   const pickerWindowHeight = itemHeightPx * 5;
-  // 72px collapsed height (50% larger than before) for better touch target
-  const collapsedHeight = 72;
+  // 60px collapsed height (25% larger than before) for better touch target
+  const collapsedHeight = 60;
   const pickerTranslate = showPicker ? -(pickerWindowHeight / 2 - collapsedHeight / 2) : undefined;
 
   const pickerSnapConfig = useMemo<SnapPhysicsConfig | undefined>(() => {

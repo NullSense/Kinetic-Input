@@ -407,18 +407,33 @@ export function usePickerPhysics({
       // Scale velocity based on list size (non-linear):
       // - Larger lists get lower max velocity to prevent overshooting
       // - Smaller lists get higher max velocity for responsiveness
-      const velocityScale = calculateFlickVelocityScale(options.length);
+      const listSizeScale = calculateFlickVelocityScale(options.length);
+
+      // Input-type-specific multipliers for natural feel
+      // Touch gestures need much higher velocity for satisfying flick physics
+      // Mouse/pen are more precise and need lower velocity to avoid overshooting
+      const inputTypeMultiplier =
+        pointerTypeRef.current === 'touch'
+          ? 1.8 // Touch: aggressive flick feel (mobile/tablet)
+          : pointerTypeRef.current === 'pen'
+            ? 1.2 // Pen: moderate (stylus precision)
+            : 1.0; // Mouse: conservative (precise control)
+
+      const finalVelocityScale = listSizeScale * inputTypeMultiplier;
 
       debugPickerLog('FLICK VELOCITY SCALING', {
         itemCount: options.length,
-        scale: velocityScale.toFixed(3),
+        inputType: pointerTypeRef.current,
+        listSizeScale: listSizeScale.toFixed(3),
+        inputTypeMultiplier: inputTypeMultiplier.toFixed(2) + 'x',
+        finalScale: finalVelocityScale.toFixed(3),
         rawVelocity: velocity.toFixed(1) + ' px/s',
-        scaledVelocity: (velocity * velocityScale).toFixed(1) + ' px/s',
+        scaledVelocity: (velocity * finalVelocityScale).toFixed(1) + ' px/s',
       });
 
       const controls = animateMomentumWithFriction({
         control: yRaw,
-        initialVelocity: velocity * velocityScale,
+        initialVelocity: velocity * finalVelocityScale,
         bounds: {
           min: minTranslate,
           max: maxTranslate,
