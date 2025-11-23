@@ -32,6 +32,15 @@ export interface FrictionMomentumOptions {
   };
 
   /**
+   * Explicit snap targets when hitting boundaries
+   * Prevents calculation errors when at edge items
+   */
+  boundarySnapTargets?: {
+    min: number; // Snap target when hitting bounds.min
+    max: number; // Snap target when hitting bounds.max
+  };
+
+  /**
    * Function to calculate snap target from current position
    * Called when velocity drops below threshold
    */
@@ -100,6 +109,7 @@ export function animateMomentumWithFriction(
     control,
     initialVelocity,
     bounds,
+    boundarySnapTargets,
     snapFunction,
     config,
     onComplete,
@@ -129,9 +139,11 @@ export function animateMomentumWithFriction(
 
   /**
    * Check if position has hit a boundary
-   * Returns { hitBoundary: boolean, clampedPosition: number }
+   * Returns { hitBoundary: boolean, clampedPosition: number, boundaryType?: 'min' | 'max' }
    */
-  const checkBoundary = (pos: number): { hitBoundary: boolean; clampedPosition: number } => {
+  const checkBoundary = (
+    pos: number
+  ): { hitBoundary: boolean; clampedPosition: number; boundaryType?: 'min' | 'max' } => {
     if (pos < bounds.min) {
       debugPickerLog('BOUNDARY HIT', {
         boundary: 'min',
@@ -139,7 +151,7 @@ export function animateMomentumWithFriction(
         bound: bounds.min.toFixed(1),
         velocity: velocity.toFixed(1),
       });
-      return { hitBoundary: true, clampedPosition: bounds.min };
+      return { hitBoundary: true, clampedPosition: bounds.min, boundaryType: 'min' };
     }
     if (pos > bounds.max) {
       debugPickerLog('BOUNDARY HIT', {
@@ -148,7 +160,7 @@ export function animateMomentumWithFriction(
         bound: bounds.max.toFixed(1),
         velocity: velocity.toFixed(1),
       });
-      return { hitBoundary: true, clampedPosition: bounds.max };
+      return { hitBoundary: true, clampedPosition: bounds.max, boundaryType: 'max' };
     }
     return { hitBoundary: false, clampedPosition: pos };
   };
@@ -231,18 +243,30 @@ export function animateMomentumWithFriction(
     let newPos = updatePosition(currentPos, velocity, deltaTime);
 
     // Check boundary collision (iOS: momentum stops at boundaries, no overscroll)
-    const { hitBoundary, clampedPosition } = checkBoundary(newPos);
+    const { hitBoundary, clampedPosition, boundaryType } = checkBoundary(newPos);
     if (hitBoundary) {
       // Clamp to boundary
       control.set(clampedPosition);
       // Zero velocity - iOS behavior: momentum stops at edges
       velocity = 0;
-      // Immediately snap to nearest item
+
+      // Use explicit boundary snap target if provided (prevents calculation errors at edges)
+      let explicitSnapTarget: number | undefined = undefined;
+      if (boundarySnapTargets && boundaryType) {
+        explicitSnapTarget = boundarySnapTargets[boundaryType];
+        debugPickerLog('USING EXPLICIT BOUNDARY SNAP TARGET', {
+          boundaryType,
+          explicitTarget: explicitSnapTarget.toFixed(1),
+        });
+      }
+
+      // Immediately snap to nearest item (or explicit boundary item)
       debugPickerLog('BOUNDARY → SNAP', {
         clampedPosition: clampedPosition.toFixed(1),
         totalTime: totalTime.toFixed(0) + 'ms',
+        usingExplicitTarget: explicitSnapTarget !== undefined,
       });
-      transitionToSnap();
+      transitionToSnap(explicitSnapTarget);
       return;
     }
 
@@ -283,13 +307,15 @@ export function animateMomentumWithFriction(
    * Note: We do NOT pass velocity to the spring to avoid overshoot and bounce.
    * The friction phase provides the momentum feel. The snap phase should be
    * a smooth, consistent settle - matching the behavior of non-flick releases.
+   *
+   * @param explicitTarget - Optional explicit snap target (used for boundaries)
    */
-  const transitionToSnap = (): void => {
+  const transitionToSnap = (explicitTarget?: number): void => {
     if (cancelled) return;
 
     inFrictionPhase = false;
     const currentPos = control.get();
-    const snapTarget = snapFunction(currentPos);
+    const snapTarget = explicitTarget !== undefined ? explicitTarget : snapFunction(currentPos);
     const distanceToSnap = Math.abs(currentPos - snapTarget);
 
     debugPickerLog('SNAP SPRING START', {
@@ -297,6 +323,7 @@ export function animateMomentumWithFriction(
       to: snapTarget.toFixed(1),
       distance: distanceToSnap.toFixed(1) + 'px',
       frictionVelocity: velocity.toFixed(1) + ' px/s (not passed to spring)',
+      explicitTarget: explicitTarget !== undefined,
       spring: snapSpring,
     });
 

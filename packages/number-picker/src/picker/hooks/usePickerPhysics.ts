@@ -438,6 +438,12 @@ export function usePickerPhysics({
           min: minTranslate,
           max: maxTranslate,
         },
+        boundarySnapTargets: {
+          // When hitting min boundary (bottom of list), snap to last item
+          min: yFromIndex(lastIndex, itemHeight, maxTranslate, lastIndex),
+          // When hitting max boundary (top of list), snap to first item
+          max: yFromIndex(0, itemHeight, maxTranslate, lastIndex),
+        },
         snapFunction: (position) => {
           // Calculate which item index this position corresponds to
           const index = clampIndex(indexFromY(position, itemHeight, maxTranslate), lastIndex);
