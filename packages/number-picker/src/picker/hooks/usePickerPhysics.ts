@@ -10,13 +10,11 @@ import type { PickerOption } from '../PickerGroup';
 import type { SnapPhysicsConfig } from '../types/snapPhysics';
 import {
   DEFAULT_SNAP_PHYSICS,
-  MAX_OVERSCROLL_PIXELS,
   OPENING_DRAG_THRESHOLD_PIXELS,
   CLICK_STEP_THRESHOLD_RATIO,
   TOUCH_TAP_THRESHOLD_RATIO,
   MINIMUM_MOVEMENT_PIXELS,
   DOM_DELTA_MODE,
-  OVERSCROLL_DAMPING_EXPONENT,
   MOMENTUM_PHYSICS,
   calculateFlickVelocityScale,
 } from '../../config/physics';
@@ -29,6 +27,12 @@ import {
   animateMomentumWithFriction,
   type FrictionMomentumControls,
 } from '../utils/frictionMomentum';
+import {
+  applyOverscrollDamping as applyOverscrollDampingToPosition,
+  constrainMomentumToBoundary,
+  resolveBoundaryIndex as resolveBoundaryIndexForPosition,
+  type BoundaryConstraints,
+} from '../utils/boundary';
 import {
   createGestureEmitter,
   createVelocityTracker,
@@ -143,6 +147,16 @@ export function usePickerPhysics({
     [height, itemHeight, options.length]
   );
 
+  const boundaryConstraints = useMemo<BoundaryConstraints>(
+    () => ({
+      minTranslate,
+      maxTranslate,
+      itemHeight,
+      lastIndex,
+    }),
+    [itemHeight, lastIndex, maxTranslate, minTranslate]
+  );
+
   const yRaw = useMotionValue(0);
   const ySnap = useMotionValue(0);
 
@@ -217,26 +231,21 @@ export function usePickerPhysics({
     overscan: virtualization.overscan,
   });
 
-  /**
-   * Apply overscroll damping when position exceeds boundaries
-   * Shared between drag and friction momentum for consistent feel
-   */
   const applyOverscrollDamping = useCallback(
-    (position: number): number => {
-      if (position < minTranslate) {
-        const distance = minTranslate - position;
-        const limitedDistance = Math.min(distance, MAX_OVERSCROLL_PIXELS);
-        const overscroll = Math.pow(limitedDistance, OVERSCROLL_DAMPING_EXPONENT);
-        return minTranslate - overscroll;
-      } else if (position > maxTranslate) {
-        const distance = position - maxTranslate;
-        const limitedDistance = Math.min(distance, MAX_OVERSCROLL_PIXELS);
-        const overscroll = Math.pow(limitedDistance, OVERSCROLL_DAMPING_EXPONENT);
-        return maxTranslate + overscroll;
-      }
-      return position;
-    },
-    [minTranslate, maxTranslate]
+    (position: number): number =>
+      applyOverscrollDampingToPosition(position, boundaryConstraints),
+    [boundaryConstraints]
+  );
+
+  const resolveBoundaryIndex = useCallback(
+    (position: number) => resolveBoundaryIndexForPosition(position, boundaryConstraints),
+    [boundaryConstraints]
+  );
+
+  const constrainMomentumBoundary = useCallback(
+    (boundaryType: 'min' | 'max', rawPosition: number) =>
+      constrainMomentumToBoundary(boundaryType, rawPosition, boundaryConstraints),
+    [boundaryConstraints]
   );
 
   const updateScrollerWhileMoving = useCallback(
@@ -398,16 +407,6 @@ export function usePickerPhysics({
     ]
   );
 
-  const resolveBoundaryIndex = useCallback(
-    (position: number) => {
-      if (position < minTranslate) return lastIndex;
-      if (position > maxTranslate) return 0;
-      const index = indexFromY(position, itemHeight, maxTranslate);
-      return clampIndex(index, lastIndex);
-    },
-    [itemHeight, lastIndex, maxTranslate, minTranslate]
-  );
-
   const settleToResolvedIndex = useCallback(
     (position: number, onComplete?: () => void) => {
       const targetIndex = resolveBoundaryIndex(position);
@@ -470,40 +469,30 @@ export function usePickerPhysics({
           max: maxTranslate,
         },
         onBoundaryHit: (boundaryType, rawPosition) => {
-          // Cap momentum overshoot to prevent aggressive bounce-back
-          // High-velocity momentum can overshoot by 50+ pixels, but drag is limited by finger movement
-          // Cap to 20px overshoot max (similar to what user can drag) for consistent feel
-          const boundary = boundaryType === 'min' ? minTranslate : maxTranslate;
-          const overshoot = Math.abs(rawPosition - boundary);
-          const cappedOvershoot = Math.min(overshoot, 20); // Cap to 20px max
-          const cappedPosition =
-            boundaryType === 'min' ? boundary - cappedOvershoot : boundary + cappedOvershoot;
+          const boundaryState = constrainMomentumBoundary(boundaryType, rawPosition);
 
-          // Apply the SAME overscroll damping as drag gestures
-          const dampedPosition = applyOverscrollDamping(cappedPosition);
-          yRaw.set(dampedPosition);
-
-          const boundaryIndex = resolveBoundaryIndex(boundaryType === 'min' ? minTranslate : maxTranslate);
+          // Apply the SAME overscroll damping as drag gestures and store the effect for spring settle
+          yRaw.set(boundaryState.dampedPosition);
 
           debugPickerLog('BOUNDARY HIT → SETTLE TO INDEX', {
             boundaryType,
-            boundaryIndex,
+            boundaryIndex: boundaryState.boundaryIndex,
             rawPosition: rawPosition.toFixed(1),
-            overshoot: overshoot.toFixed(1) + 'px',
-            cappedOvershoot: cappedOvershoot.toFixed(1) + 'px',
-            cappedPosition: cappedPosition.toFixed(1),
-            dampedPosition: dampedPosition.toFixed(1),
+            overshoot: boundaryState.overshoot.toFixed(1) + 'px',
+            cappedOvershoot: boundaryState.cappedOvershoot.toFixed(1) + 'px',
+            cappedPosition: boundaryState.cappedPosition.toFixed(1),
+            dampedPosition: boundaryState.dampedPosition.toFixed(1),
           });
 
           // Use the exact same settle animation as single-gesture mode
           // Position is now overscrolled (with damping), so spring will animate back
-          settleToResolvedIndex(boundaryType === 'min' ? minTranslate : maxTranslate, () => {
+          settleToResolvedIndex(boundaryState.boundary, () => {
             // Clean up friction momentum refs
             activeFrictionMomentumRef.current = null;
             activeTargetIndexRef.current = null;
 
             debugPickerLog('BOUNDARY SETTLE COMPLETE', {
-              boundaryIndex,
+              boundaryIndex: boundaryState.boundaryIndex,
             });
 
             onComplete?.();
@@ -555,7 +544,6 @@ export function usePickerPhysics({
       activeTargetIndexRef.current = estimatedIndex;
     },
     [
-      applyOverscrollDamping,
       commitValueAtIndex,
       emitter,
       itemHeight,
@@ -563,6 +551,7 @@ export function usePickerPhysics({
       maxTranslate,
       minTranslate,
       options,
+      constrainMomentumBoundary,
       resolveBoundaryIndex,
       settleToResolvedIndex,
       stopActiveAnimation,
