@@ -319,7 +319,11 @@ export function usePickerPhysics({
   }, [finishAnimationInstantly]);
 
   const settleToIndex = useCallback(
-    (index: number, onComplete?: () => void) => {
+    (
+      index: number,
+      onComplete?: () => void,
+      settleOptions?: { momentum?: boolean }
+    ) => {
       if (options.length === 0) {
         onComplete?.();
         return;
@@ -384,7 +388,7 @@ export function usePickerPhysics({
             // Emit settle event (direct settle without momentum)
             const settledValue = options[clampedIndex]?.value;
             if (settledValue !== undefined) {
-              emitter.settle(settledValue, clampedIndex, false);
+              emitter.settle(settledValue, clampedIndex, Boolean(settleOptions?.momentum));
             }
 
             onComplete?.();
@@ -408,11 +412,34 @@ export function usePickerPhysics({
   );
 
   const settleToResolvedIndex = useCallback(
-    (position: number, onComplete?: () => void) => {
+    (position: number, onComplete?: () => void, options?: { momentum?: boolean }) => {
       const targetIndex = resolveBoundaryIndex(position);
-      settleToIndex(targetIndex, onComplete);
+      settleToIndex(targetIndex, onComplete, options);
     },
     [resolveBoundaryIndex, settleToIndex]
+  );
+
+  const settleBoundary = useCallback(
+    (
+      boundaryType: 'min' | 'max',
+      rawPosition: number,
+      options?: { momentum?: boolean; onComplete?: () => void }
+    ) => {
+      const boundaryState = constrainMomentumBoundary(boundaryType, rawPosition);
+
+      // Align the visible overscroll with drag gestures
+      yRaw.set(boundaryState.dampedPosition);
+
+      settleToIndex(boundaryState.boundaryIndex, () => {
+        activeFrictionMomentumRef.current = null;
+        activeTargetIndexRef.current = null;
+
+        options?.onComplete?.();
+      }, options);
+
+      return boundaryState;
+    },
+    [constrainMomentumBoundary, settleToIndex, yRaw]
   );
 
   const settleFromY = useCallback(
@@ -426,6 +453,16 @@ export function usePickerPhysics({
         minTranslate,
         maxTranslate,
       });
+
+      const isOutOfBounds = currentY < minTranslate || currentY > maxTranslate;
+      if (isOutOfBounds) {
+        const boundaryType = currentY < minTranslate ? 'min' : 'max';
+        settleBoundary(boundaryType, currentY, {
+          momentum: Math.abs(velocity) >= 10,
+          onComplete,
+        });
+        return;
+      }
 
       // If velocity is negligible, just snap to nearest item immediately
       if (Math.abs(velocity) < 10) {
@@ -469,10 +506,16 @@ export function usePickerPhysics({
           max: maxTranslate,
         },
         onBoundaryHit: (boundaryType, rawPosition) => {
-          const boundaryState = constrainMomentumBoundary(boundaryType, rawPosition);
+          const boundaryState = settleBoundary(boundaryType, rawPosition, {
+            momentum: true,
+            onComplete: () => {
+              debugPickerLog('BOUNDARY SETTLE COMPLETE', {
+                boundaryIndex: boundaryState.boundaryIndex,
+              });
 
-          // Apply the SAME overscroll damping as drag gestures and store the effect for spring settle
-          yRaw.set(boundaryState.dampedPosition);
+              onComplete?.();
+            },
+          });
 
           debugPickerLog('BOUNDARY HIT → SETTLE TO INDEX', {
             boundaryType,
@@ -482,20 +525,6 @@ export function usePickerPhysics({
             cappedOvershoot: boundaryState.cappedOvershoot.toFixed(1) + 'px',
             cappedPosition: boundaryState.cappedPosition.toFixed(1),
             dampedPosition: boundaryState.dampedPosition.toFixed(1),
-          });
-
-          // Use the exact same settle animation as single-gesture mode
-          // Position is now overscrolled (with damping), so spring will animate back
-          settleToResolvedIndex(boundaryState.boundary, () => {
-            // Clean up friction momentum refs
-            activeFrictionMomentumRef.current = null;
-            activeTargetIndexRef.current = null;
-
-            debugPickerLog('BOUNDARY SETTLE COMPLETE', {
-              boundaryIndex: boundaryState.boundaryIndex,
-            });
-
-            onComplete?.();
           });
         },
         snapFunction: (position) => {
@@ -551,8 +580,8 @@ export function usePickerPhysics({
       maxTranslate,
       minTranslate,
       options,
-      constrainMomentumBoundary,
       resolveBoundaryIndex,
+      settleBoundary,
       settleToResolvedIndex,
       stopActiveAnimation,
       yRaw,
