@@ -398,6 +398,24 @@ export function usePickerPhysics({
     ]
   );
 
+  const resolveBoundaryIndex = useCallback(
+    (position: number) => {
+      if (position < minTranslate) return lastIndex;
+      if (position > maxTranslate) return 0;
+      const index = indexFromY(position, itemHeight, maxTranslate);
+      return clampIndex(index, lastIndex);
+    },
+    [itemHeight, lastIndex, maxTranslate, minTranslate]
+  );
+
+  const settleToResolvedIndex = useCallback(
+    (position: number, onComplete?: () => void) => {
+      const targetIndex = resolveBoundaryIndex(position);
+      settleToIndex(targetIndex, onComplete);
+    },
+    [resolveBoundaryIndex, settleToIndex]
+  );
+
   const settleFromY = useCallback(
     (currentY: number, velocity: number, onComplete?: () => void) => {
       // Stop any active animation before starting new one
@@ -412,8 +430,7 @@ export function usePickerPhysics({
 
       // If velocity is negligible, just snap to nearest item immediately
       if (Math.abs(velocity) < 10) {
-        const index = clampIndex(indexFromY(currentY, itemHeight, maxTranslate), lastIndex);
-        settleToIndex(index, onComplete);
+        settleToResolvedIndex(currentY, onComplete);
         return;
       }
 
@@ -466,7 +483,7 @@ export function usePickerPhysics({
           const dampedPosition = applyOverscrollDamping(cappedPosition);
           yRaw.set(dampedPosition);
 
-          const boundaryIndex = boundaryType === 'min' ? lastIndex : 0;
+          const boundaryIndex = resolveBoundaryIndex(boundaryType === 'min' ? minTranslate : maxTranslate);
 
           debugPickerLog('BOUNDARY HIT → SETTLE TO INDEX', {
             boundaryType,
@@ -480,7 +497,7 @@ export function usePickerPhysics({
 
           // Use the exact same settle animation as single-gesture mode
           // Position is now overscrolled (with damping), so spring will animate back
-          settleToIndex(boundaryIndex, () => {
+          settleToResolvedIndex(boundaryType === 'min' ? minTranslate : maxTranslate, () => {
             // Clean up friction momentum refs
             activeFrictionMomentumRef.current = null;
             activeTargetIndexRef.current = null;
@@ -502,7 +519,7 @@ export function usePickerPhysics({
         onComplete: () => {
           // Calculate final index from yRaw position
           const finalY = yRaw.get();
-          const finalIndex = clampIndex(indexFromY(finalY, itemHeight, maxTranslate), lastIndex);
+          const finalIndex = resolveBoundaryIndex(finalY);
 
           debugPickerLog('FRICTION MOMENTUM COMPLETE', {
             finalY: finalY.toFixed(1),
@@ -546,7 +563,8 @@ export function usePickerPhysics({
       maxTranslate,
       minTranslate,
       options,
-      settleToIndex,
+      resolveBoundaryIndex,
+      settleToResolvedIndex,
       stopActiveAnimation,
       yRaw,
     ]
