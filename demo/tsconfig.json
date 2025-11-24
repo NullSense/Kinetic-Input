@@ -23,7 +23,9 @@
     /* Paths */
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@tensil/kinetic-input": ["../packages/number-picker/dist/index.d.ts"],
+      "@tensil/kinetic-input/*": ["../packages/number-picker/dist/*"]
     }
   },
   "include": ["src"],

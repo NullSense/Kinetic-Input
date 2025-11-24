@@ -310,7 +310,7 @@ const gamingTheme = buildTheme({
  */
 export function PresetsGallery() {
   const [selectedPreset, setSelectedPreset] = useState<Preset | null>(null);
-  const [presetValue, setPresetValue] = useState(DEMO_PICKERS.weight.initialValue);
+  const [presetValue, setPresetValue] = useState<number>(DEMO_PICKERS.weight.initialValue);
   const [copiedPresetCode, setCopiedPresetCode] = useState(false);
 
   const copyToClipboard = async (text: string) => {

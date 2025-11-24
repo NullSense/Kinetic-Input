@@ -14,8 +14,8 @@ import { DEMO_PICKERS } from '../config/pickerDefaults';
  * - Feature stats with icons
  */
 export function Hero() {
-  const [weight, setWeight] = useState(DEMO_PICKERS.weight.initialValue);
-  const [reps, setReps] = useState(DEMO_PICKERS.reps.initialValue);
+  const [weight, setWeight] = useState<number>(DEMO_PICKERS.weight.initialValue);
+  const [reps, setReps] = useState<number>(DEMO_PICKERS.reps.initialValue);
 
   const stats = [
     {
