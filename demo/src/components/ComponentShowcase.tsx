@@ -14,8 +14,8 @@ import { TimePickerExample } from './TimePickerExample';
  * - Code snippets (collapsed by default)
  */
 export function ComponentShowcase() {
-  const [weight, setWeight] = useState(DEMO_PICKERS.weight.initialValue);
-  const [distance, setDistance] = useState(DEMO_PICKERS.distance.initialValue);
+  const [weight, setWeight] = useState<number>(DEMO_PICKERS.weight.initialValue);
+  const [distance, setDistance] = useState<number | string>(DEMO_PICKERS.distance.initialValue);
 
   return (
     <section id="components" className="py-16 px-4x bg-bg">

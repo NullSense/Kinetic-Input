@@ -16,9 +16,6 @@ export const DEMO_PICKER_DEFAULTS = {
 
   // Visual
   itemHeight: 40,
-
-  // No backdrop for inline demos
-  showBackdrop: false,
 } as const;
 
 /**

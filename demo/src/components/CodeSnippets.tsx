@@ -199,7 +199,6 @@ export default function App() {
       unit="kg"
       lastValue={lastWeight}
       // Advanced features
-      showBackdrop={true}
       itemHeight={48}
       enableSnapPhysics={true}
       snapPhysicsConfig={{
@@ -221,7 +220,6 @@ export default function App() {
           label="WEIGHT"
           unit="kg"
           lastValue={75}
-          showBackdrop={true}
           itemHeight={48}
           enableSnapPhysics={true}
           snapPhysicsConfig={{

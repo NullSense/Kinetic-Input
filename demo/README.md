@@ -12,6 +12,9 @@ npm run dev:demo
 # Open http://localhost:3001
 ```
 
+The demo is wired directly to the local `packages/number-picker` source (no npm publish required). The `predev` script rebuilds the
+package once so Vite can use the latest local types while runtime imports resolve to the raw source for instant feedback.
+
 ## Full Configuration Example
 
 ### Complete Setup with All Options

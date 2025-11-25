@@ -32,6 +32,16 @@ export interface FrictionMomentumOptions {
   };
 
   /**
+   * Callback when boundary is hit during momentum
+   * Allows caller to handle boundary snap using their own animation logic
+   * If provided, friction momentum will stop and delegate to this callback
+   * @param boundaryType - Which boundary was hit
+   * @param rawPosition - Raw overshot position (BEFORE clamping/damping)
+   *                      Caller should apply their own overscroll damping
+   */
+  onBoundaryHit?: (boundaryType: 'min' | 'max', rawPosition: number) => void;
+
+  /**
    * Function to calculate snap target from current position
    * Called when velocity drops below threshold
    */
@@ -100,6 +110,7 @@ export function animateMomentumWithFriction(
     control,
     initialVelocity,
     bounds,
+    onBoundaryHit,
     snapFunction,
     config,
     onComplete,
@@ -129,9 +140,11 @@ export function animateMomentumWithFriction(
 
   /**
    * Check if position has hit a boundary
-   * Returns { hitBoundary: boolean, clampedPosition: number }
+   * Returns { hitBoundary: boolean, clampedPosition: number, boundaryType?: 'min' | 'max' }
    */
-  const checkBoundary = (pos: number): { hitBoundary: boolean; clampedPosition: number } => {
+  const checkBoundary = (
+    pos: number
+  ): { hitBoundary: boolean; clampedPosition: number; boundaryType?: 'min' | 'max' } => {
     if (pos < bounds.min) {
       debugPickerLog('BOUNDARY HIT', {
         boundary: 'min',
@@ -139,7 +152,7 @@ export function animateMomentumWithFriction(
         bound: bounds.min.toFixed(1),
         velocity: velocity.toFixed(1),
       });
-      return { hitBoundary: true, clampedPosition: bounds.min };
+      return { hitBoundary: true, clampedPosition: bounds.min, boundaryType: 'min' };
     }
     if (pos > bounds.max) {
       debugPickerLog('BOUNDARY HIT', {
@@ -148,7 +161,7 @@ export function animateMomentumWithFriction(
         bound: bounds.max.toFixed(1),
         velocity: velocity.toFixed(1),
       });
-      return { hitBoundary: true, clampedPosition: bounds.max };
+      return { hitBoundary: true, clampedPosition: bounds.max, boundaryType: 'max' };
     }
     return { hitBoundary: false, clampedPosition: pos };
   };
@@ -231,16 +244,45 @@ export function animateMomentumWithFriction(
     let newPos = updatePosition(currentPos, velocity, deltaTime);
 
     // Check boundary collision (iOS: momentum stops at boundaries, no overscroll)
-    const { hitBoundary, clampedPosition } = checkBoundary(newPos);
-    if (hitBoundary) {
-      // Clamp to boundary
-      control.set(clampedPosition);
+    const { hitBoundary, clampedPosition, boundaryType } = checkBoundary(newPos);
+    if (hitBoundary && boundaryType) {
       // Zero velocity - iOS behavior: momentum stops at edges
       velocity = 0;
-      // Immediately snap to nearest item
-      debugPickerLog('BOUNDARY → SNAP', {
+
+      debugPickerLog('BOUNDARY HIT → STOPPING FRICTION', {
+        boundaryType,
+        rawPosition: newPos.toFixed(1),
         clampedPosition: clampedPosition.toFixed(1),
         totalTime: totalTime.toFixed(0) + 'ms',
+      });
+
+      // If boundary hit callback provided, delegate to caller's animation logic
+      // This allows reusing the same settle animation code for both single and multi-gesture
+      if (onBoundaryHit) {
+        // Stop friction animation - caller will handle the bounce-back
+        cancelled = true;
+        if (rafId !== null) {
+          cancelAnimationFrame(rafId);
+          rafId = null;
+        }
+        inFrictionPhase = false;
+
+        debugPickerLog('DELEGATING TO BOUNDARY HIT CALLBACK', {
+          boundaryType,
+          rawPosition: newPos.toFixed(1),
+        });
+
+        // Pass RAW overshot position to caller - they will apply their own damping
+        // This ensures identical overscroll feel for both drag and momentum
+        onBoundaryHit(boundaryType, newPos);
+        return;
+      }
+
+      // Fallback: handle boundary snap internally (legacy path)
+      // Clamp to boundary for internal handling
+      control.set(clampedPosition);
+      debugPickerLog('BOUNDARY → INTERNAL SNAP', {
+        clampedPosition: clampedPosition.toFixed(1),
       });
       transitionToSnap();
       return;
@@ -283,13 +325,15 @@ export function animateMomentumWithFriction(
    * Note: We do NOT pass velocity to the spring to avoid overshoot and bounce.
    * The friction phase provides the momentum feel. The snap phase should be
    * a smooth, consistent settle - matching the behavior of non-flick releases.
+   *
+   * @param explicitTarget - Optional explicit snap target (used for boundaries)
    */
-  const transitionToSnap = (): void => {
+  const transitionToSnap = (explicitTarget?: number): void => {
     if (cancelled) return;
 
     inFrictionPhase = false;
     const currentPos = control.get();
-    const snapTarget = snapFunction(currentPos);
+    const snapTarget = explicitTarget !== undefined ? explicitTarget : snapFunction(currentPos);
     const distanceToSnap = Math.abs(currentPos - snapTarget);
 
     debugPickerLog('SNAP SPRING START', {
@@ -297,6 +341,7 @@ export function animateMomentumWithFriction(
       to: snapTarget.toFixed(1),
       distance: distanceToSnap.toFixed(1) + 'px',
       frictionVelocity: velocity.toFixed(1) + ' px/s (not passed to spring)',
+      explicitTarget: explicitTarget !== undefined,
       spring: snapSpring,
     });
 

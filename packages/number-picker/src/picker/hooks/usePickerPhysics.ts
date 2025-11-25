@@ -10,14 +10,15 @@ import type { PickerOption } from '../PickerGroup';
 import type { SnapPhysicsConfig } from '../types/snapPhysics';
 import {
   DEFAULT_SNAP_PHYSICS,
-  MAX_OVERSCROLL_PIXELS,
   OPENING_DRAG_THRESHOLD_PIXELS,
   CLICK_STEP_THRESHOLD_RATIO,
   TOUCH_TAP_THRESHOLD_RATIO,
   MINIMUM_MOVEMENT_PIXELS,
   DOM_DELTA_MODE,
-  OVERSCROLL_DAMPING_EXPONENT,
   MOMENTUM_PHYSICS,
+  MAX_FLICK_VELOCITY,
+  BOUNDARY_FLICK_VELOCITY_CAP_MULTIPLIER,
+  calculateFlickVelocityScale,
 } from '../../config/physics';
 import { useSnapPhysics } from './useSnapPhysics';
 import { useVirtualWindow } from './useVirtualWindow';
@@ -28,6 +29,12 @@ import {
   animateMomentumWithFriction,
   type FrictionMomentumControls,
 } from '../utils/frictionMomentum';
+import {
+  applyOverscrollDamping as applyOverscrollDampingToPosition,
+  constrainMomentumToBoundary,
+  resolveBoundaryIndex as resolveBoundaryIndexForPosition,
+  type BoundaryConstraints,
+} from '../utils/boundary';
 import {
   createGestureEmitter,
   createVelocityTracker,
@@ -142,6 +149,16 @@ export function usePickerPhysics({
     [height, itemHeight, options.length]
   );
 
+  const boundaryConstraints = useMemo<BoundaryConstraints>(
+    () => ({
+      minTranslate,
+      maxTranslate,
+      itemHeight,
+      lastIndex,
+    }),
+    [itemHeight, lastIndex, maxTranslate, minTranslate]
+  );
+
   const yRaw = useMotionValue(0);
   const ySnap = useMotionValue(0);
 
@@ -216,25 +233,34 @@ export function usePickerPhysics({
     overscan: virtualization.overscan,
   });
 
+  const applyOverscrollDamping = useCallback(
+    (position: number): number =>
+      applyOverscrollDampingToPosition(position, boundaryConstraints),
+    [boundaryConstraints]
+  );
+
+  const resolveBoundaryIndex = useCallback(
+    (position: number) => resolveBoundaryIndexForPosition(position, boundaryConstraints),
+    [boundaryConstraints]
+  );
+
+  const constrainMomentumBoundary = useCallback(
+    (boundaryType: 'min' | 'max', rawPosition: number) =>
+      constrainMomentumToBoundary(boundaryType, rawPosition, boundaryConstraints),
+    [boundaryConstraints]
+  );
+
   const updateScrollerWhileMoving = useCallback(
     (nextTranslate: number) => {
-      let applied = nextTranslate;
-      if (applied < minTranslate) {
-        const distance = minTranslate - applied;
-        const limitedDistance = Math.min(distance, MAX_OVERSCROLL_PIXELS);
-        const overscroll = Math.pow(limitedDistance, OVERSCROLL_DAMPING_EXPONENT);
-        applied = minTranslate - overscroll;
-        if (distance > 0 && !boundaryHitFiredRef.current) {
+      const applied = applyOverscrollDamping(nextTranslate);
+      const didOverscroll = applied !== nextTranslate;
+
+      if (didOverscroll && !boundaryHitFiredRef.current) {
+        if (nextTranslate < minTranslate) {
           const value = options[lastIndex]?.value;
           emitter.boundaryHit('max', value);
           boundaryHitFiredRef.current = true;
-        }
-      } else if (applied > maxTranslate) {
-        const distance = applied - maxTranslate;
-        const limitedDistance = Math.min(distance, MAX_OVERSCROLL_PIXELS);
-        const overscroll = Math.pow(limitedDistance, OVERSCROLL_DAMPING_EXPONENT);
-        applied = maxTranslate + overscroll;
-        if (distance > 0 && !boundaryHitFiredRef.current) {
+        } else if (nextTranslate > maxTranslate) {
           const value = options[0]?.value;
           emitter.boundaryHit('min', value);
           boundaryHitFiredRef.current = true;
@@ -244,8 +270,12 @@ export function usePickerPhysics({
       yRaw.set(applied);
       return applied;
     },
-    [emitter, lastIndex, maxTranslate, minTranslate, options, yRaw]
+    [applyOverscrollDamping, emitter, lastIndex, minTranslate, maxTranslate, options, yRaw]
   );
+
+  const resetBoundaryHit = useCallback(() => {
+    boundaryHitFiredRef.current = false;
+  }, []);
 
   const commitValueAtIndex = useCallback(
     (targetIndex: number) => {
@@ -294,8 +324,28 @@ export function usePickerPhysics({
     finishAnimationInstantly();
   }, [finishAnimationInstantly]);
 
+  const boundarySpring = useMemo(
+    () => ({
+      stiffness: 220,
+      damping: 32,
+      restDelta: 0.35,
+      restSpeed: 9,
+      // Explicitly zero velocity to prevent carry-over from a fast drag/flick
+      // influencing the rebound distance. When the pointer is released while
+      // already overscrolled, the motion value can retain a high velocity
+      // sample; forcing velocity: 0 ensures the boundary settle animation is
+      // purely spring-driven from the damped overscroll position.
+      velocity: 0,
+    }),
+    []
+  );
+
   const settleToIndex = useCallback(
-    (index: number, onComplete?: () => void) => {
+    (
+      index: number,
+      onComplete?: () => void,
+      settleOptions?: { momentum?: boolean; spring?: Parameters<typeof animate>[2] }
+    ) => {
       if (options.length === 0) {
         onComplete?.();
         return;
@@ -333,6 +383,7 @@ export function usePickerPhysics({
         damping: 25,
         restDelta: 0.5,
         restSpeed: 10,
+        ...settleOptions?.spring,
         onComplete: () => {
           // Guard: If this animation was stopped, activeAnimationIdRef will be null/different
           // This check now works correctly even for synchronous completion
@@ -360,7 +411,7 @@ export function usePickerPhysics({
             // Emit settle event (direct settle without momentum)
             const settledValue = options[clampedIndex]?.value;
             if (settledValue !== undefined) {
-              emitter.settle(settledValue, clampedIndex, false);
+              emitter.settle(settledValue, clampedIndex, Boolean(settleOptions?.momentum));
             }
 
             onComplete?.();
@@ -383,6 +434,52 @@ export function usePickerPhysics({
     ]
   );
 
+  const settleToResolvedIndex = useCallback(
+    (position: number, onComplete?: () => void, options?: { momentum?: boolean }) => {
+      const targetIndex = resolveBoundaryIndex(position);
+      settleToIndex(targetIndex, onComplete, options);
+    },
+    [resolveBoundaryIndex, settleToIndex]
+  );
+
+  const settleBoundary = useCallback(
+    (
+      boundaryType: 'min' | 'max',
+      rawPosition: number,
+      options?: { momentum?: boolean; onComplete?: () => void }
+    ) => {
+      // Ensure any running momentum is halted before boundary settling begins.
+      if (activeFrictionMomentumRef.current) {
+        activeFrictionMomentumRef.current.stop();
+        activeFrictionMomentumRef.current = null;
+      }
+
+      const boundaryState = constrainMomentumBoundary(boundaryType, rawPosition);
+
+      // Align the visible overscroll with drag gestures
+      yRaw.set(boundaryState.dampedPosition);
+
+      settleToIndex(
+        boundaryState.boundaryIndex,
+        () => {
+          activeFrictionMomentumRef.current = null;
+          activeTargetIndexRef.current = null;
+
+          options?.onComplete?.();
+        },
+        {
+          ...options,
+          // Overscroll rebounds should be consistent regardless of incoming flick velocity
+          momentum: options?.momentum ?? false,
+          spring: boundarySpring,
+        }
+      );
+
+      return boundaryState;
+    },
+    [boundarySpring, constrainMomentumBoundary, settleToIndex, yRaw]
+  );
+
   const settleFromY = useCallback(
     (currentY: number, velocity: number, onComplete?: () => void) => {
       // Stop any active animation before starting new one
@@ -395,22 +492,108 @@ export function usePickerPhysics({
         maxTranslate,
       });
 
+      const isOutOfBounds = currentY < minTranslate || currentY > maxTranslate;
+      if (isOutOfBounds) {
+        const boundaryType = currentY < minTranslate ? 'min' : 'max';
+        settleBoundary(boundaryType, currentY, {
+          // Ignore flick momentum when already out of bounds to avoid exaggerated rebounds
+          momentum: false,
+          onComplete,
+        });
+        return;
+      }
+
       // If velocity is negligible, just snap to nearest item immediately
       if (Math.abs(velocity) < 10) {
-        const index = clampIndex(indexFromY(currentY, itemHeight, maxTranslate), lastIndex);
-        settleToIndex(index, onComplete);
+        settleToResolvedIndex(currentY, onComplete);
         return;
       }
 
       // Start friction-based momentum animation
-      // Scale velocity to 22% for controlled, precise flick speed
-      // Lower scaling provides more predictable momentum behavior
+      // Scale velocity based on list size (non-linear):
+      // - Larger lists get lower max velocity to prevent overshooting
+      // - Smaller lists get higher max velocity for responsiveness
+      const listSizeScale = calculateFlickVelocityScale(options.length);
+
+      // Input-type-specific multipliers for natural feel
+      // Touch gestures need much higher velocity for satisfying flick physics
+      // Mouse/pen are more precise and need lower velocity to avoid overshooting
+      const inputTypeMultiplier =
+        pointerTypeRef.current === 'touch'
+          ? 1.8 // Touch: aggressive flick feel (mobile/tablet)
+          : pointerTypeRef.current === 'pen'
+            ? 1.2 // Pen: moderate (stylus precision)
+            : 1.0; // Mouse: conservative (precise control)
+
+      const finalVelocityScale = listSizeScale * inputTypeMultiplier;
+
+      const scaledVelocity = clamp(
+        velocity * finalVelocityScale,
+        -MAX_FLICK_VELOCITY,
+        MAX_FLICK_VELOCITY
+      );
+
+      const boundaryVelocityCap = itemHeight * BOUNDARY_FLICK_VELOCITY_CAP_MULTIPLIER;
+      const distanceToMin = Math.abs(currentY - minTranslate);
+      const distanceToMax = Math.abs(currentY - maxTranslate);
+      const nearMinBoundary = currentY < minTranslate || distanceToMin < itemHeight * 2;
+      const nearMaxBoundary = currentY > maxTranslate || distanceToMax < itemHeight * 2;
+      const pushingTowardMin = velocity < 0;
+      const pushingTowardMax = velocity > 0;
+
+      const boundaryClampedVelocity = (() => {
+        if (nearMinBoundary && pushingTowardMin) {
+          return Math.max(-boundaryVelocityCap, scaledVelocity);
+        }
+        if (nearMaxBoundary && pushingTowardMax) {
+          return Math.min(boundaryVelocityCap, scaledVelocity);
+        }
+        return scaledVelocity;
+      })();
+
+      debugPickerLog('FLICK VELOCITY SCALING', {
+        itemCount: options.length,
+        inputType: pointerTypeRef.current,
+        listSizeScale: listSizeScale.toFixed(3),
+        inputTypeMultiplier: inputTypeMultiplier.toFixed(2) + 'x',
+        finalScale: finalVelocityScale.toFixed(3),
+        rawVelocity: velocity.toFixed(1) + ' px/s',
+        scaledVelocity: clamp(velocity * finalVelocityScale, -MAX_FLICK_VELOCITY, MAX_FLICK_VELOCITY)
+          .toFixed(1)
+          .concat(' px/s'),
+        boundaryVelocityCap: boundaryVelocityCap.toFixed(1) + ' px/s',
+        boundaryClampedVelocity: boundaryClampedVelocity.toFixed(1) + ' px/s',
+      });
+
       const controls = animateMomentumWithFriction({
         control: yRaw,
-        initialVelocity: velocity * 0.22,
+        initialVelocity: boundaryClampedVelocity,
         bounds: {
           min: minTranslate,
           max: maxTranslate,
+        },
+        onBoundaryHit: (boundaryType, rawPosition) => {
+          const boundaryState = settleBoundary(boundaryType, rawPosition, {
+            // Drop flick momentum once overscroll occurs so rebound distance stays bounded
+            momentum: false,
+            onComplete: () => {
+              debugPickerLog('BOUNDARY SETTLE COMPLETE', {
+                boundaryIndex: boundaryState.boundaryIndex,
+              });
+
+              onComplete?.();
+            },
+          });
+
+          debugPickerLog('BOUNDARY HIT → SETTLE TO INDEX', {
+            boundaryType,
+            boundaryIndex: boundaryState.boundaryIndex,
+            rawPosition: rawPosition.toFixed(1),
+            overshoot: boundaryState.overshoot.toFixed(1) + 'px',
+            cappedOvershoot: boundaryState.cappedOvershoot.toFixed(1) + 'px',
+            cappedPosition: boundaryState.cappedPosition.toFixed(1),
+            dampedPosition: boundaryState.dampedPosition.toFixed(1),
+          });
         },
         snapFunction: (position) => {
           // Calculate which item index this position corresponds to
@@ -422,7 +605,7 @@ export function usePickerPhysics({
         onComplete: () => {
           // Calculate final index from yRaw position
           const finalY = yRaw.get();
-          const finalIndex = clampIndex(indexFromY(finalY, itemHeight, maxTranslate), lastIndex);
+          const finalIndex = resolveBoundaryIndex(finalY);
 
           debugPickerLog('FRICTION MOMENTUM COMPLETE', {
             finalY: finalY.toFixed(1),
@@ -465,7 +648,9 @@ export function usePickerPhysics({
       maxTranslate,
       minTranslate,
       options,
-      settleToIndex,
+      resolveBoundaryIndex,
+      settleBoundary,
+      settleToResolvedIndex,
       stopActiveAnimation,
       yRaw,
     ]
@@ -474,13 +659,22 @@ export function usePickerPhysics({
   // Track all captured pointer IDs for proper cleanup
   const capturedPointersRef = useRef<Set<number>>(new Set());
 
-  const handlePointerDown = useCallback(
+    const handlePointerDown = useCallback(
     (event: React.PointerEvent<HTMLDivElement>) => {
       const element = event.currentTarget as HTMLElement;
       element.setPointerCapture?.(event.pointerId);
 
       // Track this pointer ID
       capturedPointersRef.current.add(event.pointerId);
+
+      // Clear any active text selection to prevent interference
+      // When text is selected elsewhere on the page, it can block picker interactions
+      if (window.getSelection) {
+        const selection = window.getSelection();
+        if (selection && selection.rangeCount > 0) {
+          selection.removeAllRanges();
+        }
+      }
 
       debugPickerLog('POINTER DOWN', {
         pointerId: event.pointerId,
@@ -500,7 +694,7 @@ export function usePickerPhysics({
       isMovingRef.current = true;
       startPointerYRef.current = event.clientY;
       startTranslateRef.current = yRaw.get();
-      boundaryHitFiredRef.current = false;
+      resetBoundaryHit();
       wasOpenOnPointerDownRef.current = isPickerOpen;
       openingDragThresholdPassedRef.current = isPickerOpen;
       skipClickRef.current = !isPickerOpen;
@@ -511,8 +705,16 @@ export function usePickerPhysics({
       velocityTracker.addSample(event.clientY);
       emitter.dragStart('pointer');
     },
-    [emitter, isPickerOpen, snapPhysics, stopActiveAnimation, velocityTracker, yRaw]
-  );
+      [
+        emitter,
+        isPickerOpen,
+        resetBoundaryHit,
+        snapPhysics,
+        stopActiveAnimation,
+        velocityTracker,
+        yRaw,
+      ]
+    );
 
   const handlePointerMove = useCallback(
     (event: React.PointerEvent<HTMLDivElement>) => {
@@ -783,18 +985,19 @@ export function usePickerPhysics({
     },
     [
       height,
-      itemHeight,
-      lastIndex,
-      maxTranslate,
-      normalizedWheelDeltaCap,
-      normalizedWheelSensitivity,
-      snapEnabled,
-      updateScrollerWhileMoving,
-      velocityTracker,
-      wheelSnapPhysics,
-      yRaw,
-    ]
-  );
+        itemHeight,
+        lastIndex,
+        maxTranslate,
+        normalizedWheelDeltaCap,
+        normalizedWheelSensitivity,
+        resetBoundaryHit,
+        snapEnabled,
+        updateScrollerWhileMoving,
+        velocityTracker,
+        wheelSnapPhysics,
+        yRaw,
+      ]
+    );
 
   const handleWheel = useCallback(
     (event: WheelEvent) => {
@@ -819,7 +1022,7 @@ export function usePickerPhysics({
 
         snapPhysics.reset();
         wheelSnapPhysics.reset();
-        boundaryHitFiredRef.current = false;
+        resetBoundaryHit();
       }
 
       handleWheeling(event);
@@ -850,8 +1053,18 @@ export function usePickerPhysics({
         });
       }, 200);
     },
-    [emitter, handleWheeling, settleFromY, snapPhysics, velocityTracker, wheelSnapPhysics, yRaw]
-  );
+      [
+        emitter,
+        handleWheeling,
+        resetBoundaryHit,
+        settleFromY,
+        snapPhysics,
+        stopActiveAnimation,
+        velocityTracker,
+        wheelSnapPhysics,
+        yRaw,
+      ]
+    );
 
   useEffect(() => {
     return () => {
@@ -883,9 +1096,9 @@ export function usePickerPhysics({
     [stopActiveAnimation]
   );
 
-  useEffect(() => {
-    boundaryHitFiredRef.current = false;
-  }, [options.length]);
+    useEffect(() => {
+      resetBoundaryHit();
+    }, [options.length, resetBoundaryHit]);
 
   const handleClick = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
     debugPickerLog('CLICK', {

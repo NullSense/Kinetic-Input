@@ -97,11 +97,11 @@ export default defineConfig({
     }),
   ],
   resolve: {
-    alias: {
-      '@': path.resolve(__dirname, './src'),
-      '@tensil/kinetic-input': path.resolve(__dirname, '../packages/number-picker/src'),
-      '@tensil/kinetic-input-css': path.resolve(__dirname, '../packages/number-picker/dist'),
-    },
+    alias: [
+      { find: '@', replacement: path.resolve(__dirname, './src') },
+      { find: '@tensil/kinetic-input', replacement: path.resolve(__dirname, '../packages/number-picker/src') },
+      { find: '@tensil/kinetic-input/styles', replacement: path.resolve(__dirname, '../packages/number-picker/src/styles') },
+    ],
   },
   server: {
     port: 3001,
