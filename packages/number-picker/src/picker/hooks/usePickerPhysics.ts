@@ -323,7 +323,7 @@ export function usePickerPhysics({
     (
       index: number,
       onComplete?: () => void,
-      settleOptions?: { momentum?: boolean }
+      settleOptions?: { momentum?: boolean; spring?: Parameters<typeof animate>[2] }
     ) => {
       if (options.length === 0) {
         onComplete?.();
@@ -362,6 +362,7 @@ export function usePickerPhysics({
         damping: 25,
         restDelta: 0.5,
         restSpeed: 10,
+        ...settleOptions?.spring,
         onComplete: () => {
           // Guard: If this animation was stopped, activeAnimationIdRef will be null/different
           // This check now works correctly even for synchronous completion
@@ -426,6 +427,19 @@ export function usePickerPhysics({
       rawPosition: number,
       options?: { momentum?: boolean; onComplete?: () => void }
     ) => {
+      const boundarySpring = {
+        stiffness: 220,
+        damping: 32,
+        restDelta: 0.35,
+        restSpeed: 9,
+      } as const;
+
+      // Ensure any running momentum is halted before boundary settling begins.
+      if (activeFrictionMomentumRef.current) {
+        activeFrictionMomentumRef.current.stop();
+        activeFrictionMomentumRef.current = null;
+      }
+
       const boundaryState = constrainMomentumBoundary(boundaryType, rawPosition);
 
       // Align the visible overscroll with drag gestures
@@ -443,6 +457,7 @@ export function usePickerPhysics({
           ...options,
           // Overscroll rebounds should be consistent regardless of incoming flick velocity
           momentum: options?.momentum ?? false,
+          spring: boundarySpring,
         }
       );
 
