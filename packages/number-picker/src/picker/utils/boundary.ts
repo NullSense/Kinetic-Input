@@ -14,9 +14,12 @@ export interface BoundaryConstraints {
 
 export const MOMENTUM_OVERSHOOT_CAP = 20;
 
+const getMaxOverscrollDistance = (itemHeight: number) =>
+  Math.min(MAX_OVERSCROLL_PIXELS, itemHeight * MAX_OVERSCROLL_RATIO);
+
 export function applyOverscrollDamping(position: number, constraints: BoundaryConstraints): number {
   const { minTranslate, maxTranslate, itemHeight } = constraints;
-  const maxOverscroll = Math.min(MAX_OVERSCROLL_PIXELS, itemHeight * MAX_OVERSCROLL_RATIO);
+  const maxOverscroll = getMaxOverscrollDistance(itemHeight);
 
   if (position < minTranslate) {
     const distance = minTranslate - position;
@@ -54,8 +57,7 @@ export function constrainMomentumToBoundary(
   const { minTranslate, maxTranslate, itemHeight } = constraints;
   const boundary = boundaryType === 'min' ? minTranslate : maxTranslate;
 
-  const maxOvershoot = Math.min(MAX_OVERSCROLL_PIXELS, itemHeight * MAX_OVERSCROLL_RATIO);
-  const overshootLimit = Math.min(overshootCap, maxOvershoot);
+  const overshootLimit = Math.min(overshootCap, getMaxOverscrollDistance(itemHeight));
 
   const overshoot = Math.abs(rawPosition - boundary);
   const cappedOvershoot = Math.min(overshoot, overshootLimit);

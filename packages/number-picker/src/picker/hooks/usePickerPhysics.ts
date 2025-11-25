@@ -273,6 +273,10 @@ export function usePickerPhysics({
     [applyOverscrollDamping, emitter, lastIndex, minTranslate, maxTranslate, options, yRaw]
   );
 
+  const resetBoundaryHit = useCallback(() => {
+    boundaryHitFiredRef.current = false;
+  }, []);
+
   const commitValueAtIndex = useCallback(
     (targetIndex: number) => {
       const option = options[targetIndex];
@@ -319,6 +323,22 @@ export function usePickerPhysics({
     activeAnimationIdRef.current = null;
     finishAnimationInstantly();
   }, [finishAnimationInstantly]);
+
+  const boundarySpring = useMemo(
+    () => ({
+      stiffness: 220,
+      damping: 32,
+      restDelta: 0.35,
+      restSpeed: 9,
+      // Explicitly zero velocity to prevent carry-over from a fast drag/flick
+      // influencing the rebound distance. When the pointer is released while
+      // already overscrolled, the motion value can retain a high velocity
+      // sample; forcing velocity: 0 ensures the boundary settle animation is
+      // purely spring-driven from the damped overscroll position.
+      velocity: 0,
+    }),
+    []
+  );
 
   const settleToIndex = useCallback(
     (
@@ -428,19 +448,6 @@ export function usePickerPhysics({
       rawPosition: number,
       options?: { momentum?: boolean; onComplete?: () => void }
     ) => {
-      const boundarySpring = {
-        stiffness: 220,
-        damping: 32,
-        restDelta: 0.35,
-        restSpeed: 9,
-        // Explicitly zero velocity to prevent carry-over from a fast drag/flick
-        // influencing the rebound distance. When the pointer is released while
-        // already overscrolled, the motion value can retain a high velocity
-        // sample; forcing velocity: 0 ensures the boundary settle animation is
-        // purely spring-driven from the damped overscroll position.
-        velocity: 0,
-      } as const;
-
       // Ensure any running momentum is halted before boundary settling begins.
       if (activeFrictionMomentumRef.current) {
         activeFrictionMomentumRef.current.stop();
@@ -470,7 +477,7 @@ export function usePickerPhysics({
 
       return boundaryState;
     },
-    [constrainMomentumBoundary, settleToIndex, yRaw]
+    [boundarySpring, constrainMomentumBoundary, settleToIndex, yRaw]
   );
 
   const settleFromY = useCallback(
@@ -652,7 +659,7 @@ export function usePickerPhysics({
   // Track all captured pointer IDs for proper cleanup
   const capturedPointersRef = useRef<Set<number>>(new Set());
 
-  const handlePointerDown = useCallback(
+    const handlePointerDown = useCallback(
     (event: React.PointerEvent<HTMLDivElement>) => {
       const element = event.currentTarget as HTMLElement;
       element.setPointerCapture?.(event.pointerId);
@@ -687,7 +694,7 @@ export function usePickerPhysics({
       isMovingRef.current = true;
       startPointerYRef.current = event.clientY;
       startTranslateRef.current = yRaw.get();
-      boundaryHitFiredRef.current = false;
+      resetBoundaryHit();
       wasOpenOnPointerDownRef.current = isPickerOpen;
       openingDragThresholdPassedRef.current = isPickerOpen;
       skipClickRef.current = !isPickerOpen;
@@ -698,8 +705,16 @@ export function usePickerPhysics({
       velocityTracker.addSample(event.clientY);
       emitter.dragStart('pointer');
     },
-    [emitter, isPickerOpen, snapPhysics, stopActiveAnimation, velocityTracker, yRaw]
-  );
+      [
+        emitter,
+        isPickerOpen,
+        resetBoundaryHit,
+        snapPhysics,
+        stopActiveAnimation,
+        velocityTracker,
+        yRaw,
+      ]
+    );
 
   const handlePointerMove = useCallback(
     (event: React.PointerEvent<HTMLDivElement>) => {
@@ -970,18 +985,19 @@ export function usePickerPhysics({
     },
     [
       height,
-      itemHeight,
-      lastIndex,
-      maxTranslate,
-      normalizedWheelDeltaCap,
-      normalizedWheelSensitivity,
-      snapEnabled,
-      updateScrollerWhileMoving,
-      velocityTracker,
-      wheelSnapPhysics,
-      yRaw,
-    ]
-  );
+        itemHeight,
+        lastIndex,
+        maxTranslate,
+        normalizedWheelDeltaCap,
+        normalizedWheelSensitivity,
+        resetBoundaryHit,
+        snapEnabled,
+        updateScrollerWhileMoving,
+        velocityTracker,
+        wheelSnapPhysics,
+        yRaw,
+      ]
+    );
 
   const handleWheel = useCallback(
     (event: WheelEvent) => {
@@ -1006,7 +1022,7 @@ export function usePickerPhysics({
 
         snapPhysics.reset();
         wheelSnapPhysics.reset();
-        boundaryHitFiredRef.current = false;
+        resetBoundaryHit();
       }
 
       handleWheeling(event);
@@ -1037,8 +1053,18 @@ export function usePickerPhysics({
         });
       }, 200);
     },
-    [emitter, handleWheeling, settleFromY, snapPhysics, velocityTracker, wheelSnapPhysics, yRaw]
-  );
+      [
+        emitter,
+        handleWheeling,
+        resetBoundaryHit,
+        settleFromY,
+        snapPhysics,
+        stopActiveAnimation,
+        velocityTracker,
+        wheelSnapPhysics,
+        yRaw,
+      ]
+    );
 
   useEffect(() => {
     return () => {
@@ -1070,9 +1096,9 @@ export function usePickerPhysics({
     [stopActiveAnimation]
   );
 
-  useEffect(() => {
-    boundaryHitFiredRef.current = false;
-  }, [options.length]);
+    useEffect(() => {
+      resetBoundaryHit();
+    }, [options.length, resetBoundaryHit]);
 
   const handleClick = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
     debugPickerLog('CLICK', {
