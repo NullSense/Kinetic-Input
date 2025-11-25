@@ -16,6 +16,7 @@ import {
   MINIMUM_MOVEMENT_PIXELS,
   DOM_DELTA_MODE,
   MOMENTUM_PHYSICS,
+  MAX_FLICK_VELOCITY,
   calculateFlickVelocityScale,
 } from '../../config/physics';
 import { useSnapPhysics } from './useSnapPhysics';
@@ -495,12 +496,20 @@ export function usePickerPhysics({
         inputTypeMultiplier: inputTypeMultiplier.toFixed(2) + 'x',
         finalScale: finalVelocityScale.toFixed(3),
         rawVelocity: velocity.toFixed(1) + ' px/s',
-        scaledVelocity: (velocity * finalVelocityScale).toFixed(1) + ' px/s',
+        scaledVelocity: clamp(velocity * finalVelocityScale, -MAX_FLICK_VELOCITY, MAX_FLICK_VELOCITY)
+          .toFixed(1)
+          .concat(' px/s'),
       });
+
+      const scaledVelocity = clamp(
+        velocity * finalVelocityScale,
+        -MAX_FLICK_VELOCITY,
+        MAX_FLICK_VELOCITY
+      );
 
       const controls = animateMomentumWithFriction({
         control: yRaw,
-        initialVelocity: velocity * finalVelocityScale,
+        initialVelocity: scaledVelocity,
         bounds: {
           min: minTranslate,
           max: maxTranslate,

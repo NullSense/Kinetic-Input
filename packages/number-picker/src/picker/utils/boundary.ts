@@ -1,4 +1,8 @@
-import { MAX_OVERSCROLL_PIXELS, OVERSCROLL_DAMPING_EXPONENT } from '../../config/physics';
+import {
+  MAX_OVERSCROLL_PIXELS,
+  MAX_OVERSCROLL_RATIO,
+  OVERSCROLL_DAMPING_EXPONENT,
+} from '../../config/physics';
 import { clampIndex, indexFromY } from './math';
 
 export interface BoundaryConstraints {
@@ -11,18 +15,19 @@ export interface BoundaryConstraints {
 export const MOMENTUM_OVERSHOOT_CAP = 20;
 
 export function applyOverscrollDamping(position: number, constraints: BoundaryConstraints): number {
-  const { minTranslate, maxTranslate } = constraints;
+  const { minTranslate, maxTranslate, itemHeight } = constraints;
+  const maxOverscroll = Math.min(MAX_OVERSCROLL_PIXELS, itemHeight * MAX_OVERSCROLL_RATIO);
 
   if (position < minTranslate) {
     const distance = minTranslate - position;
-    const limitedDistance = Math.min(distance, MAX_OVERSCROLL_PIXELS);
+    const limitedDistance = Math.min(distance, maxOverscroll);
     const overscroll = Math.pow(limitedDistance, OVERSCROLL_DAMPING_EXPONENT);
     return minTranslate - overscroll;
   }
 
   if (position > maxTranslate) {
     const distance = position - maxTranslate;
-    const limitedDistance = Math.min(distance, MAX_OVERSCROLL_PIXELS);
+    const limitedDistance = Math.min(distance, maxOverscroll);
     const overscroll = Math.pow(limitedDistance, OVERSCROLL_DAMPING_EXPONENT);
     return maxTranslate + overscroll;
   }
@@ -46,11 +51,14 @@ export function constrainMomentumToBoundary(
   constraints: BoundaryConstraints,
   overshootCap: number = MOMENTUM_OVERSHOOT_CAP
 ) {
-  const { minTranslate, maxTranslate } = constraints;
+  const { minTranslate, maxTranslate, itemHeight } = constraints;
   const boundary = boundaryType === 'min' ? minTranslate : maxTranslate;
 
+  const maxOvershoot = Math.min(MAX_OVERSCROLL_PIXELS, itemHeight * MAX_OVERSCROLL_RATIO);
+  const overshootLimit = Math.min(overshootCap, maxOvershoot);
+
   const overshoot = Math.abs(rawPosition - boundary);
-  const cappedOvershoot = Math.min(overshoot, overshootCap);
+  const cappedOvershoot = Math.min(overshoot, overshootLimit);
   const cappedPosition = boundaryType === 'min' ? boundary - cappedOvershoot : boundary + cappedOvershoot;
   const dampedPosition = applyOverscrollDamping(cappedPosition, constraints);
   const boundaryIndex = resolveBoundaryIndex(boundary, constraints);

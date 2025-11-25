@@ -9,23 +9,23 @@
     "demo"
   ],
   "scripts": {
-    "build": "npm run build --workspace=packages/number-picker",
-    "build:demo": "npm run build --workspace=demo",
-    "build:all": "npm run build && npm run build:demo",
-    "dev": "npm run dev:demo",
-    "dev:demo": "npm run dev --workspace=demo",
-    "typecheck": "npm run typecheck --workspaces --if-present",
+    "build": "pnpm --filter @tensil/kinetic-input build",
+    "build:demo": "pnpm --filter kinetic-demo build",
+    "build:all": "pnpm -r run build",
+    "dev": "pnpm run dev:demo",
+    "dev:demo": "pnpm --filter kinetic-demo dev",
+    "typecheck": "pnpm -r --if-present run typecheck",
     "format": "oxfmt .",
     "format:check": "oxfmt --check .",
     "lint": "oxlint .",
     "lint:fix": "oxlint --fix .",
     "lint:dead-code": "knip",
     "lint:dead-code:production": "knip --production",
-    "test": "npm run test --workspace=packages/number-picker",
-    "test:ui": "npm run test:ui --workspace=packages/number-picker",
-    "test:coverage": "npm run test:coverage --workspace=packages/number-picker",
-    "validate": "npm run typecheck && npm run lint && npm run lint:dead-code && npm test",
-    "ci": "npm run validate",
+    "test": "pnpm --filter @tensil/kinetic-input test",
+    "test:ui": "pnpm --filter @tensil/kinetic-input test:ui",
+    "test:coverage": "pnpm --filter @tensil/kinetic-input test:coverage",
+    "validate": "pnpm run typecheck && pnpm run lint && pnpm run lint:dead-code && pnpm test",
+    "ci": "pnpm run validate",
     "prepare": "node -e \"try { require('husky'); process.exit(0); } catch (e) { if (e.code === 'MODULE_NOT_FOUND') process.exit(1); throw e; }\" && husky || true"
   },
   "keywords": [
@@ -79,5 +79,6 @@
     "react-dom": "^19.2.0",
     "react-syntax-highlighter": "^16.1.0",
     "xstate": "^5.24.0"
-  }
+  },
+  "packageManager": "pnpm@10.13.1"
 }

@@ -16,6 +16,8 @@ import type { SnapPhysicsConfig } from '../picker/types/snapPhysics';
  */
 export const MAX_OVERSCROLL_PIXELS = 100;
 
+export const MAX_OVERSCROLL_RATIO = 0.5;
+
 /**
  * Minimum drag distance in pixels before picker opens (prevents accidental opens)
  */
@@ -135,6 +137,8 @@ export const MOMENTUM_PHYSICS = {
    */
   maxDuration: 3000,
 } as const;
+
+export const MAX_FLICK_VELOCITY = 4000;
 
 export type MomentumPhysicsConfig = typeof MOMENTUM_PHYSICS;
 

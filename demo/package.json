@@ -4,9 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "predev": "npm run build --workspace=@tensil/kinetic-input --prefix ..",
+    "predev": "pnpm --filter @tensil/kinetic-input build",
     "dev": "vite",
-    "prebuild": "npm run build --workspace=@tensil/kinetic-input --prefix ..",
+    "prebuild": "pnpm --filter @tensil/kinetic-input build",
     "build": "tsc && vite build",
     "preview": "vite preview"
   },
