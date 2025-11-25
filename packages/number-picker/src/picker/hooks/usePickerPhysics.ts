@@ -17,6 +17,7 @@ import {
   DOM_DELTA_MODE,
   MOMENTUM_PHYSICS,
   MAX_FLICK_VELOCITY,
+  BOUNDARY_FLICK_VELOCITY_CAP_MULTIPLIER,
   calculateFlickVelocityScale,
 } from '../../config/physics';
 import { useSnapPhysics } from './useSnapPhysics';
@@ -513,6 +514,30 @@ export function usePickerPhysics({
 
       const finalVelocityScale = listSizeScale * inputTypeMultiplier;
 
+      const scaledVelocity = clamp(
+        velocity * finalVelocityScale,
+        -MAX_FLICK_VELOCITY,
+        MAX_FLICK_VELOCITY
+      );
+
+      const boundaryVelocityCap = itemHeight * BOUNDARY_FLICK_VELOCITY_CAP_MULTIPLIER;
+      const distanceToMin = Math.abs(currentY - minTranslate);
+      const distanceToMax = Math.abs(currentY - maxTranslate);
+      const nearMinBoundary = currentY < minTranslate || distanceToMin < itemHeight * 2;
+      const nearMaxBoundary = currentY > maxTranslate || distanceToMax < itemHeight * 2;
+      const pushingTowardMin = velocity < 0;
+      const pushingTowardMax = velocity > 0;
+
+      const boundaryClampedVelocity = (() => {
+        if (nearMinBoundary && pushingTowardMin) {
+          return Math.max(-boundaryVelocityCap, scaledVelocity);
+        }
+        if (nearMaxBoundary && pushingTowardMax) {
+          return Math.min(boundaryVelocityCap, scaledVelocity);
+        }
+        return scaledVelocity;
+      })();
+
       debugPickerLog('FLICK VELOCITY SCALING', {
         itemCount: options.length,
         inputType: pointerTypeRef.current,
@@ -523,17 +548,13 @@ export function usePickerPhysics({
         scaledVelocity: clamp(velocity * finalVelocityScale, -MAX_FLICK_VELOCITY, MAX_FLICK_VELOCITY)
           .toFixed(1)
           .concat(' px/s'),
+        boundaryVelocityCap: boundaryVelocityCap.toFixed(1) + ' px/s',
+        boundaryClampedVelocity: boundaryClampedVelocity.toFixed(1) + ' px/s',
       });
-
-      const scaledVelocity = clamp(
-        velocity * finalVelocityScale,
-        -MAX_FLICK_VELOCITY,
-        MAX_FLICK_VELOCITY
-      );
 
       const controls = animateMomentumWithFriction({
         control: yRaw,
-        initialVelocity: scaledVelocity,
+        initialVelocity: boundaryClampedVelocity,
         bounds: {
           min: minTranslate,
           max: maxTranslate,

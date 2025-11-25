@@ -19,6 +19,13 @@ export const MAX_OVERSCROLL_PIXELS = 100;
 export const MAX_OVERSCROLL_RATIO = 1.5;
 
 /**
+ * Caps outward flick speed when the content is already near a boundary.
+ * Prevents extreme momentum from producing exaggerated rebound distances
+ * while preserving faster flicks when scrolling within the valid range.
+ */
+export const BOUNDARY_FLICK_VELOCITY_CAP_MULTIPLIER = 18;
+
+/**
  * Minimum drag distance in pixels before picker opens (prevents accidental opens)
  */
 export const OPENING_DRAG_THRESHOLD_PIXELS = 6;
