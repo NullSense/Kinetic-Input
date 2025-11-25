@@ -433,6 +433,12 @@ export function usePickerPhysics({
         damping: 32,
         restDelta: 0.35,
         restSpeed: 9,
+        // Explicitly zero velocity to prevent carry-over from a fast drag/flick
+        // influencing the rebound distance. When the pointer is released while
+        // already overscrolled, the motion value can retain a high velocity
+        // sample; forcing velocity: 0 ensures the boundary settle animation is
+        // purely spring-driven from the damped overscroll position.
+        velocity: 0,
       } as const;
 
       // Ensure any running momentum is halted before boundary settling begins.
