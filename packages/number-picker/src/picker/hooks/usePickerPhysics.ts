@@ -431,12 +431,20 @@ export function usePickerPhysics({
       // Align the visible overscroll with drag gestures
       yRaw.set(boundaryState.dampedPosition);
 
-      settleToIndex(boundaryState.boundaryIndex, () => {
-        activeFrictionMomentumRef.current = null;
-        activeTargetIndexRef.current = null;
+      settleToIndex(
+        boundaryState.boundaryIndex,
+        () => {
+          activeFrictionMomentumRef.current = null;
+          activeTargetIndexRef.current = null;
 
-        options?.onComplete?.();
-      }, options);
+          options?.onComplete?.();
+        },
+        {
+          ...options,
+          // Overscroll rebounds should be consistent regardless of incoming flick velocity
+          momentum: options?.momentum ?? false,
+        }
+      );
 
       return boundaryState;
     },
@@ -459,7 +467,8 @@ export function usePickerPhysics({
       if (isOutOfBounds) {
         const boundaryType = currentY < minTranslate ? 'min' : 'max';
         settleBoundary(boundaryType, currentY, {
-          momentum: Math.abs(velocity) >= 10,
+          // Ignore flick momentum when already out of bounds to avoid exaggerated rebounds
+          momentum: false,
           onComplete,
         });
         return;
@@ -516,7 +525,8 @@ export function usePickerPhysics({
         },
         onBoundaryHit: (boundaryType, rawPosition) => {
           const boundaryState = settleBoundary(boundaryType, rawPosition, {
-            momentum: true,
+            // Drop flick momentum once overscroll occurs so rebound distance stays bounded
+            momentum: false,
             onComplete: () => {
               debugPickerLog('BOUNDARY SETTLE COMPLETE', {
                 boundaryIndex: boundaryState.boundaryIndex,

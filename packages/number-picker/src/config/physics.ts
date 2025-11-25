@@ -16,7 +16,7 @@ import type { SnapPhysicsConfig } from '../picker/types/snapPhysics';
  */
 export const MAX_OVERSCROLL_PIXELS = 100;
 
-export const MAX_OVERSCROLL_RATIO = 0.5;
+export const MAX_OVERSCROLL_RATIO = 1.5;
 
 /**
  * Minimum drag distance in pixels before picker opens (prevents accidental opens)
